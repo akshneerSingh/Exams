@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#10294f">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Kprim-Übungsprüfung</title>
@@ -1369,42 +1369,428 @@
       .results { display: none !important; }
     }
 
+
+
+
+
+
+
     /* ====================================================================
-       Mobile-Korrektur (nachträglich ergänzt)
+       iPhone-Ebene — Layout, nicht Funktion.
 
-       Die letzte Gestaltungsebene setzt `.layout` ohne Media Query erneut
-       auf zwei Spalten (258px + Rest). Damit wird die frühere Regel
-       `@media (max-width: 920px) { .layout { grid-template-columns: 1fr } }`
-       überschrieben, und die Prüfung lief auf dem Telefon in einer 570px
-       breiten Spalte, die seitlich aus dem Bild ragte.
+       Ziel: die Prüfung soll sich auf dem Telefon wie eine iOS-App anfühlen
+       statt wie eine zusammengeschobene Desktop-Seite. Es wird nichts an der
+       Engine geändert, ausschliesslich an der Darstellung unter 780px.
 
-       Dieser Block steht bewusst am Ende des Stylesheets, damit er gewinnt.
+       Behoben werden:
+       - die Navigationsleiste, die auf zwei Zeilen umbrach
+       - Menüs, die über den linken Bildschirmrand hinausliefen
+       - der Navigator (bei 90 Fragen 13 Reihen), der vor der ersten Frage stand
+       - drei ineinander verschachtelte Kartenebenen pro Aussage
+       - «Zurück / Weiter», das erst nach langem Scrollen erreichbar war
        ==================================================================== */
 
-    @media (max-width: 920px) {
-      .layout { width: 100%; grid-template-columns: minmax(0, 1fr); }
-      .sidebar { position: static; }
-      .question-card { min-height: 0; }
+    @media (max-width: 780px) {
+
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        background: var(--page);
+        font: 17px/1.47 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+        letter-spacing: -0.01em;
+      }
+
+      /* ---------------------------------------------------- Navigationsleiste
+         Drei Zonen wie in UINavigationBar: Zurück · Titel · Aktionen.
+         Feste Spaltenbreiten halten den Titel optisch mittig. */
+      .topbar {
+        padding-top: env(safe-area-inset-top);
+        border-bottom: 0.5px solid var(--line);
+        box-shadow: none;
+      }
+      .topbar__inner {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 2px;
+        min-height: 44px;
+        padding: 0 8px;
+      }
+      .brand { flex: 1 1 auto; min-width: 0; text-align: left; }
+      .brand__eyebrow, .brand__subtitle { display: none; }
+      .brand__title {
+        max-width: 100%;
+        font-size: 17px; font-weight: 600; letter-spacing: -0.02em;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .stats { display: none; }
+      .topbar__spacer { display: none; }
+
+      /* Buttons in der Leiste: getönte Glyphen ohne Rahmen. */
+      .top-action {
+        min-width: 40px; min-height: 40px;
+        padding: 0 6px;
+        border: 0; border-radius: 8px;
+        background: none;
+        font-size: 17px; font-weight: 400;
+      }
+      .top-action:hover, .top-action:active { background: none; }
+      .top-action--back { font-size: 22px; }
+      .top-action--icon { font-size: 19px; }
+      .top-action--primary {
+        min-width: 0; padding: 0 4px;
+        color: var(--focus); background: none;
+        font-size: 17px; font-weight: 400;
+      }
+      .top-action--primary:hover { color: var(--focus); background: none; }
+      .menu__caret { display: none; }
+      #examMenu, #settingsMenu { display: flex; }
+
+      .progress { height: 2px; }
+
+      /* ---------------------------------------------------- Menüs als Blatt
+         Vorher an den Button gehängt und links aus dem Bild gelaufen.
+         Jetzt über die volle Breite unter der Leiste. */
+      .menu__list {
+        position: fixed;
+        top: calc(env(safe-area-inset-top) + 50px);
+        left: 10px; right: 10px;
+        width: auto; min-width: 0; max-width: none;
+        max-height: min(70vh, 520px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 14px;
+        box-shadow: 0 12px 44px rgba(0,0,0,.34);
+      }
+      .menu__item { min-height: 46px; }
+
+      /* ---------------------------------------------------- Seitenaufbau
+         Die Frage kommt zuerst, der Navigator darunter. */
+      .layout {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0 0 calc(env(safe-area-inset-bottom) + 8px);
+      }
+      /* Flex-Kinder bekommen min-width:auto, und der Navigator mit seinen
+         nicht umbrechenden Filtern zieht die Seite sonst auf Inhaltsbreite. */
+      .layout > * { min-width: 0; max-width: 100%; }
+      .layout > .quiz:not(.sidebar) { order: 1; }
+      .sidebar { order: 2; position: static; width: 100%; min-width: 0; margin-top: 22px; }
+      .results, .review { order: 3; }
+
+      /* ---------------------------------------------------- Fragekarte
+         Auf dem Telefon ist die Seite die Karte. Kein Rahmen, kein Schatten,
+         keine Rundung — sonst entsteht eine Karte in einer Karte. */
+      .question-card {
+        min-height: 0;
+        margin: 0;
+        padding: 14px 16px 0;
+        border: 0; border-radius: 0;
+        background: none; box-shadow: none;
+      }
+
+      /* Kopfzeile der Frage: «Frage 01 · 1 / 90» links, Markieren rechts,
+         darunter eine einzelne, gekürzte Zeile mit Block und Kategorie. */
+      .question-meta {
+        display: flex; flex-wrap: wrap; align-items: center;
+        gap: 4px 8px;
+        margin-bottom: 15px;
+      }
+      .question-number { order: 1; flex: 1 1 auto; font-size: 13px; font-weight: 600; }
+      .question-meta .tag {
+        order: 3;
+        max-width: 100%;
+        padding: 0;
+        border: 0; border-radius: 0;
+        background: none; color: var(--muted);
+        font-size: 12.5px; font-weight: 500;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      html[data-theme="dark"] .question-meta .tag { background: none; }
+      .question-meta .tag--block { flex: 0 1 auto; }
+      .question-meta .tag--block::after { content: " ·"; }
+      .question-meta .tag--repeat { color: var(--bad); }
+      .flag-button {
+        order: 2;
+        min-height: 32px;
+        margin-left: auto;
+        padding: 5px 11px;
+        border-radius: 999px;
+        font-size: 13px;
+      }
+
+      .prompt-label {
+        margin: 0 0 5px;
+        font-size: 12px; font-weight: 600;
+        letter-spacing: .05em; text-transform: uppercase;
+      }
+      .stem {
+        margin: 0 0 18px;
+        font-size: 22px; font-weight: 700;
+        line-height: 1.24; letter-spacing: -0.022em;
+        overflow-wrap: break-word;
+      }
+
+      /* ---------------------------------------------------- Aussagen
+         Eine gruppierte Liste statt vier einzelner Karten. */
+      .statements {
+        display: flex; flex-direction: column;
+        gap: 0;
+        border-radius: 12px;
+        background: var(--paper);
+        overflow: hidden;
+      }
+      .statement {
+        display: grid;
+        grid-template-columns: 23px minmax(0, 1fr);
+        gap: 0 9px;
+        align-items: start;
+        min-height: 0;
+        margin: 0;
+        padding: 15px 15px 14px;
+        border: 0; border-radius: 0;
+        border-top: 0.5px solid var(--line);
+        background: none;
+        box-shadow: none;
+        transition: none;
+      }
+      .statement:first-child { border-top: 0; }
+      /* Die Farbfläche pro Aussage entfällt — die farbige Kante an der
+         Begründung trägt die Information bereits. Höhere Spezifität nötig,
+         weil die Dunkelmodus-Regeln mit html[data-theme] qualifiziert sind. */
+      html .statement.is-correct,
+      html .statement.is-wrong,
+      html[data-theme="dark"] .statement.is-correct,
+      html[data-theme="dark"] .statement.is-wrong {
+        border-color: var(--line);
+        background: none;
+        box-shadow: none;
+      }
+      .statement:hover { border-color: var(--line); background: none; box-shadow: none; }
+
+      .statement__number {
+        grid-column: 1; grid-row: 1;
+        width: 23px; height: 23px;
+        margin: 1px 0 0;
+        border: 0; border-radius: 999px;
+        color: var(--muted); background: var(--blue-soft);
+        font-size: 12px; font-weight: 600;
+        display: inline-grid; place-items: center;
+      }
+      .statement__text {
+        grid-column: 2; grid-row: 1;
+        display: block;
+        padding: 0;
+        font-size: 16.5px; line-height: 1.4; letter-spacing: -0.012em;
+        overflow-wrap: break-word;
+      }
+
+      /* Segmented control in iOS-Proportionen. */
+      .choice-group {
+        grid-column: 1 / -1;
+        display: flex;
+        width: 100%;
+        margin-top: 12px;
+        padding: 2px;
+        gap: 2px;
+        border: 0; border-radius: 9px;
+        background: var(--blue-soft);
+      }
+      .choice {
+        flex: 1 1 0; min-width: 0;
+        min-height: 36px;
+        padding: 6px 8px;
+        border: 0; border-radius: 7px;
+        font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+      }
+      .choice__symbol { margin-right: 4px; opacity: .75; }
+
+      /* Rückmeldung: eingerückter Absatz mit farbiger Kante, keine Karte. */
+      .feedback {
+        grid-column: 1 / -1;
+        margin: 13px 0 1px;
+        padding: 0 0 0 11px;
+        border: 0; border-left: 2.5px solid var(--line);
+        border-radius: 0;
+        background: none;
+      }
+      .statement.is-correct .feedback { border-left-color: var(--ok); }
+      .statement.is-wrong .feedback { border-left-color: var(--bad); }
+      .statement__status {
+        margin-bottom: 3px;
+        font-size: 12.5px; font-weight: 600; letter-spacing: .01em;
+      }
+      .statement__status i {
+        width: 15px; height: 15px;
+        margin-right: 5px;
+        font-size: 10px;
+      }
+      .feedback__copy {
+        font-size: 14.5px; line-height: 1.42;
+        overflow-wrap: break-word;
+      }
+      .feedback__label { font-size: 12.5px; }
+
+      /* ---------------------------------------------------- Ergebnis der Frage */
+      .result {
+        margin-top: 16px;
+        padding: 14px 15px;
+        border-radius: 12px;
+      }
+      .result__summary { gap: 12px; align-items: center; }
+      .result__score {
+        width: 46px; height: 46px;
+        flex: 0 0 46px;
+        font-size: 17px; font-weight: 700;
+      }
+      .result__title { font-size: 15.5px; font-weight: 650; letter-spacing: -0.01em; }
+      .result__detail { font-size: 13px; }
+      .result__meter { margin-top: 11px; }
+
+      /* ---------------------------------------------------- Prüfen-Knopf
+         Direkt unter der letzten Aussage, über die volle Breite. */
+      .actions:has(#submitButton) {
+        margin-top: 14px;
+        padding: 0;
+      }
+      .actions:has(#submitButton) .actions__spacer { display: none; }
+      #submitButton {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 12px;
+        font-size: 17px; font-weight: 600; letter-spacing: -0.01em;
+      }
+
+      /* ---------------------------------------------------- Fusszeile
+         Zurück / Weiter bleibt am unteren Rand in Daumenreichweite. */
+      .actions:has(#previousButton) {
+        position: sticky;
+        bottom: 0;
+        z-index: 8;
+        margin: 20px -16px 0;
+        padding: 8px 16px calc(env(safe-area-inset-bottom) + 8px);
+        display: flex; align-items: center; gap: 10px;
+        border-top: 0.5px solid var(--line);
+        background: var(--page);
+      }
+      .actions:has(#previousButton) .actions__spacer { display: block; flex: 1; }
+      .actions:has(#previousButton) .button {
+        min-height: 44px;
+        padding: 10px 18px;
+        border-radius: 11px;
+        font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+      }
+      #nextButton, #finishButton { min-width: 132px; }
+      #previousButton { border: 0; background: none; }
+      #previousButton:disabled { opacity: .3; }
+
+      .hint {
+        background: none;
+        margin: 14px 0 0;
+        padding: 0 2px;
+        font-size: 12.5px; line-height: 1.4; text-align: left;
+      }
+
+      /* ---------------------------------------------------- Navigator
+         Steht jetzt unter der Frage und ist in der Höhe gedeckelt,
+         damit 90 Fragen die Seite nicht zur Endlosliste machen. */
+      .sidebar .panel {
+        margin: 0;
+        padding: 16px 16px 14px;
+        border: 0; border-top: 0.5px solid var(--line); border-radius: 0;
+        background: none; box-shadow: none;
+        -webkit-backdrop-filter: none; backdrop-filter: none;
+      }
+      .panel__label {
+        margin: 0 0 8px;
+        font-size: 12px; font-weight: 600;
+        letter-spacing: .05em; text-transform: uppercase;
+      }
+      .filters {
+        min-width: 0;
+        margin-bottom: 16px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .filters::-webkit-scrollbar { display: none; }
+      .filter { flex: 0 0 auto; min-width: 42px; font-size: 14px; }
+
+      .question-grid {
+        grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+        gap: 7px;
+        max-height: 33vh;
+        padding-right: 2px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+      .question-dot, .question-grid > button {
+        width: auto; height: auto;
+        aspect-ratio: 1;
+        min-width: 0;
+        font-size: 13px;
+      }
+      .legend {
+        margin-top: 14px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px;
+        font-size: 12px;
+      }
+
+      /* ---------------------------------------------------- Ergebnis- und
+         Lösungsansicht */
+      .results-panel, .review-panel {
+        margin: 0;
+        padding: 16px;
+        border: 0; border-radius: 0;
+        box-shadow: none;
+      }
+      .review-head { flex-wrap: wrap; gap: 9px; }
+      .review-head h2 { font-size: 21px; letter-spacing: -0.02em; }
+      .review-head .button { flex: 1 1 140px; min-height: 44px; border-radius: 11px; }
+      .review-head .actions__spacer { display: none; }
+      /* ---------------------------------------------------- Dunkelmodus
+         Die Regeln der Gestaltungsebenen sind mit html[data-theme="dark"]
+         qualifiziert und schlagen damit die unqualifizierten Regeln oben.
+         Hier werden genau die Eigenschaften nachgezogen, die anders sein
+         sollen — nicht die Farbwerte selbst. */
+      html[data-theme="dark"] .top-action,
+      html[data-theme="dark"] .top-action:hover {
+        background: none;
+      }
+      html[data-theme="dark"] .top-action--primary,
+      html[data-theme="dark"] .top-action--primary:hover {
+        color: var(--focus); background: none;
+      }
+      html[data-theme="dark"] .question-meta .tag,
+      html[data-theme="dark"] .question-meta .tag--block {
+        color: var(--muted); background: none;
+      }
+      html[data-theme="dark"] .statement,
+      html[data-theme="dark"] .statement.is-correct,
+      html[data-theme="dark"] .statement.is-wrong,
+      html[data-theme="dark"] .statement:has(.choice:not(:disabled)):hover {
+        background: none; box-shadow: none;
+      }
+      html[data-theme="dark"] .statements { background: #1c1c1e; }
+      html[data-theme="dark"] .feedback { border-color: var(--line); }
+      html[data-theme="dark"] .statement.is-correct .feedback { border-left-color: var(--ok); }
+      html[data-theme="dark"] .statement.is-wrong .feedback { border-left-color: var(--bad); }
+      html[data-theme="dark"] .actions:has(#previousButton) { background: var(--page); }
+      html[data-theme="dark"] #previousButton { background: none; }
+      html[data-theme="dark"] .sidebar .panel { background: none; }
     }
 
-    @media (max-width: 650px) {
-      .statement { grid-template-columns: 32px minmax(0, 1fr); }
-      .choice-group { grid-column: 1 / -1; width: 100%; margin-top: 4px; }
-      .choice { flex: 1 1 0; min-width: 0; }
-      .feedback { grid-column: 1 / -1; }
-      .actions { flex-wrap: wrap; }
-      .actions .button { flex: 1 1 130px; }
+    /* Sehr schmale Geräte (iPhone SE): eine Stufe kleiner. */
+    @media (max-width: 380px) {
+      .stem { font-size: 20px; }
+      .statement__text { font-size: 15.5px; }
+      .choice { font-size: 14px; }
+      #nextButton, #finishButton { min-width: 112px; }
     }
-
-    /* Lange Fachbegriffe (Glycerinaldehyd-3-phosphat-Dehydrogenase …)
-       dürfen die Spalte nicht sprengen. */
-    .stem, .statement__text, .feedback__copy, .review-statement, .review-explanation {
-      overflow-wrap: break-word;
-    }
-
-    /* Safe Area am Notch und am unteren Rand respektieren. */
-    .topbar { padding-top: env(safe-area-inset-top); }
-    .layout { padding-bottom: calc(env(safe-area-inset-bottom) + 24px); }
 
   </style>
 </head>
@@ -2706,7 +3092,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${escapeHtml(heading)}</title>
 <style>
   :root { --line: #d5d9e0; --ink: #101828; --muted: #5f6b7a; --ok: #18794e; --bad: #b42318; }
