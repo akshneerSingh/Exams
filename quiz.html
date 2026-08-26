@@ -1792,6 +1792,51 @@
       #nextButton, #finishButton { min-width: 112px; }
     }
 
+    /* Einzige Abweichung vom Original: App-Navigation unten auf dem Telefon. */
+    @media (max-width: 780px) {
+      body { padding-bottom: calc(54px + env(safe-area-inset-bottom)); }
+
+      .topbar {
+        position: fixed;
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding-top: 0;
+        padding-bottom: env(safe-area-inset-bottom);
+        border-top: .5px solid var(--line);
+        border-bottom: 0;
+      }
+
+      .topbar__inner { min-height: 52px; }
+
+      .progress {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+      }
+
+      .menu__list,
+      .menu__list--down,
+      .menu__list--right {
+        top: auto;
+        right: 10px;
+        bottom: calc(58px + env(safe-area-inset-bottom));
+        left: 10px;
+      }
+
+      .actions:has(#previousButton) {
+        bottom: calc(52px + env(safe-area-inset-bottom));
+        padding-bottom: 8px;
+      }
+    }
+
+    @media print and (max-width: 780px) {
+      body { padding-bottom: 0; }
+    }
+
   </style>
 </head>
 <body>
