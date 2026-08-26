@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Kprim-Übungsprüfung</title>
-  <style>
+  <style media="not all">
     :root {
       --navy: #1a3a6b;
       --navy-dark: #10294f;
@@ -2433,6 +2433,7 @@
     }
 
   </style>
+  <link rel="stylesheet" href="ios.css">
 </head>
 <body>
   <header class="topbar">
@@ -2488,9 +2489,19 @@
     <div class="progress" aria-hidden="true"><div class="progress__bar" id="progressBar"></div></div>
   </header>
 
+  <button class="sheet-backdrop" id="navigatorBackdrop" type="button" aria-label="Fragenübersicht schließen" hidden></button>
+
   <main class="layout">
     <div class="quiz sidebar">
-      <aside class="panel" aria-label="Fragennavigation">
+      <aside class="panel" id="questionNavigator" aria-label="Fragennavigation">
+        <div class="sheet-grabber" aria-hidden="true"></div>
+        <div class="sheet-head">
+          <div>
+            <div class="sheet-head__eyebrow">Prüfung</div>
+            <h2 class="sheet-head__title">Fragenübersicht</h2>
+          </div>
+          <button class="sheet-done" id="navigatorCloseButton" type="button">Fertig</button>
+        </div>
         <div class="sidebar-summary" aria-label="Fortschritt">
           <div class="sidebar-summary__top">
             <div>
@@ -2934,6 +2945,8 @@
             state.current = Number(button.dataset.position);
             renderGrid();
             renderQuestion();
+            setNavigatorOpen(false);
+            $("#navigatorButton")?.focus();
             window.scrollTo({ top: 0, behavior: "smooth" });
           });
         });
@@ -3040,8 +3053,9 @@
           <p class="prompt-label">Beurteilen Sie jede Aussage unabhängig</p>
           <h1 class="stem">${escapeHtml(q.stem)}</h1>
           <div class="statements">${rows}</div>
-          ${answered ? result : `<div class="actions"><div class="actions__spacer"></div><button class="button${complete ? " is-ready" : ""}" id="submitButton" type="button" ${complete ? "" : "disabled"}>${complete ? "Antworten prüfen" : `${remaining} ${remaining === 1 ? "Aussage" : "Aussagen"} noch offen`}</button></div>`}
-          <div class="actions">
+          ${answered ? result : `<div class="actions actions--submit"><div class="actions__spacer"></div><button class="button${complete ? " is-ready" : ""}" id="submitButton" type="button" ${complete ? "" : "disabled"}>${complete ? "Antworten prüfen" : `${remaining} ${remaining === 1 ? "Aussage" : "Aussagen"} noch offen`}</button></div>`}
+          <div class="actions actions--navigation">
+            <button class="button button--secondary button--overview" id="navigatorButton" type="button" aria-controls="questionNavigator" aria-expanded="false"><span aria-hidden="true">▦</span> Übersicht</button>
             <button class="button button--secondary" id="previousButton" type="button" ${position <= 0 ? "disabled" : ""}>← Zurück</button>
             <div class="actions__spacer"></div>
             ${position >= visible.length - 1
@@ -3060,6 +3074,7 @@
         });
 
         $("#flagButton").addEventListener("click", () => toggleFlag(item.q));
+        $("#navigatorButton").addEventListener("click", () => setNavigatorOpen(true));
 
         const submit = $("#submitButton");
         if (submit) submit.addEventListener("click", () => {
@@ -3906,6 +3921,18 @@ ${buildApkg.toString()}
         return `${base}_${EXPORT_SCOPES[scope].file}_${date}.html`;
       }
 
+      function setNavigatorOpen(open) {
+        const backdrop = $("#navigatorBackdrop");
+        document.body.classList.toggle("is-navigator-open", open);
+        if (backdrop) backdrop.hidden = !open;
+        const trigger = $("#navigatorButton");
+        if (trigger) trigger.setAttribute("aria-expanded", String(open));
+        if (open) {
+          closeMenus();
+          window.setTimeout(() => $("#navigatorCloseButton")?.focus(), 0);
+        }
+      }
+
       function closeMenus(except) {
         document.querySelectorAll(".menu").forEach((menu) => {
           if (menu === except) return;
@@ -4193,6 +4220,7 @@ ${buildApkg.toString()}
       }
 
       function setView(view) {
+        setNavigatorOpen(false);
         state.view = view;
         document.body.classList.toggle("is-review", view === "review");
         document.body.classList.toggle("is-results", view === "results");
@@ -4238,6 +4266,14 @@ ${buildApkg.toString()}
 
         bindMenu("examMenu");
         bindMenu("settingsMenu");
+        $("#navigatorBackdrop").addEventListener("click", () => {
+          setNavigatorOpen(false);
+          $("#navigatorButton")?.focus();
+        });
+        $("#navigatorCloseButton").addEventListener("click", () => {
+          setNavigatorOpen(false);
+          $("#navigatorButton")?.focus();
+        });
         $("#settingsMenuList").querySelectorAll("[data-theme-mode]").forEach((item) => {
           item.addEventListener("click", () => {
             closeMenus();
@@ -4268,6 +4304,11 @@ ${buildApkg.toString()}
 
         document.addEventListener("keydown", (event) => {
           if (event.key === "Escape") {
+            if (document.body.classList.contains("is-navigator-open")) {
+              setNavigatorOpen(false);
+              $("#navigatorButton")?.focus();
+              return;
+            }
             const open = [...document.querySelectorAll(".menu__list")].some((list) => !list.hidden);
             if (open) { closeMenus(); return; }
           }
