@@ -2123,6 +2123,7 @@
           renderGrid();
           updateStats();
           if (roundComplete(activeRound())) setView("results");
+          else window.scrollTo({ top: 0, behavior: "smooth" });
         });
 
         $("#previousButton").addEventListener("click", () => {
@@ -2130,6 +2131,7 @@
             state.current = visible[position - 1];
             renderGrid();
             renderQuestion();
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }
         });
         const nextButton = $("#nextButton");
@@ -2138,6 +2140,7 @@
             state.current = visible[position + 1];
             renderGrid();
             renderQuestion();
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }
         });
         const finishButton = $("#finishButton");
