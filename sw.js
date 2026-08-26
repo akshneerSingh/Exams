@@ -1,7 +1,7 @@
 /* Offline-Cache für die App-Hülle.
    Bei jeder Änderung an index.html, quiz.html oder ios.css die VERSION erhöhen,
    sonst liefert das iPhone weiter die alte Fassung aus dem Cache. */
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = "pruefungen-" + VERSION;
 
 const SHELL = [
