@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#10294f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Übungsprüfungen</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --navy: #1a3a6b;
+      --navy-dark: #10294f;
+      --blue-soft: #eef2f8;
+      --blue-head: #dbe3ef;
+      --ink: #101828;
+      --muted: #5f6b7a;
+      --line: #c8d2e0;
+      --paper: #ffffff;
+      --page: #f3f6fa;
+      --ok: #18794e;
+      --ok-soft: #e9f7ef;
+      --bad: #b42318;
+      --bad-soft: #fff0ee;
+      --focus: #2d70c9;
+      --shadow: 0 10px 30px rgba(16, 41, 79, 0.08);
+      --radius: 14px;
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --navy: #0a84ff;
+      --navy-dark: #409cff;
+      --blue-soft: #10263c;
+      --blue-head: #182b40;
+      --ink: #f5f5f7;
+      --muted: #a1a1a6;
+      --line: #38383a;
+      --paper: #1c1c1e;
+      --page: #000000;
+      --ok: #30d158;
+      --ok-soft: #142b1a;
+      --bad: #ff6961;
+      --bad-soft: #321817;
+      --focus: #0a84ff;
+      --shadow: 0 2px 7px rgba(0,0,0,.2), 0 20px 55px rgba(0,0,0,.34);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      font-family: "DejaVu Sans", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-text-size-adjust: 100%;
+    }
+    button, input, textarea { font: inherit; }
+    button:focus-visible, a:focus-visible, summary:focus-visible {
+      outline: 3px solid rgba(45,112,201,.35); outline-offset: 2px;
+    }
+    [hidden] { display: none !important; }
+
+    /* ---------------------------------------------------------- topbar */
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      color: white; background: var(--navy-dark);
+      padding-top: env(safe-area-inset-top);
+      box-shadow: 0 3px 18px rgba(16,41,79,.25);
+    }
+    html[data-theme="dark"] .topbar {
+      background: rgba(28,28,30,.86);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--line);
+      box-shadow: none;
+    }
+    .topbar__inner {
+      width: min(1000px, 100%); margin: 0 auto; min-height: 68px;
+      padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+    }
+    .brand__eyebrow { color: rgba(255,255,255,.66); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+    .brand__title { font-weight: 760; font-size: 19px; letter-spacing: .01em; }
+    html[data-theme="dark"] .brand__title { color: var(--ink); }
+    html[data-theme="dark"] .brand__eyebrow { color: var(--muted); }
+    .topbar__spacer { flex: 1; }
+    .top-action {
+      min-height: 38px; padding: 7px 12px;
+      border: 1px solid rgba(255,255,255,.25); border-radius: 9px;
+      color: white; background: rgba(255,255,255,.08);
+      cursor: pointer; font-size: 13px; font-weight: 700;
+    }
+    .top-action:hover { background: rgba(255,255,255,.16); }
+    html[data-theme="dark"] .top-action { color: #64a9f3; border-color: var(--line); background: transparent; }
+
+    /* ---------------------------------------------------------- layout */
+    .layout {
+      width: min(1000px, 100%); margin: 22px auto 60px;
+      padding: 0 20px calc(env(safe-area-inset-bottom) + 12px);
+      display: grid; gap: 18px;
+    }
+    .panel {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel__head {
+      padding: 14px 18px; border-bottom: 1px solid var(--line);
+      background: var(--blue-soft);
+      display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    }
+    .panel__title { font-weight: 760; font-size: 14px; letter-spacing: .01em; }
+    .panel__meta { color: var(--muted); font-size: 12px; }
+    .panel__body { padding: 18px; }
+
+    /* ---------------------------------------------------------- exam list */
+    .exams { display: grid; gap: 12px; }
+    .exam {
+      display: grid; gap: 10px;
+      padding: 15px 16px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--paper);
+    }
+    .exam__main {
+      display: block; text-decoration: none; color: inherit;
+      border: 0; padding: 0; margin: 0; background: none;
+      text-align: left; cursor: pointer; width: 100%;
+    }
+    .exam__title { font-weight: 720; font-size: 16px; line-height: 1.3; }
+    .exam__subtitle { margin-top: 3px; color: var(--muted); font-size: 12.5px; }
+    .exam__tags { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      padding: 3px 9px; border-radius: 999px;
+      border: 1px solid var(--line); background: var(--blue-soft);
+      color: var(--muted); font-size: 11.5px; white-space: nowrap;
+    }
+    .tag--done { border-color: transparent; background: var(--ok-soft); color: var(--ok); font-weight: 700; }
+    .bar { height: 5px; border-radius: 999px; background: var(--blue-head); overflow: hidden; }
+    .bar__fill { height: 100%; width: 0; background: var(--navy); transition: width .25s ease; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 42px; padding: 9px 16px;
+      border: 1px solid var(--line); border-radius: 10px;
+      color: var(--ink); background: var(--paper);
+      text-decoration: none; cursor: pointer;
+      font-size: 13.5px; font-weight: 700; text-align: center;
+    }
+    .btn:hover { border-color: #9eb2cb; background: var(--blue-soft); }
+    .btn--primary { border-color: var(--navy); color: white; background: var(--navy); }
+    .btn--primary:hover { border-color: var(--navy-dark); color: white; background: var(--navy-dark); }
+    .btn--wide { width: 100%; }
+
+    /* Zweitrangige Aktionen bleiben absichtlich leise. */
+    .exam__more {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line); padding-top: 4px;
+    }
+    .linkbtn {
+      min-height: 38px; padding: 6px 2px; border: 0; background: none;
+      color: var(--muted); cursor: pointer;
+      font-size: 12.5px; font-weight: 600; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .linkbtn:hover { color: var(--ink); text-decoration: underline; }
+    .linkbtn--danger:hover { color: var(--bad); }
+
+    /* ---------------------------------------------------------- empty */
+    .empty { padding: 30px 18px; text-align: center; color: var(--muted); }
+    .empty__title { color: var(--ink); font-weight: 720; font-size: 16px; }
+    .empty__text { margin: 8px auto 0; max-width: 44ch; font-size: 13.5px; }
+
+    /* ---------------------------------------------------------- import */
+    .routes { display: grid; gap: 14px; }
+    .route { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .route > summary {
+      padding: 13px 16px; cursor: pointer; list-style: none;
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 14px; background: var(--blue-soft);
+    }
+    .route > summary::-webkit-details-marker { display: none; }
+    .route > summary::after { content: "＋"; margin-left: auto; color: var(--muted); font-weight: 400; }
+    .route[open] > summary::after { content: "－"; }
+    .route__body { padding: 15px 16px; display: grid; gap: 11px; }
+    .route__hint { color: var(--muted); font-size: 12.5px; }
+    textarea {
+      width: 100%; min-height: 130px; padding: 11px 12px;
+      border: 1px solid var(--line); border-radius: 10px;
+      color: var(--ink); background: var(--page);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12.5px; resize: vertical;
+    }
+    input[type="file"] { font-size: 13px; }
+    input[type="url"] {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: 10px;
+      color: var(--ink); background: var(--page); font-size: 13.5px;
+    }
+
+    .note {
+      margin-top: 4px; padding: 11px 13px; border-radius: 10px;
+      border: 1px solid var(--line); font-size: 13px;
+    }
+    .note--ok { border-color: transparent; background: var(--ok-soft); color: var(--ok); }
+    .note--bad { border-color: transparent; background: var(--bad-soft); color: var(--bad); }
+
+    .footnote { color: var(--muted); font-size: 12px; text-align: center; }
+    .footnote code {
+      padding: 1px 5px; border-radius: 5px;
+      background: var(--blue-soft); font-size: 11.5px;
+    }
+
+    @media (max-width: 560px) {
+      .topbar__inner, .layout { padding-left: 14px; padding-right: 14px; }
+      .brand__title { font-size: 17px; }
+      .panel__body, .route__body { padding: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <div class="brand__eyebrow">ETH Medizin</div>
+        <div class="brand__title">Übungsprüfungen</div>
+      </div>
+      <div class="topbar__spacer"></div>
+      <button class="top-action" id="themeButton" type="button" title="Darstellung wechseln">◐</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel__head">
+        <span class="panel__title">Bibliothek</span>
+        <span class="panel__meta" id="libraryMeta">—</span>
+      </div>
+      <div class="panel__body">
+        <div class="exams" id="examList"></div>
+        <div class="empty" id="emptyState" hidden>
+          <div class="empty__title">Noch keine Prüfung gespeichert</div>
+          <p class="empty__text">
+            Importiere unten eine generierte Prüfung. Danach liegt sie auf dem Gerät
+            und lässt sich auch ohne Internet lösen.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__head">
+        <span class="panel__title">Prüfung hinzufügen</span>
+        <span class="panel__meta">JSON oder generierte HTML-Datei</span>
+      </div>
+      <div class="panel__body">
+        <div class="routes">
+
+          <details class="route" open>
+            <summary>Datei wählen</summary>
+            <div class="route__body">
+              <p class="route__hint">
+                Aus «Dateien» oder iCloud Drive. Mehrfachauswahl möglich.
+                Akzeptiert <code>.json</code> und die alten <code>.html</code>-Prüfungen.
+              </p>
+              <input type="file" id="fileInput" accept=".json,.html,.htm,application/json,text/html" multiple>
+            </div>
+          </details>
+
+          <details class="route">
+            <summary>Text einfügen</summary>
+            <div class="route__body">
+              <p class="route__hint">
+                Den <code>QUIZ_DATA</code>-Block oder das reine JSON hier einsetzen.
+                Auf dem iPhone der zuverlässigste Weg.
+              </p>
+              <textarea id="pasteInput" placeholder='{ "exam": { "title": "…" }, "questions": [ … ] }' spellcheck="false"></textarea>
+              <button class="btn btn--primary btn--wide" id="pasteButton" type="button">Aus Text importieren</button>
+            </div>
+          </details>
+
+          <details class="route">
+            <summary>Aus Repository synchronisieren</summary>
+            <div class="route__body">
+              <p class="route__hint">
+                Lädt alle Prüfungen, die in <code>exams/index.json</code> aufgelistet sind.
+                Neue Prüfung am Laptop ins Repo legen, hier einmal tippen.
+              </p>
+              <input type="url" id="syncUrl" value="exams/index.json" spellcheck="false">
+              <button class="btn btn--wide" id="syncButton" type="button">Jetzt synchronisieren</button>
+            </div>
+          </details>
+
+        </div>
+        <div id="importNote"></div>
+      </div>
+    </section>
+
+    <p class="footnote" id="offlineNote">Offline bereit — Startbildschirm über «Teilen ▸ Zum Home-Bildschirm».</p>
+  </main>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const INDEX_KEY = "pruefung:index";
+    const DATA_PREFIX = "pruefung:data:";
+    const PROGRESS_PREFIX = "pruefung:progress:";
+    const THEME_KEY = "kprim-ui-theme"; /* geteilt mit quiz.html */
+
+    /* ==================== Darstellung ==================== */
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    let themeMode = "auto";
+    try { themeMode = localStorage.getItem(THEME_KEY) || "auto"; } catch (_) {}
+
+    function applyTheme() {
+      const dark = themeMode === "dark" || (themeMode === "auto" && media.matches);
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    }
+    media.addEventListener("change", () => { if (themeMode === "auto") applyTheme(); });
+    document.getElementById("themeButton").addEventListener("click", () => {
+      themeMode = themeMode === "auto" ? "light" : themeMode === "light" ? "dark" : "auto";
+      try { localStorage.setItem(THEME_KEY, themeMode); } catch (_) {}
+      applyTheme();
+    });
+    applyTheme();
+
+    /* ==================== Bibliothek lesen und schreiben ==================== */
+
+    function readIndex() {
+      try {
+        const list = JSON.parse(localStorage.getItem(INDEX_KEY) || "[]");
+        return Array.isArray(list) ? list : [];
+      } catch (_) { return []; }
+    }
+
+    function writeIndex(list) {
+      localStorage.setItem(INDEX_KEY, JSON.stringify(list));
+    }
+
+    function slugify(text) {
+      return String(text || "pruefung")
+        .toLowerCase()
+        .replace(/[äàáâ]/g, "a").replace(/[öòóô]/g, "o").replace(/[üùúû]/g, "u")
+        .replace(/ß/g, "ss").replace(/[éèêë]/g, "e")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 40) || "pruefung";
+    }
+
+    function freeId(base) {
+      const taken = readIndex().map((entry) => entry.id);
+      if (!taken.includes(base)) return base;
+      let n = 2;
+      while (taken.includes(base + "-" + n)) n += 1;
+      return base + "-" + n;
+    }
+
+    /* ==================== Prüfungsdaten aus Text gewinnen ==================== */
+
+    function extractObjectSource(text) {
+      /* 1. Der markierte Block des Generators. */
+      const marked = text.match(/KPRIM-DATEN:\s*START[^\n]*\n([\s\S]*?)\/\/\s*=*\s*KPRIM-DATEN:\s*ENDE/);
+      let body = marked ? marked[1] : null;
+
+      /* 2. Sonst irgendeine QUIZ_DATA-Zuweisung. */
+      if (!body) {
+        const assigned = text.match(/(?:const|let|var)\s+QUIZ_DATA\s*=\s*([\s\S]*?);\s*(?:\n\s*(?:\/\/|\(\(|<\/script>))/);
+        if (assigned) return assigned[1].trim();
+      }
+      if (body) {
+        const inner = body.match(/=\s*([\s\S]*?);\s*$/);
+        if (inner) return inner[1].trim();
+      }
+      return null;
+    }
+
+    function parsePayload(text) {
+      const trimmed = String(text || "").trim();
+      if (!trimmed) throw new Error("Die Datei ist leer.");
+
+      /* Reines JSON. */
+      if (trimmed.startsWith("{")) {
+        try { return JSON.parse(trimmed); } catch (_) { /* weiter unten versuchen */ }
+      }
+
+      const source = extractObjectSource(trimmed) || (trimmed.startsWith("{") ? trimmed : null);
+      if (!source) {
+        throw new Error("Kein QUIZ_DATA-Block gefunden. Erwartet wird JSON oder eine vom Generator erzeugte HTML-Datei.");
+      }
+      /* JavaScript-Objektliteral: unquotierte Schlüssel, Kommentare, trailing commas. */
+      try {
+        return new Function('"use strict"; return (' + source + ");")();
+      } catch (error) {
+        throw new Error("Der QUIZ_DATA-Block liess sich nicht lesen (" + error.message + ").");
+      }
+    }
+
+    function validate(payload) {
+      if (!payload || typeof payload !== "object") throw new Error("Unerwartetes Format.");
+      if (!Array.isArray(payload.questions) || !payload.questions.length) {
+        throw new Error("Keine Fragen enthalten.");
+      }
+      const bad = payload.questions.findIndex((q) =>
+        !q || typeof q.stem !== "string" || !Array.isArray(q.statements) || !q.statements.length
+      );
+      if (bad !== -1) throw new Error("Frage " + (bad + 1) + " hat keinen Stamm oder keine Aussagen.");
+      if (String(payload.exam && payload.exam.title || "").includes("<Fach>")) {
+        throw new Error("Das ist noch die unausgefüllte Vorlage, keine fertige Prüfung.");
+      }
+      return payload;
+    }
+
+    function saveExam(payload, fallbackName) {
+      validate(payload);
+      const exam = payload.exam || (payload.exam = {});
+      const title = exam.title || fallbackName || "Übungsprüfung";
+      const id = freeId(slugify(title));
+
+      localStorage.setItem(DATA_PREFIX + id, JSON.stringify(payload));
+      const list = readIndex();
+      list.unshift({
+        id,
+        title,
+        subtitle: exam.subtitle || "",
+        count: payload.questions.length,
+        blocks: [...new Set(payload.questions.map((q) => q.block).filter(Boolean))].length,
+        addedAt: Date.now()
+      });
+      writeIndex(list);
+      return { id, title };
+    }
+
+    function progressFor(entry) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(PROGRESS_PREFIX + entry.id) || "null");
+        if (!saved || !Array.isArray(saved.rounds) || !saved.rounds[0]) return 0;
+        return Object.keys(saved.rounds[0].answers || {}).length;
+      } catch (_) { return 0; }
+    }
+
+    /* ==================== Darstellung der Bibliothek ==================== */
+
+    const examList = document.getElementById("examList");
+    const emptyState = document.getElementById("emptyState");
+    const libraryMeta = document.getElementById("libraryMeta");
+
+    function render() {
+      const list = readIndex();
+      examList.textContent = "";
+      emptyState.hidden = list.length > 0;
+      libraryMeta.textContent = list.length
+        ? list.length + (list.length === 1 ? " Prüfung" : " Prüfungen")
+        : "leer";
+
+      list.forEach((entry) => {
+        const answered = progressFor(entry);
+        const share = entry.count ? Math.round((answered / entry.count) * 100) : 0;
+        const done = entry.count && answered >= entry.count;
+
+        const card = document.createElement("div");
+        card.className = "exam";
+
+        const main = document.createElement("a");
+        main.className = "exam__main";
+        main.href = "quiz.html?exam=" + encodeURIComponent(entry.id);
+        main.innerHTML =
+          '<div class="exam__title"></div>' +
+          '<div class="exam__subtitle"></div>' +
+          '<div class="exam__tags"></div>';
+        main.querySelector(".exam__title").textContent = entry.title;
+        const sub = main.querySelector(".exam__subtitle");
+        if (entry.subtitle) sub.textContent = entry.subtitle; else sub.remove();
+
+        const tags = main.querySelector(".exam__tags");
+        const addTag = (text, cls) => {
+          const el = document.createElement("span");
+          el.className = "tag" + (cls ? " " + cls : "");
+          el.textContent = text;
+          tags.appendChild(el);
+        };
+        addTag(entry.count + (entry.count === 1 ? " Frage" : " Fragen"));
+        if (entry.blocks > 1) addTag(entry.blocks + " Blöcke");
+        if (done) addTag("vollständig", "tag--done");
+        else if (answered) addTag(answered + " von " + entry.count + " beantwortet");
+        else addTag("nicht begonnen");
+
+        const open = document.createElement("a");
+        open.className = "btn btn--primary btn--wide";
+        open.href = main.href;
+        open.textContent = answered ? "Weiterlösen" : "Starten";
+
+        const actions = document.createElement("div");
+        actions.className = "exam__more";
+
+        const reset = document.createElement("button");
+        reset.className = "linkbtn";
+        reset.type = "button";
+        reset.textContent = "Zurücksetzen";
+        reset.addEventListener("click", () => {
+          if (!confirm("Alle Antworten und Wiederholungsrunden dieser Prüfung löschen?")) return;
+          localStorage.removeItem(PROGRESS_PREFIX + entry.id);
+          render();
+        });
+
+        const exportBtn = document.createElement("button");
+        exportBtn.className = "linkbtn";
+        exportBtn.type = "button";
+        exportBtn.textContent = "JSON sichern";
+        exportBtn.addEventListener("click", () => {
+          const raw = localStorage.getItem(DATA_PREFIX + entry.id) || "{}";
+          const url = URL.createObjectURL(new Blob([raw], { type: "application/json" }));
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = entry.id + ".json";
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+        });
+
+        const remove = document.createElement("button");
+        remove.className = "linkbtn linkbtn--danger";
+        remove.type = "button";
+        remove.textContent = "Entfernen";
+        remove.addEventListener("click", () => {
+          if (!confirm("«" + entry.title + "» aus der Bibliothek entfernen?")) return;
+          localStorage.removeItem(DATA_PREFIX + entry.id);
+          localStorage.removeItem(PROGRESS_PREFIX + entry.id);
+          writeIndex(readIndex().filter((item) => item.id !== entry.id));
+          render();
+        });
+
+        actions.append(reset, exportBtn, remove);
+
+        card.append(main);
+        if (answered) {
+          const bar = document.createElement("div");
+          bar.className = "bar";
+          const fill = document.createElement("div");
+          fill.className = "bar__fill";
+          fill.style.width = share + "%";
+          bar.appendChild(fill);
+          card.appendChild(bar);
+        }
+        card.append(open, actions);
+        examList.appendChild(card);
+      });
+    }
+
+    /* ==================== Rückmeldung ==================== */
+
+    const importNote = document.getElementById("importNote");
+
+    function report(lines, ok) {
+      importNote.textContent = "";
+      const box = document.createElement("div");
+      box.className = "note " + (ok ? "note--ok" : "note--bad");
+      lines.forEach((line, index) => {
+        if (index) box.appendChild(document.createElement("br"));
+        box.appendChild(document.createTextNode(line));
+      });
+      importNote.appendChild(box);
+    }
+
+    function ingest(text, name) {
+      const saved = saveExam(parsePayload(text), name);
+      return saved.title;
+    }
+
+    /* ==================== Route 1: Dateien ==================== */
+
+    document.getElementById("fileInput").addEventListener("change", async (event) => {
+      const files = [...event.target.files];
+      if (!files.length) return;
+      const ok = [];
+      const failed = [];
+      for (const file of files) {
+        try {
+          ok.push(ingest(await file.text(), file.name.replace(/\.[^.]+$/, "")));
+        } catch (error) {
+          failed.push(file.name + ": " + error.message);
+        }
+      }
+      event.target.value = "";
+      render();
+      if (ok.length && !failed.length) report(["Importiert: " + ok.join(", ")], true);
+      else if (ok.length) report(["Importiert: " + ok.join(", "), ...failed], false);
+      else report(failed, false);
+    });
+
+    /* ==================== Route 2: Text ==================== */
+
+    document.getElementById("pasteButton").addEventListener("click", () => {
+      const field = document.getElementById("pasteInput");
+      try {
+        const title = ingest(field.value, "Eingefügte Prüfung");
+        field.value = "";
+        render();
+        report(["Importiert: " + title], true);
+      } catch (error) {
+        report([error.message], false);
+      }
+    });
+
+    /* ==================== Route 3: Repository ==================== */
+
+    document.getElementById("syncButton").addEventListener("click", async () => {
+      const button = document.getElementById("syncButton");
+      const base = document.getElementById("syncUrl").value.trim();
+      if (!base) return;
+      button.disabled = true;
+      button.textContent = "Synchronisiere …";
+      try {
+        const response = await fetch(base, { cache: "no-store" });
+        if (!response.ok) throw new Error("Liste nicht erreichbar (HTTP " + response.status + ").");
+        const listing = await response.json();
+        const entries = Array.isArray(listing) ? listing : (listing.exams || []);
+        if (!entries.length) throw new Error("Die Liste enthält keine Einträge.");
+
+        const known = new Set(readIndex().map((item) => item.title));
+        const ok = [];
+        const failed = [];
+        for (const item of entries) {
+          const file = typeof item === "string" ? item : item.file;
+          if (!file) continue;
+          const url = new URL(file, new URL(base, location.href)).href;
+          try {
+            const fileResponse = await fetch(url, { cache: "no-store" });
+            if (!fileResponse.ok) throw new Error("HTTP " + fileResponse.status);
+            const payload = parsePayload(await fileResponse.text());
+            const title = (payload.exam && payload.exam.title) || file;
+            if (known.has(title)) continue; /* schon vorhanden, Fortschritt nicht anfassen */
+            ok.push(saveExam(payload, file).title);
+          } catch (error) {
+            failed.push(file + ": " + error.message);
+          }
+        }
+        render();
+        if (!ok.length && !failed.length) report(["Alles bereits aktuell."], true);
+        else if (!failed.length) report(["Neu geladen: " + ok.join(", ")], true);
+        else report([ok.length ? "Neu geladen: " + ok.join(", ") : "Nichts geladen.", ...failed], false);
+      } catch (error) {
+        report([error.message], false);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Jetzt synchronisieren";
+      }
+    });
+
+    /* ==================== Start ==================== */
+
+    render();
+    window.addEventListener("pageshow", render);
+
+    if (window.navigator.standalone) {
+      document.getElementById("offlineNote").textContent = "Offline bereit.";
+    }
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(() => { /* offline optional */ });
+      });
+    }
+  })();
+  </script>
+</body>
+</html>
