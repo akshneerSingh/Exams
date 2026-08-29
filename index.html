@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f7f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Übungsprüfungen und Unterlagen</title>
@@ -42,8 +43,34 @@
          "Helvetica Neue",Helvetica,Arial,sans-serif;
   --rail-w:236px;
 }
+/* Helle Fassung. Die Marken bleiben dieselben, nur ihre Werte drehen sich —
+   deshalb steht das Aussehen der ganzen Seite in diesen zwölf Zeilen. */
+html[data-theme="light"]{
+  --bg:#f7f7f9; --card:#ffffff; --card-2:#f2f2f5; --raised:#e8e8ec;
+  --hair:rgba(0,0,0,.08);
+  --label:#0b0b0c; --label-2:rgba(60,60,67,.62); --label-3:rgba(60,60,67,.34);
+  --blue:#007aff; --green:#28a745; --red:#d70015; --orange:#c76b00;
+  color-scheme:light;
+}
+html[data-theme="light"] .rail{background:#fbfbfd}
+html[data-theme="light"] .seg button:hover,
+html[data-theme="light"] .chip:hover{background:rgba(0,0,0,.05)}
+html[data-theme="light"] .search input{background:rgba(0,0,0,.05)}
+html[data-theme="light"] .search input:hover{background:rgba(0,0,0,.075)}
+html[data-theme="light"] .search input:focus{background:#fff;box-shadow:0 0 0 3.5px rgba(0,122,255,.22)}
+html[data-theme="light"] .search .clr{background:rgba(0,0,0,.16)}
+html[data-theme="light"] .progress{background:rgba(0,0,0,.09)}
+html[data-theme="light"] .card{box-shadow:0 1px 2px rgba(0,0,0,.05)}
+html[data-theme="light"] .tile{box-shadow:0 1px 2px rgba(0,0,0,.05)}
+html[data-theme="light"] dialog{box-shadow:0 30px 80px rgba(0,0,0,.22)}
+html[data-theme="light"] .railshow{background:rgba(0,0,0,.07)}
+html[data-theme="light"] .btn.ghost{background:rgba(0,0,0,.07)}
+html[data-theme="light"] .pick{background:var(--card-2)}
+html[data-theme="light"] .qrow{background:var(--card-2)}
+html[data-theme="light"] input,html[data-theme="light"] textarea{background:#fff}
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{color-scheme:dark;-webkit-text-size-adjust:100%;background:var(--bg);overflow-x:hidden}
+html{-webkit-text-size-adjust:100%;background:var(--bg);overflow-x:hidden}
 body{margin:0;background:var(--bg);color:var(--label);font-family:var(--sans);
   font-size:16px;line-height:1.5;letter-spacing:-.011em;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
@@ -285,39 +312,44 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
 .note.ok{background:rgba(48,209,88,.14);color:var(--green)}
 .note.bad{background:rgba(255,69,58,.14);color:var(--red)}
 
+/* ============ Handy-Leiste ============ */
+.mobilebar{display:none;position:sticky;top:0;z-index:44;
+  align-items:center;gap:6px;padding:8px 10px;
+  padding-top:calc(8px + env(safe-area-inset-top));
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:.5px solid var(--hair)}
+.mb-btn{width:38px;height:38px;flex:none;border-radius:9px;display:grid;place-items:center;
+  color:var(--label-2);font-size:17px;transition:.15s}
+.mb-btn:active{background:rgba(118,118,128,.24)}
+.mb-title{flex:1;min-width:0;text-align:center;font-size:16px;font-weight:600;
+  letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scrim{position:fixed;inset:0;z-index:44;background:rgba(0,0,0,.42);
+  opacity:0;pointer-events:none;transition:opacity .24s ease}
+
 /* ============ schmal ============ */
 @media (max-width:860px){
-  .rail{position:sticky;top:0;bottom:auto;width:100%;max-width:100vw;flex-direction:row;
-    align-items:center;gap:10px;padding:9px 14px;
-    padding-top:calc(9px + env(safe-area-inset-top));border-right:0;
-    border-bottom:.5px solid var(--hair);background:rgba(8,8,10,.86);
-    -webkit-backdrop-filter:saturate(180%) blur(20px);
-    backdrop-filter:saturate(180%) blur(20px);overflow-x:auto;scrollbar-width:none}
-  .rail::-webkit-scrollbar{display:none}
-  .brand,.railtitle,.mini,.railtoggle{display:none}
-  .railshow{display:none!important}
-  body.rail-off .rail{transform:none}
-  .rail,main{transition:none}
-  .search{margin:0;flex:1 1 130px;min-width:110px}
-  .search input{height:30px}
-  .seg{flex-direction:row;gap:2px;background:rgba(118,118,128,.2);border-radius:9px;
-    padding:2px;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
-  .seg::-webkit-scrollbar{display:none}
-  .seg button{padding:6px 11px;font-size:13px;border-radius:7px;white-space:nowrap}
-  .seg .cnt{display:none}
-  .seg .sect{margin-top:0}
-  .railfoot,.tools{flex:none}
-  .railfoot{margin:0 0 0 auto;padding:0}
-  .tools{flex-direction:row}
-  .chip{padding:6px 10px;font-size:13px;white-space:nowrap}
-  .chip .lbl{display:none}
-  main{margin-left:0;padding:24px 16px 60px;width:100%;min-width:0}
+  /* Die Schiene bleibt aufgebaut wie am Schreibtisch, liegt aber neben dem
+     Bild und fährt bei Bedarf herein — statt oben zu einer Zeile Reiter zu
+     schrumpfen, in der Ordnerbaum und Fortschritt keinen Platz hatten. */
+  .mobilebar{display:flex}
+  .railtoggle,.railshow{display:none!important}
+  .rail{width:min(300px,84vw);max-width:none;transform:translateX(-100%);
+    box-shadow:0 0 60px rgba(0,0,0,.5)}
+  body.drawer .rail{transform:none}
+  body.drawer .scrim{opacity:1;pointer-events:auto}
+  body.drawer{overflow:hidden}
+  body.rail-off .rail{transform:translateX(-100%)}
+  main{margin-left:0;padding:20px 16px 60px;width:100%;min-width:0}
   h1{font-size:26px}
   .card{padding:14px}
-  .card .foot .progress{max-width:none}
   .card .chev{display:none}
+  .card .foot .progress{max-width:none}
   .resume .row{flex-wrap:wrap}
   .resume .go{width:100%;text-align:center}
+  .tiles{grid-template-columns:minmax(0,1fr)}
+  dialog{width:min(460px,calc(100vw - 24px))}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -328,6 +360,13 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
 <body>
 
 <button class="railshow" id="railShow" type="button" title="Seitenleiste einblenden (⌘B)" aria-label="Seitenleiste einblenden">⊞</button>
+
+<header class="mobilebar">
+  <button class="mb-btn" id="drawerBtn" type="button" aria-label="Menü" aria-expanded="false">☰</button>
+  <div class="mb-title" id="mbTitle">Übungsprüfungen</div>
+  <button class="mb-btn" id="mbSettings" type="button" aria-label="Einstellungen">⚙</button>
+</header>
+<div class="scrim" id="scrim"></div>
 
 <aside class="rail">
   <button class="railtoggle" id="railToggle" type="button" title="Seitenleiste ausblenden (⌘B)" aria-label="Seitenleiste ausblenden">⊟</button>
@@ -348,6 +387,9 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
       <div class="progress"><div class="progress-fill" id="pfill"></div></div>
     </div>
     <div class="tools">
+      <button class="chip" id="settingsBtn" type="button">
+        <span class="lbl">Darstellung</span><span aria-hidden="true">◐</span>
+      </button>
       <button class="chip" id="deviceBtn" type="button">
         <span class="lbl">Gerät wechseln</span><span class="lamp" id="lamp"></span>
       </button>
@@ -517,6 +559,7 @@ function goTo(target){
   path = target;
   revealPath(target);
   if(location.hash) history.replaceState(null, "", location.pathname + location.search);
+  drawer(false);
   render();
 }
 
@@ -899,6 +942,13 @@ function render(){
    zwischen Wiederfinden und Durchklicken. */
 function updateTitle(){
   const site = (TREE && TREE.title) || "Übungsprüfungen";
+  const bar = $("#mbTitle");
+  if(bar){
+    bar.textContent = page ? PAGES[page].title
+      : query.trim().length >= 2 ? "Suche"
+      : path.length ? nodeAt(path).title
+      : site;
+  }
   if(page) return;                                  /* renderPage setzt selbst */
   if(query.trim().length >= 2){
     document.title = "Suche: " + query.trim() + " · " + site;
@@ -922,7 +972,7 @@ function note(host, text, ok){
   host.appendChild(box);
 }
 
-$("#deviceBtn").addEventListener("click", () => {
+function deviceSheet(){
   $("#sheetHead").textContent = "Auf anderem Gerät fortsetzen";
   const body = $("#sheetBody"); body.textContent = "";
 
@@ -964,7 +1014,8 @@ $("#deviceBtn").addEventListener("click", () => {
   });
 
   sheet.showModal();
-});
+}
+$("#deviceBtn").addEventListener("click", deviceSheet);
 
 /* ====================================================================
    Verwaltung
@@ -1450,13 +1501,13 @@ function renderPage(key){
 }
 
 function goHome(){
-  page = null; path = []; clearQuery();
+  page = null; path = []; clearQuery(); drawer(false);
   if(location.hash) history.replaceState(null, "", location.pathname + location.search);
   render();
 }
 
 function openPage(key){
-  page = key; clearQuery();
+  page = key; clearQuery(); drawer(false);
   history.replaceState(null, "", "#" + key);
   render();
 }
@@ -1468,6 +1519,62 @@ window.addEventListener("hashchange", () => {
   const key = location.hash.replace("#", "");
   if(PAGES[key]) { page = key; render(); } else if(page) { goHome(); }
 });
+
+/* ==================== Darstellung ====================
+   Derselbe Speicherschlüssel wie in quiz.html, damit beide Seiten dieselbe
+   Einstellung benutzen und nicht auseinanderlaufen. */
+
+const THEME_KEY = "kprim-ui-theme";
+const media = window.matchMedia("(prefers-color-scheme: dark)");
+let themeMode = "auto";
+try { themeMode = localStorage.getItem(THEME_KEY) || "auto"; } catch(_) {}
+
+function applyTheme(){
+  const dark = themeMode === "dark" || (themeMode === "auto" && media.matches);
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+}
+function setTheme(mode){
+  themeMode = mode;
+  try { localStorage.setItem(THEME_KEY, mode); } catch(_) {}
+  applyTheme();
+}
+media.addEventListener("change", () => { if(themeMode === "auto") applyTheme(); });
+applyTheme();
+
+function settingsSheet(){
+  const label = { light: "Hell", dark: "Dunkel", auto: "Automatisch" };
+  menuSheet("Darstellung", ["light", "dark", "auto"].map(mode => ({
+    label: label[mode] + (mode === "auto" ? " · folgt dem System" : "")
+           + (themeMode === mode ? "   ✓" : ""),
+    run: () => { setTheme(mode); }
+  })));
+}
+$("#settingsBtn").addEventListener("click", settingsSheet);
+
+$("#mbSettings").addEventListener("click", () => {
+  menuSheet("Einstellungen", [
+    { label: "Darstellung", run: settingsSheet },
+    { label: "Auf anderem Gerät fortsetzen", run: () => deviceSheet() },
+    { label: "Impressum", run: () => openPage("impressum") },
+    { label: "Daten", run: () => openPage("daten") }
+  ]);
+});
+
+/* ==================== Schublade auf dem Telefon ====================
+   Auf schmalen Geräten liegt die Schiene neben dem Bild und fährt herein.
+   Jede Navigation schliesst sie wieder, sonst verdeckt sie das Ergebnis. */
+
+function drawer(open){
+  document.body.classList.toggle("drawer", open);
+  $("#drawerBtn").setAttribute("aria-expanded", String(open));
+}
+const isNarrow = () => window.matchMedia("(max-width: 860px)").matches;
+$("#drawerBtn").addEventListener("click", () => drawer(!document.body.classList.contains("drawer")));
+$("#scrim").addEventListener("click", () => drawer(false));
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && document.body.classList.contains("drawer")) drawer(false);
+});
+window.addEventListener("resize", () => { if(!isNarrow()) drawer(false); });
 
 /* ==================== Seitenleiste ====================
    Der Zustand bleibt pro Gerät erhalten. Auf schmalen Geräten ist die
