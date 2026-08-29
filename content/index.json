@@ -4,26 +4,7 @@
       "id": "unterlagen",
       "title": "Semesterunterlagen",
       "blurb": "Zusammenfassungen und Skripte als PDF.",
-      "children": [
-        {
-          "type": "folder",
-          "title": "Infektion",
-          "children": [
-            {
-              "type": "folder",
-              "title": "FS 2026",
-              "children": [
-                {
-                  "type": "pdf",
-                  "title": "Parasitologie — Überblick",
-                  "file": "content/unterlagen/infektion/fs26/parasitologie.pdf",
-                  "meta": "Zusammenfassung · 11 Seiten"
-                }
-              ]
-            }
-          ]
-        }
-      ]
+      "children": []
     },
     {
       "id": "quizzes",
