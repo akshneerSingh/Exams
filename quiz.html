@@ -10,6 +10,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Kprim-Übungsprüfung</title>
+  <script src="sync.js"></script>
   <style>
     :root {
       --navy: #1a3a6b;
@@ -1385,13 +1386,6 @@
       .layout { width: 100%; grid-template-columns: minmax(0, 1fr); }
       .sidebar { position: static; }
       .question-card { min-height: 0; }
-
-      /* Auf kleinen Bildschirmen kommt zuerst die Frage, danach Themenblock
-         und Navigator. Desktop und Tablet-Landschaft bleiben unverändert. */
-      .layout > .quiz:not(.sidebar) { order: 1; }
-      .layout > .sidebar { order: 2; }
-      .layout > .results,
-      .layout > .review { order: 3; }
     }
 
     @media (max-width: 650px) {
@@ -1413,64 +1407,70 @@
     .topbar { padding-top: env(safe-area-inset-top); }
     .layout { padding-bottom: calc(env(safe-area-inset-bottom) + 24px); }
 
-    /* Mobile Kopfzeile: vier feste Bereiche und viewport-feste Menüs.
-       Dadurch bleibt das Einstellungsmenü vollständig sichtbar. */
-    @media (max-width: 650px) {
-      .topbar {
-        overflow: visible;
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-      }
+    /* ====================================================================
+       Kopfleiste, Menüs und Reihenfolge auf dem Telefon
 
+       1. Die Leiste brach auf zwei Zeilen um, weil `.topbar__inner` unter
+          920px auf `flex-wrap: wrap` steht. Das Zahnrad landete dadurch in
+          einer zweiten Zeile.
+       2. Die Menüs hingen absolut am jeweiligen Knopf. Sass der Knopf in der
+          umgebrochenen zweiten Zeile weit links, lief die Liste über den
+          linken Bildschirmrand hinaus — sichtbar war dann nichts mehr.
+          Sie werden jetzt am Ansichtsfenster verankert, über die volle
+          Breite unter der Leiste.
+       3. Themenblock und Navigator stehen unter der Frage, nicht darüber.
+       ==================================================================== */
+
+    @media (max-width: 920px) {
+      .layout { display: flex; flex-direction: column; }
+      .layout > * { min-width: 0; max-width: 100%; }
+      .layout > .quiz:not(.sidebar) { order: 1; }
+      .sidebar { order: 2; margin-top: 8px; }
+      .results, .review { order: 3; }
+    }
+
+    @media (max-width: 780px) {
       .topbar__inner {
-        min-height: 54px;
-        padding: 0 max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
-        display: grid;
-        grid-template-columns: 40px minmax(0, 1fr) auto 40px;
+        min-height: 52px;
+        padding: 6px 10px;
         align-items: center;
-        gap: 3px;
         flex-wrap: nowrap;
+        gap: 4px;
       }
-
-      .topbar__spacer,
-      .stats { display: none; }
-
-      .brand {
-        min-width: 0;
-        text-align: center;
-      }
-
+      .brand { flex: 1 1 auto; min-width: 0; }
+      .brand__eyebrow, .brand__subtitle { display: none; }
       .brand__title {
         max-width: 100%;
+        font-size: 16px;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
       }
+      .topbar__spacer, .stats { display: none; }
+      .top-action { flex: 0 0 auto; min-height: 40px; padding: 0 9px; }
+      .top-action--back { display: inline-grid; place-items: center; width: 38px; padding: 0; }
+      .top-action--icon { width: 38px; }
 
-      #examMenu,
-      #settingsMenu { position: static; }
-
-      #settingsMenuButton {
-        width: 40px;
-        min-width: 40px;
-      }
-
+      /* Statisch, damit die Liste nicht mehr am Knopf klebt. */
+      .menu { position: static; }
       .menu__list,
       .menu__list--down,
       .menu__list--right {
         position: fixed;
-        top: calc(env(safe-area-inset-top) + 60px);
+        top: calc(env(safe-area-inset-top) + 58px);
         right: 10px;
         bottom: auto;
         left: 10px;
+        z-index: 60;
         width: auto;
         min-width: 0;
         max-width: none;
-        max-height: calc(100vh - env(safe-area-inset-top) - 74px);
-        max-height: calc(100dvh - env(safe-area-inset-top) - 74px);
+        max-height: calc(100dvh - env(safe-area-inset-top) - 76px);
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
       }
+      .menu__item { min-height: 48px; }
     }
 
   </style>
@@ -1634,7 +1634,6 @@
       const questions = Array.isArray(data.questions) ? data.questions : [];
       const exam = data.exam || {};
       const ALL_STATEMENTS = [0, 1, 2, 3];
-      const DEFAULT_FILTER = "A";
 
       /* Eine Runde: { label, items: [{ q, s: [Aussagen-Indizes] }], answers: { q: [4] }, next }
          Runde 0 ist der Originalversuch mit allen Fragen und allen vier Aussagen. */
@@ -1642,7 +1641,7 @@
         rounds: [],
         round: 0,
         current: 0,
-        filter: DEFAULT_FILTER,
+        filter: "Alle",
         draft: {},
         themeMode: "auto",
         view: "quiz",
@@ -1784,7 +1783,7 @@
         if (!state.rounds[index]) return;
         state.round = index;
         state.current = 0;
-        state.filter = DEFAULT_FILTER;
+        state.filter = defaultFilter();
         state.draft = {};
         saveProgress();
         setView("quiz");
@@ -1868,6 +1867,15 @@
 
       /* ===================== Filter und Navigation ===================== */
 
+      /* Voreinstellung ist der erste Themenblock, nicht «Alle». Fällt die
+         Auswahl leer aus (Wiederholungsrunde ohne Blockangabe), bleibt
+         «Alle» als Rückfallebene. */
+      function defaultFilter() {
+        const block = filterOptions().find((option) =>
+          option.key !== "Alle" && option.key !== "Markiert" && option.key !== "–");
+        return block ? block.key : "Alle";
+      }
+
       function filterOptions() {
         const list = [{ key: "Alle", label: "Alle", count: items().length }];
         const seen = [];
@@ -1925,13 +1933,7 @@
 
       function renderFilters() {
         const options = filterOptions();
-        if (!options.some((option) => option.key === state.filter)) {
-          state.filter = options.some((option) => option.key === DEFAULT_FILTER)
-            ? DEFAULT_FILTER
-            : (options.find((option) => option.key !== "Alle" && option.key !== "Markiert")?.key || "Alle");
-        }
-        const visible = visiblePositions();
-        if (!visible.includes(state.current)) state.current = visible[0] ?? 0;
+        if (!options.some((option) => option.key === state.filter)) state.filter = defaultFilter();
         $("#filters").innerHTML = options.map((option) => `
           <button class="filter${state.filter === option.key ? " is-active" : ""}"
                   type="button" data-filter="${escapeHtml(option.key)}"
@@ -2123,7 +2125,6 @@
           renderGrid();
           updateStats();
           if (roundComplete(activeRound())) setView("results");
-          else window.scrollTo({ top: 0, behavior: "smooth" });
         });
 
         $("#previousButton").addEventListener("click", () => {
@@ -2131,7 +2132,6 @@
             state.current = visible[position - 1];
             renderGrid();
             renderQuestion();
-            window.scrollTo({ top: 0, behavior: "smooth" });
           }
         });
         const nextButton = $("#nextButton");
@@ -2140,7 +2140,6 @@
             state.current = visible[position + 1];
             renderGrid();
             renderQuestion();
-            window.scrollTo({ top: 0, behavior: "smooth" });
           }
         });
         const finishButton = $("#finishButton");
@@ -3178,7 +3177,10 @@ ${buildApkg.toString()}
             const position = current.items.findIndex((item) => item.q === current.lastQ);
             if (position >= 0) {
               state.current = position;
-              if (!visiblePositions().includes(position)) state.filter = "Alle";
+              if (!visiblePositions().includes(position)) {
+                state.filter = questions[current.items[position].q].block || "Alle";
+                if (!visiblePositions().includes(position)) state.filter = "Alle";
+              }
             }
           }
           setView("quiz");
@@ -3268,7 +3270,7 @@ ${buildApkg.toString()}
         state.rounds[0].flags = keptFlags;
         state.round = 0;
         state.current = 0;
-        state.filter = DEFAULT_FILTER;
+        state.filter = defaultFilter();
         state.draft = {};
         saveProgress();
         setView("quiz");
@@ -3285,6 +3287,7 @@ ${buildApkg.toString()}
         $("#brandTitle").textContent = exam.title || "Kprim-Übungsprüfung";
         $("#brandSubtitle").textContent = exam.subtitle || "Interaktive Prüfung";
         restoreProgress();
+        state.filter = defaultFilter();
         renderAll();
 
         bindMenu("examMenu");
@@ -3345,6 +3348,11 @@ ${buildApkg.toString()}
     })();
   </script>
   <script>
+    /* Beim Verlassen der Seite den letzten Stand noch loswerden. */
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden" && window.Sync && Sync.configured()) Sync.sync();
+    });
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("sw.js").catch(() => { /* offline optional */ });

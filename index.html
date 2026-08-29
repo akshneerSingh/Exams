@@ -6,231 +6,195 @@
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#10294f">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Übungsprüfungen</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <style>
     :root {
-      --navy: #1a3a6b;
-      --navy-dark: #10294f;
-      --blue-soft: #eef2f8;
-      --blue-head: #dbe3ef;
-      --ink: #101828;
-      --muted: #5f6b7a;
-      --line: #c8d2e0;
-      --paper: #ffffff;
-      --page: #f3f6fa;
-      --ok: #18794e;
-      --ok-soft: #e9f7ef;
-      --bad: #b42318;
-      --bad-soft: #fff0ee;
+      --navy: #1a3a6b; --navy-dark: #10294f;
+      --blue-soft: #eef2f8; --blue-head: #dbe3ef;
+      --ink: #101828; --muted: #5f6b7a; --line: #c8d2e0;
+      --paper: #fff; --page: #f3f6fa;
+      --ok: #18794e; --ok-soft: #e9f7ef;
+      --bad: #b42318; --bad-soft: #fff0ee;
       --focus: #2d70c9;
-      --shadow: 0 10px 30px rgba(16, 41, 79, 0.08);
+      --shadow: 0 10px 30px rgba(16,41,79,.08);
       --radius: 14px;
     }
     html[data-theme="dark"] {
       color-scheme: dark;
-      --navy: #0a84ff;
-      --navy-dark: #409cff;
-      --blue-soft: #10263c;
-      --blue-head: #182b40;
-      --ink: #f5f5f7;
-      --muted: #a1a1a6;
-      --line: #38383a;
-      --paper: #1c1c1e;
-      --page: #000000;
-      --ok: #30d158;
-      --ok-soft: #142b1a;
-      --bad: #ff6961;
-      --bad-soft: #321817;
+      --navy: #0a84ff; --navy-dark: #409cff;
+      --blue-soft: #10263c; --blue-head: #182b40;
+      --ink: #f5f5f7; --muted: #a1a1a6; --line: #38383a;
+      --paper: #1c1c1e; --page: #000;
+      --ok: #30d158; --ok-soft: #142b1a;
+      --bad: #ff6961; --bad-soft: #321817;
       --focus: #0a84ff;
       --shadow: 0 2px 7px rgba(0,0,0,.2), 0 20px 55px rgba(0,0,0,.34);
     }
 
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      color: var(--ink);
-      background: var(--page);
-      font-family: "DejaVu Sans", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      font-size: 15px;
-      line-height: 1.5;
-      -webkit-text-size-adjust: 100%;
+      margin: 0; color: var(--ink); background: var(--page);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+      font-size: 15px; line-height: 1.5; -webkit-text-size-adjust: 100%;
     }
-    button, input, textarea { font: inherit; }
-    button:focus-visible, a:focus-visible, summary:focus-visible {
-      outline: 3px solid rgba(45,112,201,.35); outline-offset: 2px;
-    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid rgba(45,112,201,.35); outline-offset: 2px; }
     [hidden] { display: none !important; }
 
-    /* ---------------------------------------------------------- topbar */
     .topbar {
-      position: sticky; top: 0; z-index: 20;
-      color: white; background: var(--navy-dark);
-      padding-top: env(safe-area-inset-top);
+      position: sticky; top: 0; z-index: 20; color: #fff;
+      background: var(--navy-dark); padding-top: env(safe-area-inset-top);
       box-shadow: 0 3px 18px rgba(16,41,79,.25);
     }
     html[data-theme="dark"] .topbar {
-      background: rgba(28,28,30,.86);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      backdrop-filter: saturate(180%) blur(20px);
-      border-bottom: 1px solid var(--line);
-      box-shadow: none;
+      background: rgba(28,28,30,.9);
+      -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--line); box-shadow: none;
     }
     .topbar__inner {
-      width: min(1000px, 100%); margin: 0 auto; min-height: 68px;
-      padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+      width: min(920px,100%); margin: 0 auto; min-height: 56px;
+      padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
     }
-    .brand__eyebrow { color: rgba(255,255,255,.66); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
-    .brand__title { font-weight: 760; font-size: 19px; letter-spacing: .01em; }
+    .brand__title { font-weight: 760; font-size: 18px; }
     html[data-theme="dark"] .brand__title { color: var(--ink); }
-    html[data-theme="dark"] .brand__eyebrow { color: var(--muted); }
     .topbar__spacer { flex: 1; }
     .top-action {
-      min-height: 38px; padding: 7px 12px;
+      min-height: 38px; min-width: 38px; padding: 6px 11px;
       border: 1px solid rgba(255,255,255,.25); border-radius: 9px;
-      color: white; background: rgba(255,255,255,.08);
-      cursor: pointer; font-size: 13px; font-weight: 700;
+      color: #fff; background: rgba(255,255,255,.08); font-size: 13px; font-weight: 700;
     }
-    .top-action:hover { background: rgba(255,255,255,.16); }
     html[data-theme="dark"] .top-action { color: #64a9f3; border-color: var(--line); background: transparent; }
+    .sync-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.32); flex: 0 0 auto; }
+    .sync-dot.is-ok { background: #30d158; }
+    .sync-dot.is-bad { background: #ff9f0a; }
 
-    /* ---------------------------------------------------------- layout */
     .layout {
-      width: min(1000px, 100%); margin: 22px auto 60px;
-      padding: 0 20px calc(env(safe-area-inset-bottom) + 12px);
-      display: grid; gap: 18px;
+      width: min(920px,100%); margin: 18px auto 60px;
+      padding: 0 16px calc(env(safe-area-inset-bottom) + 12px); display: grid; gap: 16px;
     }
     .panel {
       background: var(--paper); border: 1px solid var(--line);
-      border-radius: var(--radius); box-shadow: var(--shadow);
-      overflow: hidden;
+      border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
     }
     .panel__head {
-      padding: 14px 18px; border-bottom: 1px solid var(--line);
-      background: var(--blue-soft);
-      display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+      padding: 13px 16px; border-bottom: 1px solid var(--line); background: var(--blue-soft);
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
-    .panel__title { font-weight: 760; font-size: 14px; letter-spacing: .01em; }
+    .panel__title { font-weight: 760; font-size: 13.5px; }
     .panel__meta { color: var(--muted); font-size: 12px; }
-    .panel__body { padding: 18px; }
+    .panel__head .btn { margin-left: auto; min-height: 34px; padding: 5px 11px; font-size: 12.5px; }
+    .panel__body { padding: 16px; }
 
-    /* ---------------------------------------------------------- exam list */
+    .crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; margin-bottom: 14px; font-size: 13.5px; }
+    .crumb { padding: 5px 7px; border: 0; border-radius: 8px; color: var(--muted); background: none; font-weight: 600; }
+    .crumb:hover { background: var(--blue-soft); }
+    .crumb.is-current { color: var(--ink); }
+    .crumb__sep { color: var(--line); }
+
+    .folders { display: grid; gap: 8px; }
+    .folders:not(:empty) { margin-bottom: 14px; }
+    .folder {
+      display: flex; align-items: center; gap: 4px;
+      padding: 8px 10px 8px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+    }
+    .folder:hover { border-color: #9eb2cb; background: var(--blue-soft); }
+    .folder__open {
+      flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
+      padding: 6px 0; border: 0; background: none; color: inherit; text-align: left;
+    }
+    .folder__icon { flex: 0 0 auto; color: var(--muted); font-size: 15px; }
+    .folder__name { flex: 1; min-width: 0; font-weight: 650; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .folder__count { flex: 0 0 auto; color: var(--muted); font-size: 12.5px; }
+    .folder__edit { flex: 0 0 auto; min-height: 36px; padding: 4px 10px; border: 0; border-radius: 8px; color: var(--muted); background: none; font-size: 12.5px; font-weight: 600; }
+    .folder__edit:hover { background: var(--blue-head); }
+
     .exams { display: grid; gap: 12px; }
-    .exam {
-      display: grid; gap: 10px;
-      padding: 15px 16px;
-      border: 1px solid var(--line); border-radius: 12px;
-      background: var(--paper);
-    }
-    .exam__main {
-      display: block; text-decoration: none; color: inherit;
-      border: 0; padding: 0; margin: 0; background: none;
-      text-align: left; cursor: pointer; width: 100%;
-    }
+    .exam { display: grid; gap: 10px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 12px; }
+    .exam__main { display: block; width: 100%; padding: 0; border: 0; background: none; color: inherit; text-align: left; text-decoration: none; }
     .exam__title { font-weight: 720; font-size: 16px; line-height: 1.3; }
     .exam__subtitle { margin-top: 3px; color: var(--muted); font-size: 12.5px; }
     .exam__tags { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 6px; }
-    .tag {
-      padding: 3px 9px; border-radius: 999px;
-      border: 1px solid var(--line); background: var(--blue-soft);
-      color: var(--muted); font-size: 11.5px; white-space: nowrap;
-    }
+    .tag { padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--blue-soft); color: var(--muted); font-size: 11.5px; white-space: nowrap; }
     .tag--done { border-color: transparent; background: var(--ok-soft); color: var(--ok); font-weight: 700; }
     .bar { height: 5px; border-radius: 999px; background: var(--blue-head); overflow: hidden; }
-    .bar__fill { height: 100%; width: 0; background: var(--navy); transition: width .25s ease; }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-height: 42px; padding: 9px 16px;
-      border: 1px solid var(--line); border-radius: 10px;
-      color: var(--ink); background: var(--paper);
-      text-decoration: none; cursor: pointer;
-      font-size: 13.5px; font-weight: 700; text-align: center;
-    }
-    .btn:hover { border-color: #9eb2cb; background: var(--blue-soft); }
-    .btn--primary { border-color: var(--navy); color: white; background: var(--navy); }
-    .btn--primary:hover { border-color: var(--navy-dark); color: white; background: var(--navy-dark); }
-    .btn--wide { width: 100%; }
-
-    /* Zweitrangige Aktionen bleiben absichtlich leise. */
-    .exam__more {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      border-top: 1px solid var(--line); padding-top: 4px;
-    }
-    .linkbtn {
-      min-height: 38px; padding: 6px 2px; border: 0; background: none;
-      color: var(--muted); cursor: pointer;
-      font-size: 12.5px; font-weight: 600; white-space: nowrap;
-      overflow: hidden; text-overflow: ellipsis;
-    }
+    .bar__fill { height: 100%; background: var(--navy); transition: width .25s ease; }
+    .exam__more { display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--line); padding-top: 4px; }
+    .linkbtn { min-height: 38px; padding: 6px 2px; border: 0; background: none; color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .linkbtn:hover { color: var(--ink); text-decoration: underline; }
     .linkbtn--danger:hover { color: var(--bad); }
 
-    /* ---------------------------------------------------------- empty */
-    .empty { padding: 30px 18px; text-align: center; color: var(--muted); }
-    .empty__title { color: var(--ink); font-weight: 720; font-size: 16px; }
-    .empty__text { margin: 8px auto 0; max-width: 44ch; font-size: 13.5px; }
-
-    /* ---------------------------------------------------------- import */
-    .routes { display: grid; gap: 14px; }
-    .route { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-    .route > summary {
-      padding: 13px 16px; cursor: pointer; list-style: none;
-      display: flex; align-items: center; gap: 10px;
-      font-weight: 700; font-size: 14px; background: var(--blue-soft);
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 42px; padding: 9px 16px; border: 1px solid var(--line); border-radius: 10px;
+      color: var(--ink); background: var(--paper); text-decoration: none; font-size: 13.5px; font-weight: 700;
     }
+    .btn:hover { border-color: #9eb2cb; background: var(--blue-soft); }
+    .btn--primary { border-color: var(--navy); color: #fff; background: var(--navy); }
+    .btn--primary:hover { border-color: var(--navy-dark); color: #fff; background: var(--navy-dark); }
+    .btn--wide { width: 100%; }
+
+    .empty { padding: 28px 12px; text-align: center; color: var(--muted); }
+    .empty__title { color: var(--ink); font-weight: 720; font-size: 16px; }
+    .empty__text { margin: 7px auto 0; max-width: 44ch; font-size: 13.5px; }
+
+    .routes { display: grid; gap: 12px; }
+    .route { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .route > summary { padding: 13px 15px; cursor: pointer; list-style: none; display: flex; align-items: center; font-weight: 700; font-size: 14px; background: var(--blue-soft); }
     .route > summary::-webkit-details-marker { display: none; }
     .route > summary::after { content: "＋"; margin-left: auto; color: var(--muted); font-weight: 400; }
     .route[open] > summary::after { content: "－"; }
-    .route__body { padding: 15px 16px; display: grid; gap: 11px; }
+    .route__body { padding: 14px 15px; display: grid; gap: 11px; }
     .route__hint { color: var(--muted); font-size: 12.5px; }
-    textarea {
-      width: 100%; min-height: 130px; padding: 11px 12px;
-      border: 1px solid var(--line); border-radius: 10px;
-      color: var(--ink); background: var(--page);
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 12.5px; resize: vertical;
-    }
-    input[type="file"] { font-size: 13px; }
-    input[type="url"] {
-      width: 100%; padding: 10px 12px;
-      border: 1px solid var(--line); border-radius: 10px;
+    textarea, input[type="url"], input[type="text"] {
+      width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px;
       color: var(--ink); background: var(--page); font-size: 13.5px;
     }
+    textarea { min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; resize: vertical; }
+    input[type="file"] { font-size: 13px; }
+    .field { display: grid; gap: 5px; }
+    .field > span { color: var(--muted); font-size: 12px; font-weight: 600; }
+    .keybox { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
 
-    .note {
-      margin-top: 4px; padding: 11px 13px; border-radius: 10px;
-      border: 1px solid var(--line); font-size: 13px;
-    }
-    .note--ok { border-color: transparent; background: var(--ok-soft); color: var(--ok); }
-    .note--bad { border-color: transparent; background: var(--bad-soft); color: var(--bad); }
+    .note { margin-top: 10px; padding: 11px 13px; border-radius: 10px; font-size: 13px; }
+    .note--ok { background: var(--ok-soft); color: var(--ok); }
+    .note--bad { background: var(--bad-soft); color: var(--bad); }
 
+    .row { display: flex; flex-wrap: wrap; gap: 9px; }
+    .row > .btn { flex: 1 1 150px; }
     .footnote { color: var(--muted); font-size: 12px; text-align: center; }
-    .footnote code {
-      padding: 1px 5px; border-radius: 5px;
-      background: var(--blue-soft); font-size: 11.5px;
+
+    dialog {
+      width: min(420px, calc(100vw - 28px)); padding: 0; border: 1px solid var(--line);
+      border-radius: var(--radius); color: var(--ink); background: var(--paper); box-shadow: var(--shadow);
     }
+    dialog::backdrop { background: rgba(0,0,0,.4); }
+    .dialog__head { padding: 15px 16px 0; font-weight: 760; font-size: 16px; }
+    .dialog__body { padding: 14px 16px; display: grid; gap: 8px; max-height: 58vh; overflow-y: auto; }
+    .dialog__foot { padding: 0 16px 16px; display: grid; gap: 8px; }
+    .pick { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: inherit; text-align: left; font-size: 14px; }
+    .pick.is-current { border-color: var(--navy); font-weight: 700; }
+    .pick--danger { color: var(--bad); }
 
     @media (max-width: 560px) {
-      .topbar__inner, .layout { padding-left: 14px; padding-right: 14px; }
-      .brand__title { font-size: 17px; }
-      .panel__body, .route__body { padding: 14px; }
+      .topbar__inner, .layout { padding-left: 13px; padding-right: 13px; }
+      .panel__body, .route__body { padding: 13px; }
+      .exam__more { grid-template-columns: repeat(2,1fr); }
     }
-    @media (prefers-reduced-motion: reduce) {
-      * { transition: none !important; }
-    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
+  <script src="sync.js"></script>
 </head>
 <body>
   <header class="topbar">
     <div class="topbar__inner">
-      <div class="brand">
-        <div class="brand__eyebrow">ETH Medizin</div>
-        <div class="brand__title">Übungsprüfungen</div>
-      </div>
+      <div class="brand"><div class="brand__title">Übungsprüfungen</div></div>
       <div class="topbar__spacer"></div>
-      <button class="top-action" id="themeButton" type="button" title="Darstellung wechseln">◐</button>
+      <span class="sync-dot" id="syncDot" title="Abgleich"></span>
+      <button class="top-action" id="themeButton" type="button" title="Darstellung">◐</button>
     </div>
   </header>
 
@@ -239,15 +203,15 @@
       <div class="panel__head">
         <span class="panel__title">Bibliothek</span>
         <span class="panel__meta" id="libraryMeta">—</span>
+        <button class="btn" id="newFolderButton" type="button">Neuer Ordner</button>
       </div>
       <div class="panel__body">
+        <nav class="crumbs" id="crumbs" aria-label="Pfad"></nav>
+        <div class="folders" id="folderList"></div>
         <div class="exams" id="examList"></div>
         <div class="empty" id="emptyState" hidden>
-          <div class="empty__title">Noch keine Prüfung gespeichert</div>
-          <p class="empty__text">
-            Importiere unten eine generierte Prüfung. Danach liegt sie auf dem Gerät
-            und lässt sich auch ohne Internet lösen.
-          </p>
+          <div class="empty__title">Hier ist noch nichts</div>
+          <p class="empty__text">Lege einen Ordner an oder importiere unten eine Prüfung.</p>
         </div>
       </div>
     </section>
@@ -255,53 +219,78 @@
     <section class="panel">
       <div class="panel__head">
         <span class="panel__title">Prüfung hinzufügen</span>
-        <span class="panel__meta">JSON oder generierte HTML-Datei</span>
+        <span class="panel__meta" id="importTarget">—</span>
       </div>
       <div class="panel__body">
         <div class="routes">
-
           <details class="route" open>
             <summary>Datei wählen</summary>
             <div class="route__body">
-              <p class="route__hint">
-                Aus «Dateien» oder iCloud Drive. Mehrfachauswahl möglich.
-                Akzeptiert <code>.json</code> und die alten <code>.html</code>-Prüfungen.
-              </p>
+              <p class="route__hint">Aus «Dateien» oder iCloud Drive. Nimmt <code>.json</code> und die alten <code>.html</code>-Prüfungen. Mehrfachauswahl möglich.</p>
               <input type="file" id="fileInput" accept=".json,.html,.htm,application/json,text/html" multiple>
             </div>
           </details>
-
           <details class="route">
             <summary>Text einfügen</summary>
             <div class="route__body">
-              <p class="route__hint">
-                Den <code>QUIZ_DATA</code>-Block oder das reine JSON hier einsetzen.
-                Auf dem iPhone der zuverlässigste Weg.
-              </p>
+              <p class="route__hint">Den <code>QUIZ_DATA</code>-Block oder reines JSON einsetzen.</p>
               <textarea id="pasteInput" placeholder='{ "exam": { "title": "…" }, "questions": [ … ] }' spellcheck="false"></textarea>
               <button class="btn btn--primary btn--wide" id="pasteButton" type="button">Aus Text importieren</button>
             </div>
           </details>
-
           <details class="route">
-            <summary>Aus Repository synchronisieren</summary>
+            <summary>Aus Repository laden</summary>
             <div class="route__body">
-              <p class="route__hint">
-                Lädt alle Prüfungen, die in <code>exams/index.json</code> aufgelistet sind.
-                Neue Prüfung am Laptop ins Repo legen, hier einmal tippen.
-              </p>
-              <input type="url" id="syncUrl" value="exams/index.json" spellcheck="false">
-              <button class="btn btn--wide" id="syncButton" type="button">Jetzt synchronisieren</button>
+              <p class="route__hint">Lädt alles, was in <code>exams/index.json</code> steht.</p>
+              <input type="url" id="repoUrl" value="exams/index.json" spellcheck="false">
+              <button class="btn btn--wide" id="repoButton" type="button">Jetzt laden</button>
             </div>
           </details>
-
         </div>
         <div id="importNote"></div>
       </div>
     </section>
 
-    <p class="footnote" id="offlineNote">Offline bereit — Startbildschirm über «Teilen ▸ Zum Home-Bildschirm».</p>
+    <section class="panel">
+      <div class="panel__head">
+        <span class="panel__title">Abgleich zwischen Geräten</span>
+        <span class="panel__meta" id="syncState">nicht eingerichtet</span>
+      </div>
+      <div class="panel__body">
+        <div class="routes">
+          <details class="route" id="syncRoute">
+            <summary>Einrichten</summary>
+            <div class="route__body">
+              <p class="route__hint">
+                Adresse deines Cloudflare Workers und ein Schlüssel. Auf dem ersten Gerät den
+                Schlüssel erzeugen, auf jedem weiteren denselben eintragen. Wer den Schlüssel
+                hat, sieht deine Prüfungen — er ist das Passwort.
+              </p>
+              <label class="field"><span>Worker-Adresse</span>
+                <input type="url" id="endpointInput" placeholder="https://pruefungen-sync.dein-name.workers.dev" spellcheck="false" autocapitalize="off"></label>
+              <label class="field"><span>Schlüssel</span>
+                <input type="text" id="keyInput" class="keybox" placeholder="16–64 Zeichen, a–z und 0–9" spellcheck="false" autocapitalize="off" autocorrect="off"></label>
+              <div class="row">
+                <button class="btn" id="genKeyButton" type="button">Schlüssel erzeugen</button>
+                <button class="btn" id="copyKeyButton" type="button">Kopieren</button>
+              </div>
+              <button class="btn btn--primary btn--wide" id="saveSyncButton" type="button">Verbinden und abgleichen</button>
+              <button class="btn btn--wide" id="forgetSyncButton" type="button" hidden>Verbindung trennen</button>
+            </div>
+          </details>
+        </div>
+        <div id="syncNote"></div>
+      </div>
+    </section>
+
+    <p class="footnote">Offline bereit — Startbildschirm über «Teilen ▸ Zum Home-Bildschirm».</p>
   </main>
+
+  <dialog id="pickerDialog">
+    <div class="dialog__head" id="pickerTitle">Verschieben</div>
+    <div class="dialog__body" id="pickerBody"></div>
+    <div class="dialog__foot"><button class="btn btn--wide" id="pickerCancel" type="button">Abbrechen</button></div>
+  </dialog>
 
   <script>
   (() => {
@@ -310,14 +299,15 @@
     const INDEX_KEY = "pruefung:index";
     const DATA_PREFIX = "pruefung:data:";
     const PROGRESS_PREFIX = "pruefung:progress:";
-    const THEME_KEY = "kprim-ui-theme"; /* geteilt mit quiz.html */
+    const THEME_KEY = "kprim-ui-theme";
+
+    let cwd = null;   /* aktueller Ordner; null ist die oberste Ebene */
 
     /* ==================== Darstellung ==================== */
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     let themeMode = "auto";
     try { themeMode = localStorage.getItem(THEME_KEY) || "auto"; } catch (_) {}
-
     function applyTheme() {
       const dark = themeMode === "dark" || (themeMode === "auto" && media.matches);
       document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
@@ -330,7 +320,7 @@
     });
     applyTheme();
 
-    /* ==================== Bibliothek lesen und schreiben ==================== */
+    /* ==================== Speicher ==================== */
 
     function readIndex() {
       try {
@@ -338,21 +328,15 @@
         return Array.isArray(list) ? list : [];
       } catch (_) { return []; }
     }
-
-    function writeIndex(list) {
-      localStorage.setItem(INDEX_KEY, JSON.stringify(list));
-    }
+    function writeIndex(list) { localStorage.setItem(INDEX_KEY, JSON.stringify(list)); }
+    function live() { return readIndex().filter((entry) => !entry.deleted); }
 
     function slugify(text) {
-      return String(text || "pruefung")
-        .toLowerCase()
+      return String(text || "pruefung").toLowerCase()
         .replace(/[äàáâ]/g, "a").replace(/[öòóô]/g, "o").replace(/[üùúû]/g, "u")
         .replace(/ß/g, "ss").replace(/[éèêë]/g, "e")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-        .slice(0, 40) || "pruefung";
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "pruefung";
     }
-
     function freeId(base) {
       const taken = readIndex().map((entry) => entry.id);
       if (!taken.includes(base)) return base;
@@ -361,58 +345,36 @@
       return base + "-" + n;
     }
 
-    /* ==================== Prüfungsdaten aus Text gewinnen ==================== */
+    /* ==================== Prüfungsdaten lesen ==================== */
 
     function extractObjectSource(text) {
-      /* 1. Der markierte Block des Generators. */
       const marked = text.match(/KPRIM-DATEN:\s*START[^\n]*\n([\s\S]*?)\/\/\s*=*\s*KPRIM-DATEN:\s*ENDE/);
-      let body = marked ? marked[1] : null;
-
-      /* 2. Sonst irgendeine QUIZ_DATA-Zuweisung. */
-      if (!body) {
-        const assigned = text.match(/(?:const|let|var)\s+QUIZ_DATA\s*=\s*([\s\S]*?);\s*(?:\n\s*(?:\/\/|\(\(|<\/script>))/);
-        if (assigned) return assigned[1].trim();
-      }
-      if (body) {
-        const inner = body.match(/=\s*([\s\S]*?);\s*$/);
+      if (marked) {
+        const inner = marked[1].match(/=\s*([\s\S]*?);\s*$/);
         if (inner) return inner[1].trim();
       }
-      return null;
+      const assigned = text.match(/(?:const|let|var)\s+QUIZ_DATA\s*=\s*([\s\S]*?);\s*(?:\n\s*(?:\/\/|\(\(|<\/script>))/);
+      return assigned ? assigned[1].trim() : null;
     }
 
     function parsePayload(text) {
       const trimmed = String(text || "").trim();
       if (!trimmed) throw new Error("Die Datei ist leer.");
-
-      /* Reines JSON. */
       if (trimmed.startsWith("{")) {
-        try { return JSON.parse(trimmed); } catch (_) { /* weiter unten versuchen */ }
+        try { return JSON.parse(trimmed); } catch (_) {}
       }
-
       const source = extractObjectSource(trimmed) || (trimmed.startsWith("{") ? trimmed : null);
-      if (!source) {
-        throw new Error("Kein QUIZ_DATA-Block gefunden. Erwartet wird JSON oder eine vom Generator erzeugte HTML-Datei.");
-      }
-      /* JavaScript-Objektliteral: unquotierte Schlüssel, Kommentare, trailing commas. */
-      try {
-        return new Function('"use strict"; return (' + source + ");")();
-      } catch (error) {
-        throw new Error("Der QUIZ_DATA-Block liess sich nicht lesen (" + error.message + ").");
-      }
+      if (!source) throw new Error("Kein QUIZ_DATA-Block gefunden.");
+      try { return new Function('"use strict"; return (' + source + ");")(); }
+      catch (error) { throw new Error("QUIZ_DATA liess sich nicht lesen (" + error.message + ")."); }
     }
 
     function validate(payload) {
       if (!payload || typeof payload !== "object") throw new Error("Unerwartetes Format.");
-      if (!Array.isArray(payload.questions) || !payload.questions.length) {
-        throw new Error("Keine Fragen enthalten.");
-      }
-      const bad = payload.questions.findIndex((q) =>
-        !q || typeof q.stem !== "string" || !Array.isArray(q.statements) || !q.statements.length
-      );
+      if (!Array.isArray(payload.questions) || !payload.questions.length) throw new Error("Keine Fragen enthalten.");
+      const bad = payload.questions.findIndex((q) => !q || typeof q.stem !== "string" || !Array.isArray(q.statements) || !q.statements.length);
       if (bad !== -1) throw new Error("Frage " + (bad + 1) + " hat keinen Stamm oder keine Aussagen.");
-      if (String(payload.exam && payload.exam.title || "").includes("<Fach>")) {
-        throw new Error("Das ist noch die unausgefüllte Vorlage, keine fertige Prüfung.");
-      }
+      if (String((payload.exam && payload.exam.title) || "").includes("<Fach>")) throw new Error("Das ist noch die unausgefüllte Vorlage.");
       return payload;
     }
 
@@ -421,18 +383,19 @@
       const exam = payload.exam || (payload.exam = {});
       const title = exam.title || fallbackName || "Übungsprüfung";
       const id = freeId(slugify(title));
-
       localStorage.setItem(DATA_PREFIX + id, JSON.stringify(payload));
       const list = readIndex();
       list.unshift({
-        id,
-        title,
+        id, title,
         subtitle: exam.subtitle || "",
         count: payload.questions.length,
         blocks: [...new Set(payload.questions.map((q) => q.block).filter(Boolean))].length,
-        addedAt: Date.now()
+        folder: cwd,
+        addedAt: Date.now(),
+        updated: Date.now()
       });
       writeIndex(list);
+      Sync.schedulePush();
       return { id, title };
     }
 
@@ -444,21 +407,91 @@
       } catch (_) { return 0; }
     }
 
-    /* ==================== Darstellung der Bibliothek ==================== */
+    /* ==================== Ordnerbaum ==================== */
+
+    function descendantIds(folderId) {
+      const all = Object.values(Sync.folders()).filter((folder) => !folder.deleted);
+      const ids = [folderId];
+      let frontier = [folderId];
+      let guard = 0;
+      while (frontier.length && guard < 20) {
+        const next = [];
+        all.forEach((folder) => {
+          if (frontier.includes(folder.parent || null) && !ids.includes(folder.id)) {
+            ids.push(folder.id); next.push(folder.id);
+          }
+        });
+        frontier = next;
+        guard += 1;
+      }
+      return ids;
+    }
+
+    function countIn(folderId) {
+      const ids = descendantIds(folderId);
+      return live().filter((entry) => ids.includes(entry.folder || null)).length;
+    }
+
+    /* ==================== Bibliothek zeichnen ==================== */
 
     const examList = document.getElementById("examList");
+    const folderList = document.getElementById("folderList");
     const emptyState = document.getElementById("emptyState");
     const libraryMeta = document.getElementById("libraryMeta");
+    const crumbs = document.getElementById("crumbs");
 
-    function render() {
-      const list = readIndex();
+    function renderCrumbs() {
+      crumbs.textContent = "";
+      const trail = [{ id: null, name: "Alle Prüfungen" }, ...Sync.folderPath(cwd)];
+      trail.forEach((node, index) => {
+        if (index) {
+          const sep = document.createElement("span");
+          sep.className = "crumb__sep";
+          sep.textContent = "›";
+          crumbs.appendChild(sep);
+        }
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "crumb" + (index === trail.length - 1 ? " is-current" : "");
+        button.textContent = node.name;
+        button.addEventListener("click", () => { cwd = node.id; render(); });
+        crumbs.appendChild(button);
+      });
+    }
+
+    function renderFolders() {
+      folderList.textContent = "";
+      Sync.childFolders(cwd).forEach((folder) => {
+        const row = document.createElement("div");
+        row.className = "folder";
+
+        const open = document.createElement("button");
+        open.type = "button";
+        open.className = "folder__open";
+        open.innerHTML = '<span class="folder__icon" aria-hidden="true">▸</span>'
+          + '<span class="folder__name"></span><span class="folder__count"></span>';
+        open.querySelector(".folder__name").textContent = folder.name;
+        const n = countIn(folder.id);
+        open.querySelector(".folder__count").textContent = n ? n + (n === 1 ? " Prüfung" : " Prüfungen") : "leer";
+        open.addEventListener("click", () => { cwd = folder.id; render(); });
+
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "folder__edit";
+        edit.textContent = "•••";
+        edit.setAttribute("aria-label", "Ordner bearbeiten");
+        edit.addEventListener("click", () => editFolder(folder));
+
+        row.append(open, edit);
+        folderList.appendChild(row);
+      });
+    }
+
+    function renderExams() {
       examList.textContent = "";
-      emptyState.hidden = list.length > 0;
-      libraryMeta.textContent = list.length
-        ? list.length + (list.length === 1 ? " Prüfung" : " Prüfungen")
-        : "leer";
+      const here = live().filter((entry) => (entry.folder || null) === (cwd || null));
 
-      list.forEach((entry) => {
+      here.forEach((entry) => {
         const answered = progressFor(entry);
         const share = entry.count ? Math.round((answered / entry.count) * 100) : 0;
         const done = entry.count && answered >= entry.count;
@@ -469,14 +502,10 @@
         const main = document.createElement("a");
         main.className = "exam__main";
         main.href = "quiz.html?exam=" + encodeURIComponent(entry.id);
-        main.innerHTML =
-          '<div class="exam__title"></div>' +
-          '<div class="exam__subtitle"></div>' +
-          '<div class="exam__tags"></div>';
+        main.innerHTML = '<div class="exam__title"></div><div class="exam__subtitle"></div><div class="exam__tags"></div>';
         main.querySelector(".exam__title").textContent = entry.title;
         const sub = main.querySelector(".exam__subtitle");
         if (entry.subtitle) sub.textContent = entry.subtitle; else sub.remove();
-
         const tags = main.querySelector(".exam__tags");
         const addTag = (text, cls) => {
           const el = document.createElement("span");
@@ -495,47 +524,51 @@
         open.href = main.href;
         open.textContent = answered ? "Weiterlösen" : "Starten";
 
-        const actions = document.createElement("div");
-        actions.className = "exam__more";
+        const more = document.createElement("div");
+        more.className = "exam__more";
+
+        const move = document.createElement("button");
+        move.type = "button"; move.className = "linkbtn"; move.textContent = "Verschieben";
+        move.addEventListener("click", () => moveExam(entry));
 
         const reset = document.createElement("button");
-        reset.className = "linkbtn";
-        reset.type = "button";
-        reset.textContent = "Zurücksetzen";
+        reset.type = "button"; reset.className = "linkbtn"; reset.textContent = "Zurücksetzen";
         reset.addEventListener("click", () => {
-          if (!confirm("Alle Antworten und Wiederholungsrunden dieser Prüfung löschen?")) return;
-          localStorage.removeItem(PROGRESS_PREFIX + entry.id);
+          if (!confirm("Alle Antworten dieser Prüfung löschen? Das gilt auch auf deinen anderen Geräten.")) return;
+          localStorage.setItem(PROGRESS_PREFIX + entry.id, JSON.stringify({
+            questionCount: entry.count, round: 0,
+            rounds: [{ label: "Originalversuch", items: [], answers: {}, flags: {} }]
+          }));
           render();
         });
 
         const exportBtn = document.createElement("button");
-        exportBtn.className = "linkbtn";
-        exportBtn.type = "button";
-        exportBtn.textContent = "JSON sichern";
+        exportBtn.type = "button"; exportBtn.className = "linkbtn"; exportBtn.textContent = "JSON sichern";
         exportBtn.addEventListener("click", () => {
           const raw = localStorage.getItem(DATA_PREFIX + entry.id) || "{}";
           const url = URL.createObjectURL(new Blob([raw], { type: "application/json" }));
           const link = document.createElement("a");
-          link.href = url;
-          link.download = entry.id + ".json";
-          link.click();
+          link.href = url; link.download = entry.id + ".json"; link.click();
           setTimeout(() => URL.revokeObjectURL(url), 4000);
         });
 
         const remove = document.createElement("button");
-        remove.className = "linkbtn linkbtn--danger";
-        remove.type = "button";
-        remove.textContent = "Entfernen";
+        remove.type = "button"; remove.className = "linkbtn linkbtn--danger"; remove.textContent = "Entfernen";
         remove.addEventListener("click", () => {
-          if (!confirm("«" + entry.title + "» aus der Bibliothek entfernen?")) return;
+          if (!confirm("«" + entry.title + "» entfernen? Das gilt auch auf deinen anderen Geräten.")) return;
           localStorage.removeItem(DATA_PREFIX + entry.id);
           localStorage.removeItem(PROGRESS_PREFIX + entry.id);
-          writeIndex(readIndex().filter((item) => item.id !== entry.id));
+          /* Grabstein statt Löschung: ein entfernter Eintrag käme beim
+             nächsten Abgleich vom anderen Gerät zurück. */
+          const list = readIndex();
+          const found = list.find((item) => item.id === entry.id);
+          if (found) { found.deleted = true; found.updated = Date.now(); }
+          writeIndex(list);
+          Sync.schedulePush();
           render();
         });
 
-        actions.append(reset, exportBtn, remove);
-
+        more.append(move, reset, exportBtn, remove);
         card.append(main);
         if (answered) {
           const bar = document.createElement("div");
@@ -546,84 +579,143 @@
           bar.appendChild(fill);
           card.appendChild(bar);
         }
-        card.append(open, actions);
+        card.append(open, more);
         examList.appendChild(card);
       });
+
+      const total = live().length;
+      libraryMeta.textContent = total ? total + (total === 1 ? " Prüfung" : " Prüfungen") : "leer";
+      emptyState.hidden = here.length > 0 || Sync.childFolders(cwd).length > 0;
+      const path = Sync.folderPath(cwd);
+      document.getElementById("importTarget").textContent =
+        "Ziel: " + (path.length ? path.map((folder) => folder.name).join(" › ") : "Alle Prüfungen");
     }
 
-    /* ==================== Rückmeldung ==================== */
+    function render() { renderCrumbs(); renderFolders(); renderExams(); }
+
+    /* ==================== Ordner verwalten ==================== */
+
+    const dialog = document.getElementById("pickerDialog");
+    const pickerBody = document.getElementById("pickerBody");
+    const pickerTitle = document.getElementById("pickerTitle");
+    document.getElementById("pickerCancel").addEventListener("click", () => dialog.close());
+
+    function openPicker(title, entries) {
+      pickerTitle.textContent = title;
+      pickerBody.textContent = "";
+      entries.forEach((entry) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "pick" + (entry.current ? " is-current" : "") + (entry.danger ? " pick--danger" : "");
+        if (entry.depth) button.style.paddingLeft = (12 + entry.depth * 16) + "px";
+        button.textContent = entry.label;
+        button.addEventListener("click", () => { dialog.close(); entry.run(); });
+        pickerBody.appendChild(button);
+      });
+      dialog.showModal();
+    }
+
+    function folderChoices(current, exclude, onPick) {
+      const entries = [{
+        label: "Alle Prüfungen (oberste Ebene)",
+        current: !current, depth: 0, run: () => onPick(null)
+      }];
+      Sync.folderTree(null, 0).forEach(({ folder, depth }) => {
+        if (exclude && exclude.includes(folder.id)) return;
+        entries.push({
+          label: folder.name, depth: depth + 1,
+          current: folder.id === current, run: () => onPick(folder.id)
+        });
+      });
+      return entries;
+    }
+
+    document.getElementById("newFolderButton").addEventListener("click", () => {
+      const name = prompt("Name des Ordners");
+      if (!name || !name.trim()) return;
+      cwd = Sync.createFolder(name, cwd);
+      render();
+    });
+
+    function editFolder(folder) {
+      openPicker(folder.name, [
+        { label: "Umbenennen", run: () => {
+            const name = prompt("Neuer Name", folder.name);
+            if (name && name.trim()) { Sync.renameFolder(folder.id, name); render(); }
+          } },
+        { label: "Verschieben", run: () => {
+            openPicker("«" + folder.name + "» verschieben nach",
+              folderChoices(folder.parent || null, descendantIds(folder.id), (target) => {
+                Sync.moveFolder(folder.id, target); render();
+              }));
+          } },
+        { label: "Löschen", danger: true, run: () => {
+            if (!confirm("Ordner «" + folder.name + "» löschen? Prüfungen und Unterordner rücken eine Ebene hoch.")) return;
+            Sync.deleteFolder(folder.id);
+            render();
+          } }
+      ]);
+    }
+
+    function moveExam(entry) {
+      openPicker("«" + entry.title + "» verschieben nach",
+        folderChoices(entry.folder || null, null, (target) => {
+          Sync.setExamFolder(entry.id, target);
+          render();
+        }));
+    }
+
+    /* ==================== Import ==================== */
 
     const importNote = document.getElementById("importNote");
-
-    function report(lines, ok) {
-      importNote.textContent = "";
+    function report(target, lines, ok) {
+      target.textContent = "";
       const box = document.createElement("div");
       box.className = "note " + (ok ? "note--ok" : "note--bad");
       lines.forEach((line, index) => {
         if (index) box.appendChild(document.createElement("br"));
         box.appendChild(document.createTextNode(line));
       });
-      importNote.appendChild(box);
+      target.appendChild(box);
     }
-
-    function ingest(text, name) {
-      const saved = saveExam(parsePayload(text), name);
-      return saved.title;
-    }
-
-    /* ==================== Route 1: Dateien ==================== */
 
     document.getElementById("fileInput").addEventListener("change", async (event) => {
       const files = [...event.target.files];
       if (!files.length) return;
-      const ok = [];
-      const failed = [];
+      const ok = [], failed = [];
       for (const file of files) {
-        try {
-          ok.push(ingest(await file.text(), file.name.replace(/\.[^.]+$/, "")));
-        } catch (error) {
-          failed.push(file.name + ": " + error.message);
-        }
+        try { ok.push(saveExam(parsePayload(await file.text()), file.name.replace(/\.[^.]+$/, "")).title); }
+        catch (error) { failed.push(file.name + ": " + error.message); }
       }
       event.target.value = "";
       render();
-      if (ok.length && !failed.length) report(["Importiert: " + ok.join(", ")], true);
-      else if (ok.length) report(["Importiert: " + ok.join(", "), ...failed], false);
-      else report(failed, false);
+      if (ok.length && !failed.length) report(importNote, ["Importiert: " + ok.join(", ")], true);
+      else if (ok.length) report(importNote, ["Importiert: " + ok.join(", "), ...failed], false);
+      else report(importNote, failed, false);
     });
-
-    /* ==================== Route 2: Text ==================== */
 
     document.getElementById("pasteButton").addEventListener("click", () => {
       const field = document.getElementById("pasteInput");
       try {
-        const title = ingest(field.value, "Eingefügte Prüfung");
-        field.value = "";
-        render();
-        report(["Importiert: " + title], true);
-      } catch (error) {
-        report([error.message], false);
-      }
+        const saved = saveExam(parsePayload(field.value), "Eingefügte Prüfung");
+        field.value = ""; render();
+        report(importNote, ["Importiert: " + saved.title], true);
+      } catch (error) { report(importNote, [error.message], false); }
     });
 
-    /* ==================== Route 3: Repository ==================== */
-
-    document.getElementById("syncButton").addEventListener("click", async () => {
-      const button = document.getElementById("syncButton");
-      const base = document.getElementById("syncUrl").value.trim();
+    document.getElementById("repoButton").addEventListener("click", async () => {
+      const button = document.getElementById("repoButton");
+      const base = document.getElementById("repoUrl").value.trim();
       if (!base) return;
-      button.disabled = true;
-      button.textContent = "Synchronisiere …";
+      button.disabled = true; button.textContent = "Lade …";
       try {
         const response = await fetch(base, { cache: "no-store" });
         if (!response.ok) throw new Error("Liste nicht erreichbar (HTTP " + response.status + ").");
         const listing = await response.json();
         const entries = Array.isArray(listing) ? listing : (listing.exams || []);
         if (!entries.length) throw new Error("Die Liste enthält keine Einträge.");
-
-        const known = new Set(readIndex().map((item) => item.title));
-        const ok = [];
-        const failed = [];
+        const known = new Set(live().map((item) => item.title));
+        const ok = [], failed = [];
         for (const item of entries) {
           const file = typeof item === "string" ? item : item.file;
           if (!file) continue;
@@ -633,36 +725,97 @@
             if (!fileResponse.ok) throw new Error("HTTP " + fileResponse.status);
             const payload = parsePayload(await fileResponse.text());
             const title = (payload.exam && payload.exam.title) || file;
-            if (known.has(title)) continue; /* schon vorhanden, Fortschritt nicht anfassen */
+            if (known.has(title)) continue;
             ok.push(saveExam(payload, file).title);
-          } catch (error) {
-            failed.push(file + ": " + error.message);
-          }
+          } catch (error) { failed.push(file + ": " + error.message); }
         }
         render();
-        if (!ok.length && !failed.length) report(["Alles bereits aktuell."], true);
-        else if (!failed.length) report(["Neu geladen: " + ok.join(", ")], true);
-        else report([ok.length ? "Neu geladen: " + ok.join(", ") : "Nichts geladen.", ...failed], false);
-      } catch (error) {
-        report([error.message], false);
-      } finally {
-        button.disabled = false;
-        button.textContent = "Jetzt synchronisieren";
-      }
+        if (!ok.length && !failed.length) report(importNote, ["Alles bereits vorhanden."], true);
+        else if (!failed.length) report(importNote, ["Neu geladen: " + ok.join(", ")], true);
+        else report(importNote, [ok.length ? "Neu geladen: " + ok.join(", ") : "Nichts geladen.", ...failed], false);
+      } catch (error) { report(importNote, [error.message], false); }
+      finally { button.disabled = false; button.textContent = "Jetzt laden"; }
     });
+
+    /* ==================== Abgleich ==================== */
+
+    const syncNote = document.getElementById("syncNote");
+    const syncDot = document.getElementById("syncDot");
+    const syncState = document.getElementById("syncState");
+    const endpointInput = document.getElementById("endpointInput");
+    const keyInput = document.getElementById("keyInput");
+
+    function loadSyncFields() {
+      const state = Sync.meta();
+      if (document.activeElement !== endpointInput) endpointInput.value = state.endpoint || "";
+      if (document.activeElement !== keyInput) keyInput.value = state.key || "";
+      document.getElementById("forgetSyncButton").hidden = !Sync.configured();
+      if (!Sync.configured()) {
+        syncState.textContent = "nicht eingerichtet";
+        syncDot.className = "sync-dot";
+      } else if (state.lastSync) {
+        syncState.textContent = "zuletzt " + new Date(state.lastSync)
+          .toLocaleString("de-CH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+        syncDot.className = "sync-dot is-ok";
+      } else {
+        syncState.textContent = "eingerichtet";
+        syncDot.className = "sync-dot is-bad";
+      }
+    }
+
+    document.getElementById("genKeyButton").addEventListener("click", () => {
+      keyInput.value = Sync.randomKey(24);
+    });
+
+    document.getElementById("copyKeyButton").addEventListener("click", async () => {
+      if (!keyInput.value) return;
+      try { await navigator.clipboard.writeText(keyInput.value); report(syncNote, ["Schlüssel kopiert."], true); }
+      catch (_) { keyInput.select(); report(syncNote, ["Konnte nicht kopieren — das Feld ist markiert."], false); }
+    });
+
+    document.getElementById("saveSyncButton").addEventListener("click", async () => {
+      const button = document.getElementById("saveSyncButton");
+      const endpoint = endpointInput.value.trim();
+      const key = keyInput.value.trim().toLowerCase();
+      if (!/^https?:\/\//.test(endpoint)) { report(syncNote, ["Die Adresse muss mit https:// beginnen."], false); return; }
+      if (!/^[a-z0-9]{16,64}$/.test(key)) { report(syncNote, ["Der Schlüssel braucht 16–64 Zeichen aus a–z und 0–9."], false); return; }
+      button.disabled = true; button.textContent = "Verbinde …";
+      try {
+        await Sync.test(endpoint);
+        const state = Sync.meta();
+        state.endpoint = endpoint; state.key = key; state.rev = null; state.uploaded = {};
+        Sync.saveMeta(state);
+        const result = await Sync.sync();
+        if (!result.ok) throw new Error(result.reason);
+        render(); loadSyncFields();
+        report(syncNote, [
+          "Verbunden.",
+          (result.pulledExams ? result.pulledExams + " Prüfung(en) geladen. " : "")
+            + "Trage denselben Schlüssel auf dem anderen Gerät ein."
+        ], true);
+      } catch (error) {
+        report(syncNote, ["Fehlgeschlagen: " + error.message], false);
+      } finally { button.disabled = false; button.textContent = "Verbinden und abgleichen"; }
+    });
+
+    document.getElementById("forgetSyncButton").addEventListener("click", () => {
+      if (!confirm("Verbindung trennen? Die Daten auf diesem Gerät bleiben erhalten.")) return;
+      const state = Sync.meta();
+      state.endpoint = ""; state.key = ""; state.rev = null; state.lastSync = 0; state.uploaded = {};
+      Sync.saveMeta(state);
+      loadSyncFields();
+      report(syncNote, ["Getrennt."], true);
+    });
+
+    Sync.onSync(() => { render(); loadSyncFields(); });
 
     /* ==================== Start ==================== */
 
     render();
-    window.addEventListener("pageshow", render);
-
-    if (window.navigator.standalone) {
-      document.getElementById("offlineNote").textContent = "Offline bereit.";
-    }
+    loadSyncFields();
+    window.addEventListener("pageshow", () => { render(); loadSyncFields(); });
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch(() => { /* offline optional */ });
-      });
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
     }
   })();
   </script>
