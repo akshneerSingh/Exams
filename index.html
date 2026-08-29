@@ -42,10 +42,26 @@
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,
          "Helvetica Neue",Helvetica,Arial,sans-serif;
   --rail-w:236px;
+  --rail-gap:12px;              /* Abstand der Platte zum Fensterrand */
+
+  /* Federkurven. Nichts läuft gleichförmig: alles schwingt leicht über und
+     pendelt sich ein, damit Bewegungen Gewicht haben statt zu rutschen. */
+  --spring:cubic-bezier(.32,.72,0,1);
+  --spring-soft:cubic-bezier(.34,1.4,.42,1);
+
+  /* Durchscheinendes Material — der Inhalt schimmert verschwommen durch,
+     statt hinter einer deckenden Fläche zu verschwinden. */
+  --glass:rgba(22,22,24,.62);
+  --glass-blur:saturate(180%) blur(28px);
+  --lift:0 1px 2px rgba(0,0,0,.28),0 12px 32px rgba(0,0,0,.34);
+  --lift-hi:0 2px 4px rgba(0,0,0,.3),0 20px 48px rgba(0,0,0,.44);
 }
 /* Helle Fassung. Die Marken bleiben dieselben, nur ihre Werte drehen sich —
    deshalb steht das Aussehen der ganzen Seite in diesen zwölf Zeilen. */
 html[data-theme="light"]{
+  --glass:rgba(255,255,255,.7);
+  --lift:0 1px 2px rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.08);
+  --lift-hi:0 2px 6px rgba(0,0,0,.08),0 18px 42px rgba(0,0,0,.12);
   --bg:#f7f7f9; --card:#ffffff; --card-2:#f2f2f5; --raised:#e8e8ec;
   --hair:rgba(0,0,0,.08);
   --label:#0b0b0c; --label-2:rgba(60,60,67,.62); --label-3:rgba(60,60,67,.34);
@@ -82,10 +98,22 @@ a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 /* ============ Schiene ============ */
-.rail{position:fixed;top:0;left:0;bottom:0;width:var(--rail-w);z-index:45;
-  background:#08080a;border-right:.5px solid var(--hair);
-  display:flex;flex-direction:column;padding:22px 14px 16px;
-  padding-top:calc(22px + env(safe-area-inset-top))}
+.rail{
+  position:fixed;z-index:45;
+  top:calc(var(--rail-gap) + env(safe-area-inset-top));
+  left:var(--rail-gap);
+  bottom:var(--rail-gap);
+  width:var(--rail-w);
+  display:flex;flex-direction:column;
+  padding:18px 12px 12px;
+  border:.5px solid var(--hair);
+  border-radius:16px;
+  background:var(--glass);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  box-shadow:var(--lift);
+}
+html[data-theme="light"] .rail{background:var(--glass)}
 .brand{padding:0 8px;margin-bottom:4px}
 .brand b{display:block;font-size:15px;font-weight:700;letter-spacing:-.018em}
 .brand span{display:block;font-size:12px;color:var(--label-3);font-weight:500;
@@ -95,7 +123,9 @@ a{color:inherit;text-decoration:none}
 .seg{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
 .seg button{display:flex;align-items:center;gap:8px;width:100%;color:var(--label-2);
   font-size:14px;font-weight:500;letter-spacing:-.011em;padding:9px 10px;
-  border-radius:9px;text-align:left;transition:background .15s,color .15s}
+  border-radius:9px;text-align:left;
+  transition:background .16s ease,color .16s ease,transform .18s var(--spring-soft)}
+.seg button:active{transform:scale(.975);transition-duration:.08s}
 .seg button:hover{background:rgba(118,118,128,.16);color:var(--label)}
 .seg button[aria-selected="true"]{background:rgba(10,132,255,.16);color:var(--blue);font-weight:600}
 .seg .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -120,13 +150,14 @@ a{color:inherit;text-decoration:none}
 .tools{display:flex;flex-direction:column;gap:2px}
 .chip{display:flex;align-items:center;gap:8px;width:100%;color:var(--label-2);
   font-size:13.5px;font-weight:500;padding:8px 10px;border-radius:9px;
-  text-align:left;transition:.15s}
+  text-align:left;transition:background .16s ease,color .16s ease,transform .18s var(--spring-soft)}
+.chip:active{transform:scale(.975);transition-duration:.08s}
 .chip:hover{background:rgba(118,118,128,.16);color:var(--label)}
 .lamp{width:7px;height:7px;border-radius:50%;background:var(--label-3);margin-left:auto;flex:none}
 .lamp.ok{background:var(--green)}
 
 /* ============ Bühne ============ */
-main{margin-left:var(--rail-w);padding:46px 28px 80px}
+main{margin-left:calc(var(--rail-w) + var(--rail-gap)*2);padding:46px 28px 80px}
 main > article{max-width:760px;margin:0 auto;min-width:0}
 .crumb{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:10px;
   display:inline-flex;align-items:center;gap:4px}
@@ -135,10 +166,15 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);margin:34px 0 10px}
 
-.resume{display:block;background:linear-gradient(180deg,rgba(10,132,255,.14),rgba(10,132,255,.06));
-  border:.5px solid rgba(10,132,255,.28);border-radius:16px;padding:20px;
-  transition:.15s;margin-top:18px}
-.resume:hover{border-color:rgba(10,132,255,.5)}
+.resume{display:block;background:linear-gradient(180deg,rgba(10,132,255,.15),rgba(10,132,255,.06));
+  border:.5px solid rgba(10,132,255,.28);border-radius:18px;padding:20px;margin-top:18px;
+  transition:transform .26s var(--spring-soft),box-shadow .26s var(--spring),
+             border-color .16s ease}
+.resume:hover{border-color:rgba(10,132,255,.55);transform:translateY(-3px);
+  box-shadow:0 14px 40px rgba(10,132,255,.22)}
+.resume:active{transform:translateY(-1px) scale(.996);transition-duration:.09s}
+.resume .go{transition:transform .2s var(--spring-soft),opacity .15s}
+.resume:hover .go{transform:scale(1.03)}
 .resume .kick{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
   color:var(--blue);margin-bottom:9px}
 .resume h2{font-size:21px;font-weight:600;letter-spacing:-.02em;margin:0;line-height:1.25}
@@ -151,8 +187,17 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 
 .cards{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
 .card{display:flex;align-items:center;gap:12px;background:var(--card);
-  border-radius:14px;padding:15px 16px;transition:.15s;min-width:0;text-align:left}
-.card:hover{background:var(--card-2)}
+  border:.5px solid transparent;border-radius:14px;padding:15px 16px;
+  min-width:0;text-align:left;
+  transform:translateZ(0);
+  transition:transform .22s var(--spring-soft),box-shadow .22s var(--spring),
+             background .16s ease,border-color .16s ease}
+/* Zwei Pixel Hub und ein Schatten — der Unterschied zwischen Bild und
+   Oberfläche liegt genau hier, nicht in grösseren Effekten. */
+.card:hover{background:var(--card-2);transform:translateY(-2px);
+  box-shadow:var(--lift);border-color:var(--hair)}
+.card:active{transform:translateY(0) scale(.994);box-shadow:none;
+  transition-duration:.09s}
 .card .ico{flex:none;width:26px;text-align:center;color:var(--label-3);font-size:15px}
 .card .body{flex:1 1 0;min-width:0;max-width:100%;text-align:left}
 .card h3{font-size:16.5px;font-weight:600;letter-spacing:-.016em;margin:0;line-height:1.3;
@@ -207,9 +252,9 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
   width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
   color:var(--label-3);font-size:14px;transition:.15s}
 .railtoggle:hover{background:rgba(118,118,128,.2);color:var(--label)}
-.rail{transition:transform .26s cubic-bezier(.32,.72,0,1)}
-main{transition:margin-left .26s cubic-bezier(.32,.72,0,1)}
-body.rail-off .rail{transform:translateX(-100%)}
+.rail{transition:transform .42s var(--spring),opacity .28s ease}
+main{transition:margin-left .42s var(--spring)}
+body.rail-off .rail{transform:translateX(calc(-100% - var(--rail-gap)*2));opacity:0}
 body.rail-off main{margin-left:0}
 .railshow{position:fixed;top:calc(16px + env(safe-area-inset-top));left:14px;z-index:46;
   width:32px;height:32px;border-radius:9px;display:none;place-items:center;
@@ -234,9 +279,14 @@ body.rail-off .railshow{display:grid}
   margin:14px 0 26px;max-width:62ch;white-space:pre-line}
 .hero .lead:empty{display:none}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-.tile{display:block;width:100%;background:var(--card);border-radius:16px;padding:22px;
-  transition:.15s;min-width:0;text-align:left;color:inherit}
-.tile:hover{background:var(--card-2)}
+.tile{display:block;width:100%;background:var(--card);
+  border:.5px solid transparent;border-radius:18px;padding:22px;
+  min-width:0;text-align:left;color:inherit;
+  transition:transform .26s var(--spring-soft),box-shadow .26s var(--spring),
+             background .16s ease,border-color .16s ease}
+.tile:hover{background:var(--card-2);transform:translateY(-3px);
+  box-shadow:var(--lift-hi);border-color:var(--hair)}
+.tile:active{transform:translateY(-1px) scale(.995);transition-duration:.09s}
 .tile .ti{font-size:19px;color:var(--label-3);margin-bottom:12px}
 .tile h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.02em}
 .tile p{margin:6px 0 0;font-size:13.5px;color:var(--label-3);line-height:1.5}
@@ -283,22 +333,31 @@ body.rail-off .railshow{display:grid}
 .busy{opacity:.5;pointer-events:none}
 .pick{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;
   border-radius:11px;background:var(--card-2);text-align:left;font-size:15px;
-  letter-spacing:-.012em;transition:.15s}
+  letter-spacing:-.012em;
+  transition:background .15s ease,transform .18s var(--spring-soft)}
 .pick:hover{background:var(--raised)}
+.pick:active{transform:scale(.985);transition-duration:.08s}
 .pick.danger{color:var(--red)}
 
 /* ============ Blatt ============ */
 dialog{width:min(460px,calc(100vw - 28px));padding:0;border:.5px solid var(--hair);
-  border-radius:18px;background:var(--card);color:var(--label);
+  border-radius:20px;background:var(--card);color:var(--label);
   box-shadow:0 40px 100px rgba(0,0,0,.7)}
+dialog[open]{animation:sheetIn .34s var(--spring-soft)}
+@keyframes sheetIn{
+  from{opacity:0;transform:translateY(14px) scale(.97)}
+  to{opacity:1;transform:none}
+}
 dialog::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .sheet-head{padding:20px 20px 0;font-size:18px;font-weight:700;letter-spacing:-.02em}
 .sheet-body{padding:16px 20px;display:grid;gap:12px;max-height:66vh;overflow-y:auto}
 .sheet-foot{padding:0 20px 20px}
 .btn{display:block;width:100%;background:var(--blue);color:#fff;border-radius:100px;
   padding:12px 24px;font-size:15.5px;font-weight:600;letter-spacing:-.012em;
-  text-align:center;transition:.15s}
-.btn:hover{opacity:.88}
+  text-align:center;
+  transition:transform .2s var(--spring-soft),opacity .15s ease,background .15s ease}
+.btn:hover{opacity:.9;transform:translateY(-1px)}
+.btn:active{transform:scale(.97);transition-duration:.08s}
 .btn.ghost{background:rgba(118,118,128,.24);color:var(--label)}
 .hint{font-size:13.5px;color:var(--label-3);line-height:1.5}
 .code{display:block;padding:14px;border-radius:12px;background:#000;
@@ -312,21 +371,105 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
 .note.ok{background:rgba(48,209,88,.14);color:var(--green)}
 .note.bad{background:rgba(255,69,58,.14);color:var(--red)}
 
+/* ============ Bewegung ============
+   Eine gemeinsame Kurve für alles: schnell los, weich aus. Das ist die
+   Federung, die Fenster und Blätter in den Systemprogrammen benutzen.
+
+   Die Einzugsbewegung läuft nur bei einem echten Ortswechsel — sonst würde
+   jeder Abgleich im Hintergrund die halbe Seite neu einfliegen lassen.
+   ================================================== */
+:root{
+  --spring:cubic-bezier(.32,.72,0,1);
+  --quick:cubic-bezier(.25,.46,.45,.94);
+}
+
+@keyframes rise{
+  from{opacity:0;transform:translateY(10px) scale(.985)}
+  to{opacity:1;transform:none}
+}
+@keyframes settle{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:none}
+}
+@keyframes sheetIn{
+  from{opacity:0;transform:translateY(14px) scale(.96)}
+  to{opacity:1;transform:none}
+}
+@keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+
+/* Gestaffelter Einzug: jede Karte startet 34ms nach der vorigen. */
+.enter > .card,
+.enter > .tiles > .tile,
+.enter > .resume,
+.enter > .prose,
+.enter > .grouphead{
+  animation:rise .42s var(--spring) backwards;
+  animation-delay:calc(var(--i,0) * 34ms);
+}
+.enter-head h1,.enter-head .sub,.enter-head #lead,.enter-head .crumb{
+  animation:settle .38s var(--spring) backwards}
+.enter-head .sub{animation-delay:40ms}
+.enter-head #lead{animation-delay:60ms}
+
+/* Karten heben sich beim Überfahren leicht an und geben beim Tippen nach. */
+.card,.tile{
+  transition:background .18s var(--quick),
+             transform .22s var(--spring),
+             box-shadow .22s var(--quick);
+  will-change:transform}
+@media (hover:hover){
+  .card:hover,.tile:hover{transform:translateY(-2px)}
+  .card:hover{box-shadow:0 10px 26px rgba(0,0,0,.28)}
+  .tile:hover{box-shadow:0 14px 34px rgba(0,0,0,.32)}
+  html[data-theme="light"] .card:hover{box-shadow:0 8px 22px rgba(0,0,0,.09)}
+  html[data-theme="light"] .tile:hover{box-shadow:0 12px 30px rgba(0,0,0,.1)}
+  .resume:hover{transform:translateY(-2px)}
+}
+.card:active,.tile:active{transform:scale(.988);transition-duration:.09s}
+.resume{transition:transform .22s var(--spring),border-color .18s var(--quick)}
+.resume:active{transform:scale(.992)}
+
+/* Der Balken wächst in seine Länge, statt fertig dazustehen. */
+.progress-fill{transition:width .6s var(--spring)}
+
+/* Blatt und Verdunklung */
+dialog{animation:sheetIn .34s var(--spring)}
+dialog::backdrop{animation:fadeIn .24s var(--quick)}
+.pick,.btn,.chip,.seg button,.linkbtn,.mb-btn{transition:background .16s var(--quick),
+  color .16s var(--quick),transform .16s var(--spring)}
+.pick:active,.btn:active{transform:scale(.985)}
+
+/* Klapp-Pfeil und Suchfeld schwingen mit derselben Kurve. */
+.seg .tw{transition:transform .24s var(--spring),background .15s,color .15s}
+.search input{transition:background .18s var(--quick),box-shadow .22s var(--spring)}
+
+@media (prefers-reduced-motion:reduce){
+  .enter > *,.enter-head *{animation:none!important}
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+
 /* ============ Handy-Leiste ============ */
 .mobilebar{display:none;position:sticky;top:0;z-index:44;
   align-items:center;gap:6px;padding:8px 10px;
   padding-top:calc(8px + env(safe-area-inset-top));
-  background:color-mix(in srgb,var(--bg) 82%,transparent);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:.5px solid var(--hair)}
+  background:transparent;border-bottom:.5px solid transparent;
+  transition:background .22s ease,border-color .22s ease,
+             -webkit-backdrop-filter .22s ease,backdrop-filter .22s ease}
+/* Erst wenn Inhalt darunter durchläuft, bekommt die Leiste Material und
+   Trennlinie. Oben steht sie unsichtbar über der Seite. */
+body.scrolled .mobilebar{
+  background:var(--glass);border-bottom-color:var(--hair);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur)}
 .mb-btn{width:38px;height:38px;flex:none;border-radius:9px;display:grid;place-items:center;
   color:var(--label-2);font-size:17px;transition:.15s}
 .mb-btn:active{background:rgba(118,118,128,.24)}
 .mb-title{flex:1;min-width:0;text-align:center;font-size:16px;font-weight:600;
   letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scrim{position:fixed;inset:0;z-index:44;background:rgba(0,0,0,.42);
-  opacity:0;pointer-events:none;transition:opacity .24s ease}
+  opacity:0;pointer-events:none;
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+  transition:opacity .32s var(--spring)}
 
 /* ============ schmal ============ */
 @media (max-width:860px){
@@ -335,12 +478,15 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
      schrumpfen, in der Ordnerbaum und Fortschritt keinen Platz hatten. */
   .mobilebar{display:flex}
   .railtoggle,.railshow{display:none!important}
-  .rail{width:min(300px,84vw);max-width:none;transform:translateX(-100%);
-    box-shadow:0 0 60px rgba(0,0,0,.5)}
-  body.drawer .rail{transform:none}
+  .rail{width:min(300px,84vw);max-width:none;
+    top:var(--rail-gap);left:var(--rail-gap);bottom:var(--rail-gap);
+    padding-top:calc(18px + env(safe-area-inset-top));
+    transform:translateX(calc(-100% - var(--rail-gap)*2));opacity:0;
+    box-shadow:var(--lift-hi)}
+  body.drawer .rail{transform:none;opacity:1}
   body.drawer .scrim{opacity:1;pointer-events:auto}
   body.drawer{overflow:hidden}
-  body.rail-off .rail{transform:translateX(-100%)}
+  body.rail-off .rail{transform:translateX(calc(-100% - var(--rail-gap)*2))}
   main{margin-left:0;padding:20px 16px 60px;width:100%;min-width:0}
   h1{font-size:26px}
   .card{padding:14px}
@@ -351,7 +497,10 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
   .tiles{grid-template-columns:minmax(0,1fr)}
   dialog{width:min(460px,calc(100vw - 24px))}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+  .card:hover,.tile:hover,.resume:hover{transform:none}
+}
 </style>
 <script src="config.js"></script>
 <script src="sync.js"></script>
@@ -663,7 +812,8 @@ function renderRail(){
   mini.hidden = !totals.total;
   if(totals.total){
     $("#ratio").textContent = totals.done + " / " + totals.total;
-    $("#pfill").style.width = Math.round(totals.done/totals.total*100) + "%";
+    const pct = Math.round(totals.done/totals.total*100);
+    requestAnimationFrame(() => { $("#pfill").style.width = pct + "%"; });
   }
   $("#lamp").className = "lamp" + (Sync.configured() && Sync.meta().lastSync ? " ok" : "");
 }
@@ -696,8 +846,9 @@ function entryCard(child, target, showPath){
   a.querySelector("h3").textContent = child.title;
   a.querySelector(".meta").textContent = showPath || child.meta || "Kprim-Übungsprüfung";
   const fill = a.querySelector(".progress-fill");
-  fill.style.display = "block"; fill.style.height = "100%"; fill.style.width = pct + "%";
+  fill.style.display = "block"; fill.style.height = "100%";
   if(done) fill.style.background = "var(--green)";
+  requestAnimationFrame(() => { fill.style.width = pct + "%"; });
   const stat = a.querySelector(".stat");
   stat.textContent = done ? "vollständig" : p.done ? p.done + " / " + p.total : "nicht begonnen";
   if(done) stat.classList.add("done");
@@ -772,9 +923,10 @@ function renderResume(){
   el.querySelector(".where").textContent =
     (open.p.last !== null ? "Zuletzt Frage " + (open.p.last+1) + " · " : "")
     + open.p.done + " von " + open.p.total + " beantwortet";
-  el.querySelector(".progress-fill").style.width = pct + "%";
+  const bar = el.querySelector(".progress-fill");
   el.querySelector(".pct").textContent = pct + "%";
   slot.appendChild(el);
+  requestAnimationFrame(() => { bar.style.width = pct + "%"; });
 }
 
 function renderHomeStage(){
@@ -932,10 +1084,42 @@ function renderStage(){
   }
 }
 
+/* Der Einzug soll nur bei einem echten Ortswechsel laufen. Ein Abgleich im
+   Hintergrund zeichnet dieselbe Ansicht neu — würde die dann jedes Mal
+   einfliegen, wäre das nach zehn Minuten unerträglich. */
+let lastView = null;
+
+function viewKey(){
+  return page ? "p:" + page
+       : query.trim().length >= 2 ? "q:" + query.trim().toLowerCase()
+       : "f:" + path.join(".");
+}
+
+function markEntrance(){
+  const key = viewKey();
+  const changed = key !== lastView;
+  lastView = key;
+  const cards = $("#cards");
+  const head = document.querySelector(".head") || document.querySelector("article");
+
+  cards.classList.remove("enter");
+  if(head) head.classList.remove("enter-head");
+  if(!changed) return;
+
+  /* Neustart der Animation erzwingen, sonst greift sie beim zweiten Mal nicht. */
+  void cards.offsetWidth;
+  cards.classList.add("enter");
+  [...cards.children].forEach((el, i) => el.style.setProperty("--i", Math.min(i, 12)));
+  const tiles = cards.querySelector(".tiles");
+  if(tiles) [...tiles.children].forEach((el, i) => el.style.setProperty("--i", i));
+  if(head){ void head.offsetWidth; head.classList.add("enter-head"); }
+}
+
 function render(){
   renderRail();
   renderStage();
   updateTitle();
+  markEntrance();
 }
 
 /* Der Tab-Titel nennt den Ort — bei zwanzig offenen Tabs der Unterschied
@@ -1575,6 +1759,12 @@ document.addEventListener("keydown", e => {
   if(e.key === "Escape" && document.body.classList.contains("drawer")) drawer(false);
 });
 window.addEventListener("resize", () => { if(!isNarrow()) drawer(false); });
+
+/* Die Leiste bleibt oben unsichtbar und bekommt ihr Material erst, wenn
+   Inhalt darunter durchläuft. */
+const onScroll = () => document.body.classList.toggle("scrolled", window.scrollY > 4);
+window.addEventListener("scroll", onScroll, { passive: true });
+onScroll();
 
 /* ==================== Seitenleiste ====================
    Der Zustand bleibt pro Gerät erhalten. Auf schmalen Geräten ist die
