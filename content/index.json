@@ -14,6 +14,11 @@
           "type": "folder",
           "title": "2 Year",
           "children": []
+        },
+        {
+          "type": "folder",
+          "title": "3 Year",
+          "children": []
         }
       ]
     },
