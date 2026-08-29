@@ -1,0 +1,136 @@
+{
+  "exam": {
+    "title": "Demo — Glykolyse (Kprim)",
+    "subtitle": "Testprüfung zum Ausprobieren · 3 Fragen · darf gelöscht werden",
+    "expectedQuestions": 3,
+    "storageKey": "demo-glykolyse"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "block": "A",
+      "blockTitle": "Themenblock A — Reaktionsschritte und Energetik",
+      "category": "Glykolyse",
+      "archetype": 1,
+      "isCase": false,
+      "stem": "Zur Glykolyse im Zytosol: Welche Aussagen sind richtig, welche falsch?",
+      "statements": [
+        {
+          "text": "Die Phosphofructokinase-1 katalysiert den geschwindigkeitsbestimmenden Schritt der Glykolyse.",
+          "correct": true,
+          "explanation": "PFK-1 ist der zentrale Kontrollpunkt; sie wird durch ATP und Citrat gehemmt und durch Fructose-2,6-bisphosphat und AMP aktiviert.",
+          "distractor": "",
+          "source": "§A · Regulation"
+        },
+        {
+          "text": "Pro Molekül Glukose werden in der Glykolyse netto vier ATP gebildet.",
+          "correct": false,
+          "explanation": "Brutto entstehen vier ATP, aber zwei werden in der Investitionsphase verbraucht (Hexokinase, PFK-1). Netto sind es zwei ATP.",
+          "distractor": "Brutto statt netto",
+          "source": "§A · Bilanz"
+        },
+        {
+          "text": "Die Glycerinaldehyd-3-phosphat-Dehydrogenase reduziert NAD⁺ zu NADH.",
+          "correct": true,
+          "explanation": "Sie oxidiert die Aldehydgruppe zum Acylphosphat und überträgt dabei ein Hydrid auf NAD⁺.",
+          "distractor": "",
+          "source": "§A · Redoxschritt"
+        },
+        {
+          "text": "Die Hexokinase besitzt eine niedrigere Substrataffinität für Glukose als die Glucokinase.",
+          "correct": false,
+          "explanation": "Umgekehrt: Die Hexokinase hat einen niedrigen Km (hohe Affinität), die Glucokinase der Leber einen hohen Km und arbeitet erst bei hohem Glukoseangebot.",
+          "distractor": "Richtungsumkehr",
+          "source": "§A · Isoenzyme"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "block": "A",
+      "blockTitle": "Themenblock A — Reaktionsschritte und Energetik",
+      "category": "Anaerobe Bedingungen",
+      "archetype": 2,
+      "isCase": false,
+      "stem": "Zur anaeroben Glykolyse und zur Laktatbildung: Welche Aussagen sind richtig, welche falsch?",
+      "statements": [
+        {
+          "text": "Die Laktatdehydrogenase regeneriert NAD⁺ und hält damit die Glykolyse aufrecht.",
+          "correct": true,
+          "explanation": "Ohne Regeneration von NAD⁺ käme die GAPDH-Reaktion zum Erliegen; das ist der eigentliche Zweck der Laktatbildung.",
+          "distractor": "",
+          "source": "§A · Fermentation"
+        },
+        {
+          "text": "Erythrozyten decken ihren ATP-Bedarf über die oxidative Phosphorylierung.",
+          "correct": false,
+          "explanation": "Reife Erythrozyten haben keine Mitochondrien und sind vollständig auf die anaerobe Glykolyse angewiesen.",
+          "distractor": "Falsches Kompartiment",
+          "source": "§A · Zelltypen"
+        },
+        {
+          "text": "Laktat wird in der Leber über den Cori-Zyklus zu Glukose zurückverwandelt.",
+          "correct": true,
+          "explanation": "Laktat aus Muskel und Erythrozyten wird hepatisch zu Pyruvat oxidiert und über die Glukoneogenese wieder zu Glukose aufgebaut.",
+          "distractor": "",
+          "source": "§A · Cori-Zyklus"
+        },
+        {
+          "text": "Die Umwandlung von Pyruvat zu Laktat verbraucht ein Molekül ATP.",
+          "correct": false,
+          "explanation": "Die Reaktion ist eine reine Redoxreaktion mit NADH als Elektronendonor und läuft ohne ATP-Verbrauch ab.",
+          "distractor": "Falsche Bezugsgrösse",
+          "source": "§A · Energetik"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "block": "B",
+      "blockTitle": "Themenblock B — Regulation",
+      "category": "Hormonelle Steuerung",
+      "archetype": 3,
+      "isCase": false,
+      "stem": "Zur hormonellen Regulation der hepatischen Glykolyse: Welche Aussagen sind richtig, welche falsch?",
+      "statements": [
+        {
+          "text": "Glukagon senkt über Proteinkinase A die Konzentration von Fructose-2,6-bisphosphat in der Leber.",
+          "correct": true,
+          "explanation": "PKA phosphoryliert PFK-2/FBPase-2, wodurch die Kinasedomäne gehemmt und die Phosphatasedomäne aktiviert wird.",
+          "distractor": "",
+          "source": "§B · PFK-2"
+        },
+        {
+          "text": "Fructose-2,6-bisphosphat ist ein Zwischenprodukt der Glykolyse.",
+          "correct": false,
+          "explanation": "Es ist ein reines Signalmolekül und wird nicht weiter abgebaut; das Glykolyse-Intermediat ist Fructose-1,6-bisphosphat.",
+          "distractor": "Vertauschte Begriffspaare",
+          "source": "§B · PFK-2"
+        },
+        {
+          "text": "Insulin fördert in der Leber die Transkription der Glucokinase.",
+          "correct": true,
+          "explanation": "Insulin induziert die Glucokinase und steigert damit die Kapazität der Leber zur Glukoseaufnahme nach der Mahlzeit.",
+          "distractor": "",
+          "source": "§B · Insulin"
+        },
+        {
+          "text": "Die Pyruvatkinase der Leber wird durch Phosphorylierung aktiviert.",
+          "correct": false,
+          "explanation": "Die Phosphorylierung durch PKA hemmt die hepatische Pyruvatkinase; aktiviert wird sie allosterisch durch Fructose-1,6-bisphosphat.",
+          "distractor": "Richtungsumkehr",
+          "source": "§B · Pyruvatkinase"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "seed": "demo",
+    "attempts": "1",
+    "sectionTotals": "A: 4R/4F · B: 2R/2F",
+    "overallTrueShare": "6 von 12",
+    "positionShares": "ausgeglichen",
+    "extremeItems": "keine",
+    "relaxedCondition": "keine"
+  }
+}
