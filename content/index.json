@@ -34,11 +34,6 @@
               "type": "folder",
               "title": "4 Sem",
               "children": []
-            },
-            {
-              "type": "folder",
-              "title": "6 Sem",
-              "children": []
             }
           ]
         },
@@ -49,6 +44,11 @@
             {
               "type": "folder",
               "title": "5 Sem",
+              "children": []
+            },
+            {
+              "type": "folder",
+              "title": "6 Sem",
               "children": []
             }
           ]
