@@ -4,7 +4,13 @@
       "id": "unterlagen",
       "title": "Semesterunterlagen",
       "blurb": "Zusammenfassungen und Skripte als PDF.",
-      "children": []
+      "children": [
+        {
+          "type": "folder",
+          "title": "1 Year",
+          "children": []
+        }
+      ]
     },
     {
       "id": "quizzes",
