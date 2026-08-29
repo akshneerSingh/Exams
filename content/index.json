@@ -10,24 +10,6 @@
       "children": [
         {
           "type": "folder",
-          "title": "Infektion",
-          "children": [
-            {
-              "type": "folder",
-              "title": "FS 2026",
-              "children": [
-                {
-                  "type": "pdf",
-                  "title": "Parasitologie — Überblick",
-                  "file": "content/unterlagen/infektion/fs26/parasitologie.pdf",
-                  "meta": "Zusammenfassung · 11 Seiten"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "folder",
           "title": "Biochemie",
           "children": [
             {
@@ -45,6 +27,24 @@
                   "title": "VL 02 — Glykolyse",
                   "file": "content/unterlagen/biochemie/fs26/vl02.pdf",
                   "meta": "Zusammenfassung · 6 Seiten"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "folder",
+          "title": "Infektion",
+          "children": [
+            {
+              "type": "folder",
+              "title": "FS 2026",
+              "children": [
+                {
+                  "type": "pdf",
+                  "title": "Parasitologie — Überblick",
+                  "file": "content/unterlagen/infektion/fs26/parasitologie.pdf",
+                  "meta": "Zusammenfassung · 11 Seiten"
                 }
               ]
             }
