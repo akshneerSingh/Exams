@@ -126,20 +126,56 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .empty p{margin:0;font-size:14px;color:var(--label-3);line-height:1.5}
 
 /* ============ Suche ============ */
+/* Runde Kapsel wie in den Systemprogrammen: gefüllte Fläche ohne Rahmen,
+   beim Tippen leicht heller, im Fokus ein weicher Ring statt einer Kante. */
 .search{position:relative;margin:0 8px 4px}
-.search input{width:100%;padding:8px 30px 8px 30px;border-radius:9px;
-  border:.5px solid transparent;background:rgba(118,118,128,.18);
-  font-size:13.5px;font-family:var(--sans);letter-spacing:-.011em;color:var(--label)}
+.search input{
+  width:100%;height:32px;padding:0 30px 0 31px;
+  border:0;border-radius:999px;
+  background:rgba(118,118,128,.16);
+  color:var(--label);font-size:13.5px;font-family:var(--sans);
+  letter-spacing:-.011em;
+  transition:background .18s ease,box-shadow .18s ease}
 .search input::placeholder{color:var(--label-3)}
-.search input:focus{outline:none;border-color:var(--blue);background:rgba(118,118,128,.24)}
-.search .mag{position:absolute;left:10px;top:50%;transform:translateY(-50%);
-  color:var(--label-3);font-size:12px;pointer-events:none}
-.search .clr{position:absolute;right:6px;top:50%;transform:translateY(-50%);
-  width:20px;height:20px;border-radius:50%;color:var(--label-3);font-size:11px;
-  display:none;place-items:center}
-.search.has .clr{display:grid}
-.search .clr:hover{background:rgba(118,118,128,.3);color:var(--label)}
-.hit-path{font-size:12px;color:var(--label-3);margin-top:2px}
+.search input::-webkit-search-decoration,
+.search input::-webkit-search-cancel-button{-webkit-appearance:none}
+.search input:hover{background:rgba(118,118,128,.22)}
+.search input:focus{
+  outline:none;background:rgba(118,118,128,.26);
+  box-shadow:0 0 0 3.5px rgba(10,132,255,.28)}
+.search .mag{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--label-3);font-size:13px;pointer-events:none;transition:color .18s}
+.search input:focus ~ .mag{color:var(--label-2)}
+.search .clr{position:absolute;right:5px;top:50%;transform:translateY(-50%) scale(.7);
+  width:22px;height:22px;border-radius:50%;color:var(--label-3);font-size:10px;
+  opacity:0;pointer-events:none;display:grid;place-items:center;
+  background:rgba(118,118,128,.35);
+  transition:opacity .15s ease,transform .15s ease}
+.search.has .clr{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1)}
+.search .clr:hover{background:rgba(118,118,128,.55);color:var(--label)}
+
+/* ============ Schiene ein- und ausklappen ============ */
+.railtoggle{position:absolute;top:calc(18px + env(safe-area-inset-top));right:10px;
+  width:28px;height:28px;border-radius:7px;display:grid;place-items:center;
+  color:var(--label-3);font-size:14px;transition:.15s}
+.railtoggle:hover{background:rgba(118,118,128,.2);color:var(--label)}
+.rail{transition:transform .26s cubic-bezier(.32,.72,0,1)}
+main{transition:margin-left .26s cubic-bezier(.32,.72,0,1)}
+body.rail-off .rail{transform:translateX(-100%)}
+body.rail-off main{margin-left:0}
+.railshow{position:fixed;top:calc(16px + env(safe-area-inset-top));left:14px;z-index:46;
+  width:32px;height:32px;border-radius:9px;display:none;place-items:center;
+  color:var(--label-2);background:rgba(118,118,128,.2);font-size:15px;
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.railshow:hover{color:var(--label);background:rgba(118,118,128,.32)}
+body.rail-off .railshow{display:grid}
+
+/* ============ Ziehen und Ablegen ============ */
+.card[draggable="true"],.seg button[draggable="true"]{cursor:grab}
+.dragging{opacity:.4}
+.card.into{box-shadow:inset 0 0 0 2px var(--blue);background:rgba(10,132,255,.1)}
+.seg button.into{box-shadow:inset 0 0 0 2px var(--blue)}
+.hintline{font-size:12.5px;color:var(--label-3);margin:0 0 10px}
 
 /* ============ Startseite ============ */
 .hero{margin-bottom:8px}
@@ -217,7 +253,12 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
     -webkit-backdrop-filter:saturate(180%) blur(20px);
     backdrop-filter:saturate(180%) blur(20px);overflow-x:auto;scrollbar-width:none}
   .rail::-webkit-scrollbar{display:none}
-  .brand,.railtitle,.mini{display:none}
+  .brand,.railtitle,.mini,.railtoggle{display:none}
+  .railshow{display:none!important}
+  body.rail-off .rail{transform:none}
+  .rail,main{transition:none}
+  .search{margin:0;flex:1 1 130px;min-width:110px}
+  .search input{height:30px}
   .seg{flex-direction:row;gap:2px;background:rgba(118,118,128,.2);border-radius:9px;
     padding:2px;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
   .seg::-webkit-scrollbar{display:none}
@@ -245,7 +286,10 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
 </head>
 <body>
 
+<button class="railshow" id="railShow" type="button" title="Seitenleiste einblenden (⌘B)" aria-label="Seitenleiste einblenden">⊞</button>
+
 <aside class="rail">
+  <button class="railtoggle" id="railToggle" type="button" title="Seitenleiste ausblenden (⌘B)" aria-label="Seitenleiste ausblenden">⊟</button>
   <div class="brand"><b id="brandTitle">Übungsprüfungen</b><span id="brandSub">wird geladen …</span></div>
   <div class="search" id="searchBox">
     <span class="mag" aria-hidden="true">⌕</span>
@@ -427,6 +471,10 @@ function renderRail(){
       b.appendChild(k);
     }
     b.addEventListener("click", () => { path = target; render(); });
+    if(admin && target.length){
+      makeDropTarget(b, target);
+      if(target.length > 1) makeDraggable(b, target);
+    }
     nav.appendChild(b);
   };
 
@@ -622,6 +670,12 @@ function renderStage(){
 
   const list = $("#listTitle");
   const cards = $("#cards"); cards.textContent = "";
+  if(admin && (kids.length > 1)){
+    const tip = document.createElement("p");
+    tip.className = "hintline";
+    tip.textContent = "Zum Verschieben auf einen Ordner ziehen — auch auf einen in der Seitenleiste.";
+    cards.appendChild(tip);
+  }
   list.hidden = !(entries.length || folders.length);
   list.textContent = entries.length ? "Inhalt" : "Bereiche";
 
@@ -637,9 +691,10 @@ function renderStage(){
     card.querySelector("h3").textContent = child.title;
     const n = countQuiz(child);
     card.querySelector(".meta").textContent = child.blurb || (n ? n + (n===1?" Eintrag":" Einträge") : "leer");
-    card.addEventListener("click", () => { path = (path.length?path:[]).concat(idx); render(); });
+    const here = (path.length?path:[]).concat(idx);
+    card.addEventListener("click", () => { path = here; render(); });
     cards.appendChild(card);
-    if(admin) attachMenu(card, (path.length?path:[]).concat(idx));
+    if(admin){ attachMenu(card, here); makeDraggable(card, here); makeDropTarget(card, here); }
   });
 
   entries.forEach(child => {
@@ -656,7 +711,10 @@ function renderStage(){
       a.querySelector("h3").textContent = child.title;
       a.querySelector(".meta").textContent = child.meta || "PDF";
       cards.appendChild(a);
-      if(admin) attachMenu(a, (path.length?path:[]).concat(kids.indexOf(child)));
+      if(admin){
+        const t = (path.length?path:[]).concat(kids.indexOf(child));
+        attachMenu(a, t); makeDraggable(a, t);
+      }
       return;
     }
 
@@ -684,7 +742,10 @@ function renderStage(){
     if(done) stat.classList.add("done");
     if(!p.done) a.querySelector(".foot").style.display = "none";
     cards.appendChild(a);
-    if(admin) attachMenu(a, (path.length?path:[]).concat(kids.indexOf(child)));
+    if(admin){
+      const t = (path.length?path:[]).concat(kids.indexOf(child));
+      attachMenu(a, t); makeDraggable(a, t);
+    }
   });
 
   if(!entries.length && !folders.length){
@@ -820,6 +881,91 @@ function folderList(){
   return out;
 }
 
+/* ====================================================================
+   Ziehen und Ablegen
+
+   Nur im Verwaltungsmodus. Gezogen werden Ordner und Einträge, abgelegt
+   wird auf Ordnern und Bereichen — in der Schiene wie in der Liste.
+
+   Verschoben wird über Objektverweise, nicht über Indizes: sobald der
+   Eintrag aus seiner alten Liste entfernt ist, verschieben sich die Indizes
+   dahinter, und ein vorher gemerkter Zielindex zeigte ins Leere.
+   ==================================================================== */
+
+let dragSource = null;
+
+function isInside(inner, outer){
+  return outer.length <= inner.length
+    && outer.every((v, i) => inner[i] === v);
+}
+
+function makeDraggable(el, target){
+  el.draggable = true;
+  el.addEventListener("dragstart", ev => {
+    dragSource = target;
+    el.classList.add("dragging");
+    ev.dataTransfer.effectAllowed = "move";
+    /* Ohne Nutzlast verweigern manche Browser den Zug. */
+    ev.dataTransfer.setData("text/plain", JSON.stringify(target));
+  });
+  el.addEventListener("dragend", () => {
+    el.classList.remove("dragging");
+    dragSource = null;
+    document.querySelectorAll(".into").forEach(n => n.classList.remove("into"));
+  });
+}
+
+function makeDropTarget(el, target){
+  const ok = () => dragSource
+    && JSON.stringify(dragSource) !== JSON.stringify(target)
+    && !isInside(target, dragSource);          /* nicht in sich selbst */
+
+  el.addEventListener("dragover", ev => {
+    if(!ok()) return;
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = "move";
+    el.classList.add("into");
+  });
+  el.addEventListener("dragleave", () => el.classList.remove("into"));
+  el.addEventListener("drop", async ev => {
+    ev.preventDefault();
+    el.classList.remove("into");
+    if(!ok()) return;
+    const src = dragSource;
+    dragSource = null;
+    await moveNode(src, target);
+  });
+}
+
+/* Den Indexpfad zu einem Knoten suchen. Nach dem Verschieben stimmen die
+   alten Indizes nicht mehr, der Objektverweis dagegen schon. */
+function pathOf(node){
+  let found = null;
+  const walk = (list, base) => {
+    list.forEach((child, i) => {
+      if(found) return;
+      if(child === node){ found = base.concat(i); return; }
+      if(child.children) walk(child.children, base.concat(i));
+    });
+  };
+  walk(TREE.sections, []);
+  return found;
+}
+
+async function moveNode(src, dest){
+  const destNode = nodeAt(dest);
+  const srcList = listAt(parentOf(src));
+  const idx = src[src.length - 1];
+  const moved = srcList[idx];
+  if(!moved || moved === destNode) return;
+  srcList.splice(idx, 1);
+  (destNode.children || (destNode.children = [])).push(moved);
+  /* Der Zielpfad kann sich durch das Entfernen verschoben haben. */
+  path = pathOf(destNode) || [];
+  await run("«" + moved.title + "» nach «" + destNode.title + "»",
+            () => saveTree("Verschoben: " + moved.title));
+}
+
 function attachMenu(card, target){
   const b = document.createElement("button");
   b.className = "rowbtn"; b.type = "button"; b.textContent = "•••";
@@ -865,13 +1011,8 @@ function nodeMenu(target){
       const choices = folderList()
         .filter(f => JSON.stringify(f.target) !== JSON.stringify(target)
                   && !JSON.stringify(f.target).startsWith(JSON.stringify(target).slice(0,-1)))
-        .map(f => ({ label: f.label, depth: f.depth, run: async () => {
-          const from = listAt(parentOf(target));
-          const [moved] = from.splice(target[target.length-1], 1);
-          listAt(f.target).push(moved);
-          path = parentOf(target).length ? parentOf(target) : [];
-          await run("Verschoben: " + moved.title, () => saveTree("Verschoben: " + moved.title));
-        }}));
+        .map(f => ({ label: f.label, depth: f.depth,
+          run: () => moveNode(target, f.target) }));
       menuSheet("Verschieben nach", choices);
     }});
 
@@ -1052,6 +1193,30 @@ $("#adminBtn").addEventListener("click", () => {
   });
   sheet.showModal();
 });
+
+/* ==================== Seitenleiste ====================
+   Der Zustand bleibt pro Gerät erhalten. Auf schmalen Geräten ist die
+   Schiene eine Leiste am oberen Rand — dort gibt es nichts einzuklappen. */
+
+const RAIL_KEY = "pruefung:rail";
+function applyRail(){
+  let off = false;
+  try { off = localStorage.getItem(RAIL_KEY) === "off"; } catch(_) {}
+  document.body.classList.toggle("rail-off", off);
+}
+function toggleRail(){
+  const off = !document.body.classList.contains("rail-off");
+  try { localStorage.setItem(RAIL_KEY, off ? "off" : "on"); } catch(_) {}
+  document.body.classList.toggle("rail-off", off);
+}
+$("#railToggle").addEventListener("click", toggleRail);
+$("#railShow").addEventListener("click", toggleRail);
+document.addEventListener("keydown", e => {
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b"){
+    e.preventDefault(); toggleRail();
+  }
+});
+applyRail();
 
 /* ==================== Suchfeld ==================== */
 const qInput = $("#q");
