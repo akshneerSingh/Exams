@@ -1,890 +1,697 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Übungsprüfungen</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <style>
-    /* ======================================================================
-       Bibliothek
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Übungsprüfungen</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+/* ============================================================================
+   Bibliothek im Aufbau der Prüfungstrainer.
 
-       Gebaut wie eine Systemeinstellungen-Liste: eine eingerückte Gruppe,
-       Zeilen durch Haarlinien getrennt, Flächen nur dort, wo etwas liegt.
-       Keine gefüllten Kopfleisten, keine Karte in der Karte, kein Blau
-       ausser für das, was man antippen kann.
+   Links eine feste Schiene: Ordner sind dort die Navigation, unten Fortschritt
+   und Werkzeuge. Rechts die Bühne mit genau einer Sache — den Prüfungen des
+   gewählten Ordners, und ganz oben das, was man in neun von zehn Fällen will:
+   da weitermachen, wo man aufgehört hat.
 
-       Auf dem MacBook wird die Spalte nicht breiter, sondern die Ränder
-       grösser — eine 1200px breite Schaltfläche ist keine Schaltfläche mehr.
-       ====================================================================== */
+   Import und Abgleich sind aus der Seite verschwunden. Sie liegen als Blatt
+   hinter den Werkzeugen, weil man sie zweimal im Semester braucht und eine
+   Prüfung täglich.
+   ========================================================================== */
 
-    :root {
-      --bg: #f2f2f7;
-      --surface: #ffffff;
-      --surface-2: #ffffff;
-      --label: #000000;
-      --label-2: #3c3c4399;
-      --label-3: #3c3c434d;
-      --separator: #3c3c4326;
-      --fill: #78788014;
-      --accent: #007aff;
-      --green: #34c759;
-      --red: #ff3b30;
-      --orange: #ff9500;
-      --measure: 700px;
-      --gutter: 20px;
-      --radius: 12px;
-      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Inter, "Segoe UI", system-ui, sans-serif;
-    }
-    html[data-theme="dark"] {
-      color-scheme: dark;
-      --bg: #000000;
-      --surface: #1c1c1e;
-      --surface-2: #2c2c2e;
-      --label: #ffffff;
-      --label-2: #ebebf599;
-      --label-3: #ebebf54d;
-      --separator: #54545866;
-      --fill: #7878805c;
-      --accent: #0a84ff;
-      --green: #30d158;
-      --red: #ff453a;
-      --orange: #ff9f0a;
-    }
+:root{
+  --bg:#000; --card:#141416; --card-2:#1d1d20; --raised:#2a2a2e;
+  --hair:rgba(255,255,255,.08);
+  --label:#f5f5f7; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.32);
+  --blue:#0a84ff; --green:#30d158; --red:#ff453a; --orange:#ff9f0a;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,
+         "Helvetica Neue",Helvetica,Arial,sans-serif;
+  --rail-w:236px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{color-scheme:dark;-webkit-text-size-adjust:100%;background:var(--bg);overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--label);font-family:var(--sans);
+  font-size:16px;line-height:1.5;letter-spacing:-.011em;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+::selection{background:rgba(10,132,255,.35)}
+button,input,textarea{font:inherit;color:inherit}
+button{border:0;background:transparent;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html { background: var(--bg); }
-    body {
-      margin: 0;
-      color: var(--label);
-      background: var(--bg);
-      font-family: var(--sans);
-      font-size: 17px;
-      line-height: 1.4;
-      letter-spacing: -.016em;
-      -webkit-font-smoothing: antialiased;
-      -webkit-text-size-adjust: 100%;
-    }
-    button, input, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
-    button { margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
-    a { color: var(--accent); text-decoration: none; }
-    p { margin: 0; }
-    [hidden] { display: none !important; }
-    :focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+/* ============ Schiene ============ */
+.rail{position:fixed;top:0;left:0;bottom:0;width:var(--rail-w);z-index:45;
+  background:#08080a;border-right:.5px solid var(--hair);
+  display:flex;flex-direction:column;padding:22px 14px 16px;
+  padding-top:calc(22px + env(safe-area-inset-top))}
+.brand{padding:0 8px;margin-bottom:4px}
+.brand b{display:block;font-size:15px;font-weight:700;letter-spacing:-.018em}
+.brand span{display:block;font-size:12px;color:var(--label-3);font-weight:500;
+  margin-top:2px;line-height:1.35}
+.railtitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--label-3);padding:0 8px;margin:26px 0 8px}
+.seg{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
+.seg button{display:flex;align-items:center;gap:8px;
+  width:100%;color:var(--label-2);font-size:14px;
+  font-weight:500;letter-spacing:-.011em;padding:9px 10px;border-radius:9px;
+  text-align:left;transition:background .15s,color .15s}
+.seg button:hover{background:rgba(118,118,128,.16);color:var(--label)}
+.seg button[aria-selected="true"]{background:rgba(10,132,255,.16);color:var(--blue);
+  font-weight:600}
+.seg .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg .cnt{margin-left:auto;padding-left:10px;font-size:11.5px;font-weight:600;
+  color:var(--label-3);font-variant-numeric:tabular-nums}
+.seg button[aria-selected="true"] .cnt{color:var(--blue);opacity:.85}
+.seg .kebab{flex:none;width:22px;text-align:center;color:var(--label-3);
+  font-size:12px;letter-spacing:.04em;opacity:0;transition:opacity .15s}
+.seg button:hover .kebab,.seg button[aria-selected="true"] .kebab{opacity:1}
+.railfoot{margin-top:auto;padding-top:18px}
+.mini{padding:0 8px 12px}
+.mini .lab{font-size:11.5px;color:var(--label-3);font-weight:500;
+  display:flex;justify-content:space-between;margin-bottom:7px;
+  font-variant-numeric:tabular-nums}
+.progress{height:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.progress-fill{height:100%;width:0;background:var(--blue);border-radius:3px;
+  transition:width .35s ease}
+.tools{display:flex;flex-direction:column;gap:2px}
+.chip{display:flex;align-items:center;gap:8px;width:100%;color:var(--label-2);
+  font-size:13.5px;font-weight:500;padding:8px 10px;border-radius:9px;
+  text-align:left;transition:.15s}
+.chip:hover{background:rgba(118,118,128,.16);color:var(--label)}
+.lamp{width:7px;height:7px;border-radius:50%;background:var(--label-3);margin-left:auto;flex:none}
+.lamp.ok{background:var(--green)} .lamp.idle{background:var(--orange)}
 
-    /* ------------------------------------------------------------- Kopf */
-    .page {
-      width: min(var(--measure), 100%);
-      margin: 0 auto;
-      padding: max(18px, env(safe-area-inset-top)) var(--gutter) calc(56px + env(safe-area-inset-bottom));
-    }
-    .head { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0 22px; }
-    .head__text { flex: 1; min-width: 0; }
-    .back {
-      display: inline-flex; align-items: center; gap: 3px;
-      min-height: 30px; margin-bottom: 2px;
-      color: var(--accent); font-size: 16px;
-    }
-    .back::before { content: "‹"; font-size: 22px; line-height: 1; margin-top: -2px; }
-    .title {
-      margin: 0;
-      font-size: clamp(28px, 7vw, 34px);
-      font-weight: 700;
-      letter-spacing: -.037em;
-      line-height: 1.08;
-      overflow-wrap: break-word;
-    }
-    .subtitle { margin-top: 4px; color: var(--label-2); font-size: 15px; letter-spacing: -.01em; }
-    .head__tools { display: flex; align-items: center; gap: 8px; padding-top: 6px; }
-    .glyph {
-      width: 34px; height: 34px; display: grid; place-items: center;
-      border-radius: 50%; color: var(--accent); background: var(--fill); font-size: 15px;
-    }
-    .glyph:active { opacity: .5; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--label-3); }
-    .dot.is-ok { background: var(--green); }
-    .dot.is-idle { background: var(--orange); }
+/* ============ Bühne ============ */
+main{margin-left:var(--rail-w);padding:46px 28px 80px}
+main > article{max-width:760px;margin:0 auto;min-width:0}
+.crumb{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:10px;
+  display:inline-flex;align-items:center;gap:4px}
+h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:0}
+.sub{font-size:14px;color:var(--label-3);margin-top:6px}
+.sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--label-3);margin:34px 0 10px}
 
-    /* --------------------------------------------------------- Gruppen */
-    .group { margin-bottom: 30px; }
-    .group__head {
-      display: flex; align-items: center; gap: 12px;
-      padding: 0 16px 7px;
-    }
-    .group__label {
-      flex: 1; min-width: 0;
-      color: var(--label-2); font-size: 13px; font-weight: 400; letter-spacing: -.005em;
-    }
-    .group__action { color: var(--accent); font-size: 15px; letter-spacing: -.01em; }
-    .list {
-      border-radius: var(--radius);
-      background: var(--surface);
-      overflow: hidden;
-    }
-    .list__note { padding: 15px 16px; color: var(--label-2); font-size: 15px; letter-spacing: -.01em; }
+/* Fortsetzen */
+.resume{display:block;background:linear-gradient(180deg,rgba(10,132,255,.14),rgba(10,132,255,.06));
+  border:.5px solid rgba(10,132,255,.28);border-radius:16px;padding:20px;
+  transition:.15s;margin-top:8px}
+.resume:hover{border-color:rgba(10,132,255,.5)}
+.resume .kick{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--blue);margin-bottom:9px}
+.resume h2{font-size:21px;font-weight:600;letter-spacing:-.02em;margin:0;line-height:1.25}
+.resume .where{font-size:14px;color:var(--label-2);margin-top:5px}
+.resume .row{display:flex;align-items:center;gap:14px;margin-top:16px}
+.resume .progress{flex:1}
+.resume .pct{font-size:13px;font-weight:600;color:var(--blue);
+  font-variant-numeric:tabular-nums;flex:none}
+.resume .go{background:var(--blue);color:#fff;border-radius:100px;padding:9px 18px;
+  font-size:14.5px;font-weight:600;letter-spacing:-.012em;flex:none}
 
-    /* Zeile: Rumpf ist der Link, rechts optional ein Mehr-Knopf. */
-    .row { position: relative; display: flex; align-items: center; }
-    .row + .row::before {
-      content: ""; position: absolute; top: 0; right: 0; left: 16px;
-      height: 1px; background: var(--separator);
-    }
-    .row__main {
-      flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 4px 12px 16px;
-      color: var(--label); text-align: left;
-    }
-    .row__main:active { background: var(--fill); }
-    .row__icon { flex: 0 0 auto; width: 22px; color: var(--label-3); font-size: 17px; text-align: center; }
-    .row__body { flex: 1; min-width: 0; }
-    .row__title { font-size: 17px; font-weight: 400; letter-spacing: -.02em; line-height: 1.3; }
-    .row__title--strong { font-weight: 500; }
-    .row__sub {
-      margin-top: 2px; color: var(--label-2); font-size: 13.5px; letter-spacing: -.008em;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .row__meta { margin-top: 7px; color: var(--label-2); font-size: 12.5px; letter-spacing: -.005em; }
-    .row__count { flex: 0 0 auto; color: var(--label-2); font-size: 15px; }
-    .row__chevron { flex: 0 0 auto; color: var(--label-3); font-size: 17px; padding-right: 14px; }
-    .row__more {
-      flex: 0 0 auto; width: 40px; height: 40px; margin-right: 6px;
-      display: grid; place-items: center; border-radius: 50%;
-      color: var(--label-2); font-size: 14px; letter-spacing: .05em;
-    }
-    .row__more:active { background: var(--fill); }
+/* Prüfungskarten */
+.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+.card{position:relative;display:flex;align-items:center;gap:12px;
+  background:var(--card);border:.5px solid transparent;border-radius:14px;
+  padding:15px 16px;transition:.15s}
+.card:hover{background:var(--card-2)}
+.card .body{flex:1 1 0;min-width:0;max-width:100%}
+.card h3,.card .meta{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card h3{font-size:16.5px;font-weight:600;letter-spacing:-.016em;margin:0;line-height:1.3}
+.card .meta{font-size:13px;color:var(--label-3);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .foot{display:flex;align-items:center;gap:10px;margin-top:11px;min-width:0}
+.card .foot .progress{flex:1;max-width:200px}
+.card .stat{font-size:12px;color:var(--label-3);font-variant-numeric:tabular-nums}
+.card .stat.done{color:var(--green)}
+.kebab-btn{flex:none;width:34px;height:34px;border-radius:50%;color:var(--label-3);
+  font-size:13px;letter-spacing:.04em;transition:.15s}
+.kebab-btn:hover{background:rgba(118,118,128,.2);color:var(--label)}
+.chev{flex:none;color:var(--label-3);font-size:17px}
 
-    .track { height: 3px; margin-top: 8px; border-radius: 999px; background: var(--fill); overflow: hidden; }
-    .track__fill { height: 100%; border-radius: 999px; background: var(--accent); }
-    .track__fill.is-done { background: var(--green); }
+.empty{background:var(--card);border-radius:14px;padding:26px 20px;text-align:center}
+.empty b{display:block;font-size:16px;font-weight:600;margin-bottom:5px}
+.empty p{margin:0;font-size:14px;color:var(--label-3);line-height:1.5}
+.empty .go{display:inline-block;margin-top:16px;background:var(--blue);color:#fff;
+  border-radius:100px;padding:9px 18px;font-size:14.5px;font-weight:600}
 
-    /* Aufklappbare Zeile für Import und Abgleich. */
-    .fold { border: 0; }
-    .fold > summary {
-      list-style: none; cursor: pointer;
-      display: flex; align-items: center; gap: 12px;
-      padding: 13px 16px;
-      font-size: 17px; letter-spacing: -.02em;
-    }
-    .fold > summary::-webkit-details-marker { display: none; }
-    .fold > summary::after {
-      content: "›"; margin-left: auto; color: var(--label-3); font-size: 17px;
-      transition: transform .18s ease;
-    }
-    .fold[open] > summary::after { transform: rotate(90deg); }
-    .fold > summary:active { background: var(--fill); }
-    .fold + .fold > summary { border-top: 1px solid var(--separator); }
-    .fold__body { padding: 4px 16px 18px; display: grid; gap: 12px; }
-    .hint { color: var(--label-2); font-size: 13.5px; letter-spacing: -.008em; }
-    .hint code {
-      padding: 1px 5px; border-radius: 5px; background: var(--fill);
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px;
-    }
+/* ============ Blatt ============ */
+dialog{width:min(460px,calc(100vw - 28px));padding:0;border:.5px solid var(--hair);
+  border-radius:18px;background:var(--card);color:var(--label);
+  box-shadow:0 40px 100px rgba(0,0,0,.7)}
+dialog::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.sheet-head{padding:20px 20px 0;font-size:18px;font-weight:700;letter-spacing:-.02em}
+.sheet-body{padding:16px 20px;display:grid;gap:12px;max-height:66vh;overflow-y:auto}
+.sheet-foot{padding:0 20px 20px}
+.pick{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;
+  border-radius:11px;background:var(--card-2);text-align:left;font-size:15px;
+  letter-spacing:-.012em;transition:.15s}
+.pick:hover{background:var(--raised)}
+.pick.cur{color:var(--blue);font-weight:600}
+.pick.cur::after{content:"✓";margin-left:auto}
+.pick.danger{color:var(--red)}
+.btn{display:block;width:100%;background:var(--blue);color:#fff;border-radius:100px;
+  padding:12px 24px;font-size:15.5px;font-weight:600;letter-spacing:-.012em;
+  text-align:center;transition:.15s}
+.btn:hover{opacity:.88}
+.btn.ghost{background:rgba(118,118,128,.24);color:var(--label)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.pairbtn{display:flex;gap:8px}.pairbtn>.btn{flex:1}
+.fold{border-radius:12px;background:var(--card-2);overflow:hidden}
+.fold>summary{list-style:none;cursor:pointer;padding:13px 15px;font-size:15px;
+  font-weight:500;display:flex;align-items:center}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::after{content:"›";margin-left:auto;color:var(--label-3);transition:transform .18s}
+.fold[open]>summary::after{transform:rotate(90deg)}
+.fold-body{padding:0 15px 15px;display:grid;gap:11px}
+.hint{font-size:13px;color:var(--label-3);line-height:1.5}
+.hint code{background:rgba(118,118,128,.2);border-radius:5px;padding:1px 5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+label.field{display:grid;gap:5px}
+label.field>span{font-size:12px;color:var(--label-3);font-weight:500}
+input[type=url],input[type=text],textarea{width:100%;padding:11px 13px;
+  border:.5px solid var(--hair);border-radius:10px;background:#000;
+  font-size:15px;letter-spacing:-.012em}
+textarea{min-height:120px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12.5px;letter-spacing:0}
+input[type=file]{font-size:13.5px;color:var(--label-2)}
+.keybox{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;font-size:13.5px}
+.note{padding:11px 13px;border-radius:10px;font-size:13.5px;line-height:1.45}
+.note.ok{background:rgba(48,209,88,.14);color:var(--green)}
+.note.bad{background:rgba(255,69,58,.14);color:var(--red)}
 
-    /* --------------------------------------------------------- Steuerung */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 100%; min-height: 46px; padding: 10px 18px;
-      border-radius: 10px;
-      color: var(--accent); background: var(--fill);
-      font-size: 16px; font-weight: 500; letter-spacing: -.02em;
-    }
-    .btn:active { opacity: .6; }
-    .btn--filled { color: #fff; background: var(--accent); }
-    .btn--danger { color: var(--red); }
-    .btn--auto { width: auto; }
-    .pair { display: flex; gap: 10px; }
-    .pair > .btn { flex: 1; }
-
-    .field { display: grid; gap: 6px; }
-    .field > span { color: var(--label-2); font-size: 12.5px; letter-spacing: -.005em; }
-    input[type="url"], input[type="text"], textarea {
-      width: 100%; padding: 11px 13px;
-      border: 1px solid var(--separator); border-radius: 10px;
-      color: var(--label); background: var(--surface-2);
-      font-size: 16px; letter-spacing: -.015em;
-    }
-    html[data-theme="dark"] input, html[data-theme="dark"] textarea { background: #000; }
-    textarea {
-      min-height: 130px; resize: vertical;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; letter-spacing: 0;
-    }
-    input[type="file"] { font-size: 14px; color: var(--label-2); }
-    .keybox { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .03em; font-size: 14px; }
-
-    .note { padding: 12px 14px; border-radius: 10px; font-size: 14.5px; letter-spacing: -.01em; }
-    .note--ok { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
-    .note--bad { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
-
-    .footnote { margin-top: 4px; color: var(--label-3); font-size: 12.5px; text-align: center; letter-spacing: -.005em; }
-
-    /* --------------------------------------------------------- Blatt */
-    dialog {
-      width: min(380px, calc(100vw - 32px));
-      padding: 0; border: 0; border-radius: 16px;
-      color: var(--label); background: var(--surface);
-      box-shadow: 0 30px 80px rgba(0,0,0,.28);
-    }
-    dialog::backdrop { background: rgba(0,0,0,.4); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
-    .sheet__title { padding: 20px 20px 4px; font-size: 17px; font-weight: 600; letter-spacing: -.02em; text-align: center; }
-    .sheet__body { padding: 12px; display: grid; gap: 2px; max-height: 56vh; overflow-y: auto; }
-    .sheet__foot { padding: 6px 12px 14px; }
-    .pick {
-      width: 100%; min-height: 46px; padding: 11px 14px;
-      display: flex; align-items: center; gap: 10px;
-      border-radius: 10px; color: var(--label); text-align: left;
-      font-size: 16px; letter-spacing: -.02em;
-    }
-    .pick:active { background: var(--fill); }
-    .pick.is-current { color: var(--accent); font-weight: 500; }
-    .pick.is-current::after { content: "✓"; margin-left: auto; }
-    .pick--danger { color: var(--red); }
-
-    @media (min-width: 760px) {
-      :root { --gutter: 0px; }
-      .page { padding-top: 40px; padding-bottom: 80px; }
-      .row__main { padding-left: 18px; }
-      .row + .row::before { left: 18px; }
-      .group__head, .fold > summary, .fold__body, .list__note { padding-left: 18px; padding-right: 18px; }
-    }
-    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-  </style>
-  <script src="sync.js"></script>
+/* ============ schmal ============ */
+@media (max-width:860px){
+  .rail{position:sticky;top:0;bottom:auto;width:100%;max-width:100vw;flex-direction:row;
+    align-items:center;gap:10px;padding:9px 14px;
+    padding-top:calc(9px + env(safe-area-inset-top));border-right:0;
+    border-bottom:.5px solid var(--hair);background:rgba(8,8,10,.86);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    backdrop-filter:saturate(180%) blur(20px);overflow-x:auto;scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  .brand,.railtitle,.mini{display:none}
+  .seg{flex-direction:row;gap:2px;background:rgba(118,118,128,.2);
+    border-radius:9px;padding:2px;min-width:0;overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none}
+  .seg::-webkit-scrollbar{display:none}
+  .railfoot,.tools{flex:none}
+  .card .chev{display:none}
+  .seg button{padding:6px 11px;font-size:13px;border-radius:7px;white-space:nowrap}
+  .seg .cnt,.seg .kebab{display:none}
+  .railfoot{margin:0 0 0 auto;padding:0}
+  .tools{flex-direction:row}
+  .chip{padding:6px 10px;font-size:13px;white-space:nowrap}
+  .chip .lbl{display:none}
+  main{margin-left:0;padding:24px 16px 60px;width:100%;min-width:0}
+  .card{padding:14px}
+  .card .foot .progress{max-width:none}
+  h1{font-size:26px}
+  .resume .row{flex-wrap:wrap}
+  .resume .go{width:100%;text-align:center}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script src="sync.js"></script>
 </head>
 <body>
-  <main class="page">
-    <header class="head">
-      <div class="head__text">
-        <button class="back" id="backLink" type="button" hidden></button>
-        <h1 class="title" id="pageTitle">Übungsprüfungen</h1>
-        <p class="subtitle" id="pageSubtitle"></p>
-      </div>
-      <div class="head__tools">
-        <span class="dot" id="syncDot" title="Abgleich"></span>
-        <button class="glyph" id="themeButton" type="button" title="Darstellung" aria-label="Darstellung">◐</button>
-      </div>
-    </header>
 
-    <section class="group">
-      <div class="group__head">
-        <span class="group__label" id="listLabel">Inhalt</span>
-        <button class="group__action" id="newFolderButton" type="button">Neuer Ordner</button>
-      </div>
-      <div class="list" id="contentList"></div>
-    </section>
+<aside class="rail">
+  <div class="brand"><b>Übungsprüfungen</b><span id="brandSub">Kprim · ETH Medizin</span></div>
+  <div class="railtitle">Ordner</div>
+  <nav class="seg" id="folderNav"></nav>
+  <div class="railfoot">
+    <div class="mini">
+      <div class="lab"><span>Beantwortet</span><span id="ratio">0 / 0</span></div>
+      <div class="progress"><div class="progress-fill" id="pfill"></div></div>
+    </div>
+    <div class="tools">
+      <button class="chip" id="newFolder" type="button"><span class="lbl">Neuer Ordner</span><span aria-hidden="true" class="ico">＋</span></button>
+      <button class="chip" id="importBtn" type="button"><span class="lbl">Hinzufügen</span><span aria-hidden="true" class="ico">↓</span></button>
+      <button class="chip" id="syncBtn" type="button"><span class="lbl">Abgleich</span><span class="lamp" id="lamp"></span></button>
+    </div>
+  </div>
+</aside>
 
-    <section class="group">
-      <div class="group__head">
-        <span class="group__label" id="importTarget">Hinzufügen</span>
-      </div>
-      <div class="list">
-        <details class="fold" id="fileFold">
-          <summary>Datei wählen</summary>
-          <div class="fold__body">
-            <p class="hint">Aus «Dateien» oder iCloud Drive. Nimmt <code>.json</code> und die alten <code>.html</code>-Prüfungen. Mehrfachauswahl möglich.</p>
-            <input type="file" id="fileInput" accept=".json,.html,.htm,application/json,text/html" multiple>
-          </div>
-        </details>
-        <details class="fold">
-          <summary>Text einfügen</summary>
-          <div class="fold__body">
-            <p class="hint">Den <code>QUIZ_DATA</code>-Block oder reines JSON einsetzen.</p>
-            <textarea id="pasteInput" placeholder='{ "exam": { "title": "…" }, "questions": [ … ] }' spellcheck="false"></textarea>
-            <button class="btn btn--filled" id="pasteButton" type="button">Importieren</button>
-          </div>
-        </details>
-        <details class="fold">
-          <summary>Aus Repository laden</summary>
-          <div class="fold__body">
-            <p class="hint">Lädt alles, was in <code>exams/index.json</code> steht.</p>
-            <input type="url" id="repoUrl" value="exams/index.json" spellcheck="false">
-            <button class="btn" id="repoButton" type="button">Jetzt laden</button>
-          </div>
-        </details>
-      </div>
-      <div id="importNote" style="margin-top:10px"></div>
-    </section>
+<main>
+  <article>
+    <button class="crumb" id="crumb" type="button" hidden></button>
+    <h1 id="title">Alle Prüfungen</h1>
+    <p class="sub" id="sub"></p>
 
-    <section class="group">
-      <div class="group__head">
-        <span class="group__label">Abgleich zwischen Geräten</span>
-        <span class="group__action" id="syncState" style="color:var(--label-2)">aus</span>
-      </div>
-      <div class="list">
-        <details class="fold" id="syncFold">
-          <summary>Einrichten</summary>
-          <div class="fold__body">
-            <p class="hint">
-              Adresse deines Cloudflare Workers und ein Schlüssel. Auf dem ersten Gerät den
-              Schlüssel erzeugen, auf jedem weiteren denselben eintragen. Wer den Schlüssel
-              hat, sieht deine Prüfungen — er ist das Passwort.
-            </p>
-            <label class="field"><span>Worker-Adresse</span>
-              <input type="url" id="endpointInput" placeholder="https://pruefungen-sync.name.workers.dev" spellcheck="false" autocapitalize="off"></label>
-            <label class="field"><span>Schlüssel</span>
-              <input type="text" id="keyInput" class="keybox" placeholder="16–64 Zeichen, a–z und 0–9" spellcheck="false" autocapitalize="off" autocorrect="off"></label>
-            <div class="pair">
-              <button class="btn" id="genKeyButton" type="button">Erzeugen</button>
-              <button class="btn" id="copyKeyButton" type="button">Kopieren</button>
-            </div>
-            <button class="btn btn--filled" id="saveSyncButton" type="button">Verbinden</button>
-            <button class="btn btn--danger" id="forgetSyncButton" type="button" hidden>Verbindung trennen</button>
-            <div id="syncNote"></div>
-          </div>
-        </details>
-      </div>
-    </section>
+    <div id="resumeSlot"></div>
 
-    <p class="footnote">Offline bereit · «Teilen ▸ Zum Home-Bildschirm»</p>
-  </main>
+    <div class="sectitle" id="listTitle">Prüfungen</div>
+    <div class="cards" id="cards"></div>
+  </article>
+</main>
 
-  <dialog id="sheet">
-    <div class="sheet__title" id="sheetTitle"></div>
-    <div class="sheet__body" id="sheetBody"></div>
-    <div class="sheet__foot"><button class="btn" id="sheetCancel" type="button">Abbrechen</button></div>
-  </dialog>
+<dialog id="sheet">
+  <div class="sheet-head" id="sheetHead"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+  <div class="sheet-foot"><button class="btn ghost" id="sheetClose" type="button">Schliessen</button></div>
+</dialog>
 
-  <script>
-  (() => {
-    "use strict";
+<script>
+(() => {
+"use strict";
 
-    const INDEX_KEY = "pruefung:index";
-    const DATA_PREFIX = "pruefung:data:";
-    const PROGRESS_PREFIX = "pruefung:progress:";
-    const THEME_KEY = "kprim-ui-theme";
+const INDEX_KEY="pruefung:index", DATA="pruefung:data:", PROG="pruefung:progress:";
+let cwd = null;
 
-    let cwd = null;
+/* ==================== Speicher ==================== */
+const rd = (k,f)=>{try{const v=localStorage.getItem(k);return v===null?f:JSON.parse(v);}catch(_){return f;}};
+const idx = ()=>{const l=rd(INDEX_KEY,[]);return Array.isArray(l)?l:[];};
+const wr = (l)=>localStorage.setItem(INDEX_KEY,JSON.stringify(l));
+const live = ()=>idx().filter(e=>!e.deleted);
 
-    /* ==================== Darstellung ==================== */
+function slug(t){return String(t||"pruefung").toLowerCase()
+  .replace(/[äàáâ]/g,"a").replace(/[öòóô]/g,"o").replace(/[üùúû]/g,"u")
+  .replace(/ß/g,"ss").replace(/[éèêë]/g,"e")
+  .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40)||"pruefung";}
+function freeId(b){const t=idx().map(e=>e.id);if(!t.includes(b))return b;
+  let n=2;while(t.includes(b+"-"+n))n+=1;return b+"-"+n;}
 
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    let themeMode = "auto";
-    try { themeMode = localStorage.getItem(THEME_KEY) || "auto"; } catch (_) {}
-    function applyTheme() {
-      const dark = themeMode === "dark" || (themeMode === "auto" && media.matches);
-      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+/* ==================== Prüfungsdaten ==================== */
+function extract(text){
+  const m=text.match(/KPRIM-DATEN:\s*START[^\n]*\n([\s\S]*?)\/\/\s*=*\s*KPRIM-DATEN:\s*ENDE/);
+  if(m){const i=m[1].match(/=\s*([\s\S]*?);\s*$/);if(i)return i[1].trim();}
+  const a=text.match(/(?:const|let|var)\s+QUIZ_DATA\s*=\s*([\s\S]*?);\s*(?:\n\s*(?:\/\/|\(\(|<\/script>))/);
+  return a?a[1].trim():null;
+}
+function parsePayload(text){
+  const t=String(text||"").trim();
+  if(!t) throw new Error("Die Datei ist leer.");
+  if(t.startsWith("{")){try{return JSON.parse(t);}catch(_){}}
+  const src=extract(t)||(t.startsWith("{")?t:null);
+  if(!src) throw new Error("Kein QUIZ_DATA-Block gefunden.");
+  try{return new Function('"use strict"; return ('+src+");")();}
+  catch(e){throw new Error("QUIZ_DATA liess sich nicht lesen ("+e.message+").");}
+}
+function validate(p){
+  if(!p||typeof p!=="object") throw new Error("Unerwartetes Format.");
+  if(!Array.isArray(p.questions)||!p.questions.length) throw new Error("Keine Fragen enthalten.");
+  const bad=p.questions.findIndex(q=>!q||typeof q.stem!=="string"||!Array.isArray(q.statements)||!q.statements.length);
+  if(bad!==-1) throw new Error("Frage "+(bad+1)+" hat keinen Stamm oder keine Aussagen.");
+  if(String((p.exam&&p.exam.title)||"").includes("<Fach>")) throw new Error("Das ist noch die unausgefüllte Vorlage.");
+  return p;
+}
+function saveExam(payload,fallback){
+  validate(payload);
+  const ex=payload.exam||(payload.exam={});
+  const title=ex.title||fallback||"Übungsprüfung";
+  const id=freeId(slug(title));
+  localStorage.setItem(DATA+id,JSON.stringify(payload));
+  const l=idx();
+  l.unshift({id,title,subtitle:ex.subtitle||"",count:payload.questions.length,
+    blocks:[...new Set(payload.questions.map(q=>q.block).filter(Boolean))].length,
+    folder:cwd,addedAt:Date.now(),updated:Date.now()});
+  wr(l); Sync.schedulePush();
+  return {id,title};
+}
+function answered(e){
+  const s=rd(PROG+e.id,null);
+  if(!s||!Array.isArray(s.rounds)||!s.rounds[0])return 0;
+  return Object.keys(s.rounds[0].answers||{}).length;
+}
+function lastQ(e){
+  const s=rd(PROG+e.id,null);
+  if(!s||!Array.isArray(s.rounds))return null;
+  const r=s.rounds[s.round||0]||s.rounds[0];
+  return r&&Number.isInteger(r.lastQ)?r.lastQ:null;
+}
+
+/* ==================== Ordner ==================== */
+function descend(id){
+  const all=Object.values(Sync.folders()).filter(f=>!f.deleted);
+  const ids=[id]; let front=[id], guard=0;
+  while(front.length&&guard<20){
+    const next=[];
+    all.forEach(f=>{if(front.includes(f.parent||null)&&!ids.includes(f.id)){ids.push(f.id);next.push(f.id);}});
+    front=next; guard+=1;
+  }
+  return ids;
+}
+const countIn = id => live().filter(e=>descend(id).includes(e.folder||null)).length;
+
+/* ==================== Zeichnen ==================== */
+const $=s=>document.querySelector(s);
+
+function renderRail(){
+  const nav=$("#folderNav"); nav.textContent="";
+  const mk=(label,id,depth,count)=>{
+    const b=document.createElement("button");
+    b.type="button";
+    b.setAttribute("aria-selected", String((id||null)===(cwd||null)));
+    b.style.paddingLeft=(10+depth*14)+"px";
+    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=label;
+    const cnt=document.createElement("span"); cnt.className="cnt"; cnt.textContent=count;
+    b.append(nm,cnt);
+    if(id){
+      const k=document.createElement("span"); k.className="kebab"; k.textContent="•••";
+      k.addEventListener("click",ev=>{ev.stopPropagation();folderMenu(Sync.folders()[id]);});
+      b.appendChild(k);
     }
-    media.addEventListener("change", () => { if (themeMode === "auto") applyTheme(); });
-    document.getElementById("themeButton").addEventListener("click", () => {
-      themeMode = themeMode === "auto" ? "light" : themeMode === "light" ? "dark" : "auto";
-      try { localStorage.setItem(THEME_KEY, themeMode); } catch (_) {}
-      applyTheme();
-    });
-    applyTheme();
+    b.addEventListener("click",()=>{cwd=id;render();});
+    nav.appendChild(b);
+  };
+  mk("Alle Prüfungen",null,0,live().filter(e=>!e.folder).length);
+  Sync.folderTree(null,0).forEach(({folder,depth})=>mk(folder.name,folder.id,depth+1,countIn(folder.id)));
 
-    /* ==================== Speicher ==================== */
+  const all=live();
+  const tot=all.reduce((s,e)=>s+(e.count||0),0);
+  const don=all.reduce((s,e)=>s+answered(e),0);
+  $("#ratio").textContent=don+" / "+tot;
+  $("#pfill").style.width=(tot?Math.round(don/tot*100):0)+"%";
+  $("#brandSub").textContent=all.length?all.length+(all.length===1?" Prüfung":" Prüfungen"):"noch leer";
 
-    function readIndex() {
-      try {
-        const list = JSON.parse(localStorage.getItem(INDEX_KEY) || "[]");
-        return Array.isArray(list) ? list : [];
-      } catch (_) { return []; }
-    }
-    function writeIndex(list) { localStorage.setItem(INDEX_KEY, JSON.stringify(list)); }
-    function live() { return readIndex().filter((entry) => !entry.deleted); }
+  const st=Sync.meta();
+  $("#lamp").className="lamp"+(Sync.configured()?(st.lastSync?" ok":" idle"):"");
+}
 
-    function slugify(text) {
-      return String(text || "pruefung").toLowerCase()
-        .replace(/[äàáâ]/g, "a").replace(/[öòóô]/g, "o").replace(/[üùúû]/g, "u")
-        .replace(/ß/g, "ss").replace(/[éèêë]/g, "e")
-        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "pruefung";
-    }
-    function freeId(base) {
-      const taken = readIndex().map((entry) => entry.id);
-      if (!taken.includes(base)) return base;
-      let n = 2;
-      while (taken.includes(base + "-" + n)) n += 1;
-      return base + "-" + n;
-    }
+function renderStage(){
+  const path=Sync.folderPath(cwd);
+  const parent=path.length>1?path[path.length-2]:null;
+  $("#title").textContent=path.length?path[path.length-1].name:"Alle Prüfungen";
+  const crumb=$("#crumb");
+  crumb.hidden=!path.length;
+  if(path.length){
+    crumb.textContent="‹ "+(parent?parent.name:"Alle Prüfungen");
+    crumb.onclick=()=>{cwd=parent?parent.id:null;render();};
+  }
 
-    /* ==================== Prüfungsdaten lesen ==================== */
+  const here=live().filter(e=>(e.folder||null)===(cwd||null));
+  $("#sub").textContent=here.length?here.length+(here.length===1?" Prüfung":" Prüfungen"):"";
 
-    function extractObjectSource(text) {
-      const marked = text.match(/KPRIM-DATEN:\s*START[^\n]*\n([\s\S]*?)\/\/\s*=*\s*KPRIM-DATEN:\s*ENDE/);
-      if (marked) {
-        const inner = marked[1].match(/=\s*([\s\S]*?);\s*$/);
-        if (inner) return inner[1].trim();
+  /* Fortsetzen: die zuletzt beantwortete, noch nicht fertige Prüfung. */
+  const slot=$("#resumeSlot"); slot.textContent="";
+  const stamps=Sync.meta().stamps||{};
+  const open=live()
+    .filter(e=>{const a=answered(e);return a>0&&a<e.count;})
+    .sort((a,b)=>((stamps[b.id]||{}).updated||0)-((stamps[a.id]||{}).updated||0))[0];
+  if(open&&!cwd){
+    const a=answered(open), pct=Math.round(a/open.count*100), q=lastQ(open);
+    const el=document.createElement("a");
+    el.className="resume";
+    el.href="quiz.html?exam="+encodeURIComponent(open.id);
+    el.innerHTML='<div class="kick">Fortsetzen</div><h2></h2><div class="where"></div>'
+      +'<div class="row"><div class="progress"><div class="progress-fill"></div></div>'
+      +'<span class="pct"></span><span class="go">Weiterlösen</span></div>';
+    el.querySelector("h2").textContent=open.title;
+    el.querySelector(".where").textContent=
+      (q!==null?"Zuletzt Frage "+(q+1)+" · ":"")+a+" von "+open.count+" beantwortet";
+    el.querySelector(".progress-fill").style.width=pct+"%";
+    el.querySelector(".pct").textContent=pct+"%";
+    slot.appendChild(el);
+  }
+
+  $("#listTitle").textContent=cwd?"In diesem Ordner":"Prüfungen";
+  const cards=$("#cards"); cards.textContent="";
+
+  if(!here.length){
+    const e=document.createElement("div");
+    e.className="empty";
+    e.innerHTML="<b></b><p></p>";
+    e.querySelector("b").textContent=cwd?"Dieser Ordner ist leer":"Noch keine Prüfung";
+    e.querySelector("p").textContent=cwd
+      ? "Verschiebe eine Prüfung hierher oder importiere direkt in diesen Ordner."
+      : "Importiere eine generierte Prüfung — als JSON oder als alte HTML-Datei.";
+    const go=document.createElement("button");
+    go.className="go"; go.type="button"; go.textContent="Prüfung hinzufügen";
+    go.addEventListener("click",importSheet);
+    e.appendChild(go);
+    cards.appendChild(e);
+    return;
+  }
+
+  here.forEach(entry=>{
+    const a=answered(entry), pct=entry.count?Math.round(a/entry.count*100):0;
+    const done=entry.count&&a>=entry.count;
+
+    const card=document.createElement("div");
+    card.className="card";
+    card.dataset.kind="exam";
+
+    const link=document.createElement("a");
+    link.className="body";
+    link.href="quiz.html?exam="+encodeURIComponent(entry.id);
+    link.innerHTML='<h3></h3><div class="meta"></div>'
+      +'<div class="foot"><div class="progress"><div class="progress-fill"></div></div>'
+      +'<span class="stat"></span></div>';
+    link.querySelector("h3").textContent=entry.title;
+    const bits=[];
+    if(entry.subtitle)bits.push(entry.subtitle);
+    bits.push(entry.count+(entry.count===1?" Frage":" Fragen"));
+    if(entry.blocks>1)bits.push(entry.blocks+" Blöcke");
+    link.querySelector(".meta").textContent=bits.join(" · ");
+    link.querySelector(".progress-fill").style.width=pct+"%";
+    if(done)link.querySelector(".progress-fill").style.background="var(--green)";
+    const stat=link.querySelector(".stat");
+    stat.textContent=done?"vollständig":a?a+" / "+entry.count:"nicht begonnen";
+    if(done)stat.classList.add("done");
+
+    const kb=document.createElement("button");
+    kb.className="kebab-btn"; kb.type="button"; kb.textContent="•••";
+    kb.setAttribute("aria-label","Mehr");
+    kb.addEventListener("click",()=>examMenu(entry));
+
+    const ch=document.createElement("span");
+    ch.className="chev"; ch.setAttribute("aria-hidden","true"); ch.textContent="›";
+
+    card.append(link,kb,ch);
+    cards.appendChild(card);
+  });
+}
+
+function render(){renderRail();renderStage();}
+
+/* ==================== Blatt ==================== */
+const sheet=$("#sheet");
+$("#sheetClose").addEventListener("click",()=>sheet.close());
+sheet.addEventListener("click",e=>{if(e.target===sheet)sheet.close();});
+
+function openSheet(title,build){
+  $("#sheetHead").textContent=title;
+  const body=$("#sheetBody"); body.textContent="";
+  build(body);
+  sheet.showModal();
+}
+function picks(list){
+  return body=>list.forEach(it=>{
+    const b=document.createElement("button");
+    b.type="button";
+    b.className="pick"+(it.cur?" cur":"")+(it.danger?" danger":"");
+    if(it.depth)b.style.paddingLeft=(14+it.depth*16)+"px";
+    b.textContent=it.label;
+    b.addEventListener("click",()=>{sheet.close();it.run();});
+    body.appendChild(b);
+  });
+}
+function folderChoices(cur,exclude,onPick){
+  const out=[{label:"Alle Prüfungen",cur:!cur,run:()=>onPick(null)}];
+  Sync.folderTree(null,0).forEach(({folder,depth})=>{
+    if(exclude&&exclude.includes(folder.id))return;
+    out.push({label:folder.name,depth:depth+1,cur:folder.id===cur,run:()=>onPick(folder.id)});
+  });
+  return out;
+}
+
+$("#newFolder").addEventListener("click",()=>{
+  const n=prompt("Name des Ordners");
+  if(!n||!n.trim())return;
+  cwd=Sync.createFolder(n,cwd); render();
+});
+
+function folderMenu(f){
+  if(!f)return;
+  openSheet(f.name,picks([
+    {label:"Umbenennen",run:()=>{const n=prompt("Neuer Name",f.name);
+      if(n&&n.trim()){Sync.renameFolder(f.id,n);render();}}},
+    {label:"Verschieben",run:()=>openSheet("Verschieben nach",
+      picks(folderChoices(f.parent||null,descend(f.id),t=>{Sync.moveFolder(f.id,t);render();})))},
+    {label:"Löschen",danger:true,run:()=>{
+      if(!confirm("Ordner «"+f.name+"» löschen? Inhalt und Unterordner rücken eine Ebene hoch."))return;
+      if((cwd||null)===f.id)cwd=f.parent||null;
+      Sync.deleteFolder(f.id);render();}}
+  ]));
+}
+
+function examMenu(e){
+  openSheet(e.title,picks([
+    {label:"Verschieben",run:()=>openSheet("Verschieben nach",
+      picks(folderChoices(e.folder||null,null,t=>{Sync.setExamFolder(e.id,t);render();})))},
+    {label:"Fortschritt zurücksetzen",run:()=>{
+      if(!confirm("Alle Antworten dieser Prüfung löschen? Das gilt auch auf deinen anderen Geräten."))return;
+      localStorage.setItem(PROG+e.id,JSON.stringify({questionCount:e.count,round:0,
+        rounds:[{label:"Originalversuch",items:[],answers:{},flags:{}}]}));
+      render();}},
+    {label:"JSON sichern",run:()=>{
+      const raw=localStorage.getItem(DATA+e.id)||"{}";
+      const u=URL.createObjectURL(new Blob([raw],{type:"application/json"}));
+      const a=document.createElement("a");a.href=u;a.download=e.id+".json";a.click();
+      setTimeout(()=>URL.revokeObjectURL(u),4000);}},
+    {label:"Entfernen",danger:true,run:()=>{
+      if(!confirm("«"+e.title+"» entfernen? Das gilt auch auf deinen anderen Geräten."))return;
+      localStorage.removeItem(DATA+e.id);localStorage.removeItem(PROG+e.id);
+      /* Grabstein statt Löschung, sonst kehrt der Eintrag beim nächsten
+         Abgleich vom anderen Gerät zurück. */
+      const l=idx();const f=l.find(i=>i.id===e.id);
+      if(f){f.deleted=true;f.updated=Date.now();}
+      wr(l);Sync.schedulePush();render();}}
+  ]));
+}
+
+/* ==================== Import ==================== */
+function note(host,lines,ok){
+  const old=host.querySelector(".note"); if(old)old.remove();
+  const box=document.createElement("div");
+  box.className="note "+(ok?"ok":"bad");
+  lines.forEach((t,i)=>{if(i)box.appendChild(document.createElement("br"));
+    box.appendChild(document.createTextNode(t));});
+  host.appendChild(box);
+}
+
+function importSheet(){
+  const path=Sync.folderPath(cwd);
+  openSheet("Hinzufügen zu "+(path.length?path.map(f=>f.name).join(" › "):"Alle Prüfungen"),body=>{
+    body.innerHTML=`
+      <details class="fold" open><summary>Datei wählen</summary><div class="fold-body">
+        <p class="hint">Aus «Dateien» oder iCloud Drive. Nimmt <code>.json</code> und die alten <code>.html</code>-Prüfungen.</p>
+        <input type="file" id="fi" accept=".json,.html,.htm,application/json,text/html" multiple>
+      </div></details>
+      <details class="fold"><summary>Text einfügen</summary><div class="fold-body">
+        <p class="hint">Den <code>QUIZ_DATA</code>-Block oder reines JSON einsetzen.</p>
+        <textarea id="pi" placeholder='{ "exam": { "title": "…" }, "questions": [ … ] }' spellcheck="false"></textarea>
+        <button class="btn" id="pb" type="button">Importieren</button>
+      </div></details>
+      <details class="fold"><summary>Aus Repository laden</summary><div class="fold-body">
+        <p class="hint">Lädt alles, was in <code>exams/index.json</code> steht.</p>
+        <input type="url" id="ru" value="exams/index.json" spellcheck="false">
+        <button class="btn ghost" id="rb" type="button">Jetzt laden</button>
+      </div></details>`;
+
+    body.querySelector("#fi").addEventListener("change",async ev=>{
+      const files=[...ev.target.files]; if(!files.length)return;
+      const ok=[],bad=[];
+      for(const f of files){
+        try{ok.push(saveExam(parsePayload(await f.text()),f.name.replace(/\.[^.]+$/,"")).title);}
+        catch(err){bad.push(f.name+": "+err.message);}
       }
-      const assigned = text.match(/(?:const|let|var)\s+QUIZ_DATA\s*=\s*([\s\S]*?);\s*(?:\n\s*(?:\/\/|\(\(|<\/script>))/);
-      return assigned ? assigned[1].trim() : null;
-    }
-
-    function parsePayload(text) {
-      const trimmed = String(text || "").trim();
-      if (!trimmed) throw new Error("Die Datei ist leer.");
-      if (trimmed.startsWith("{")) {
-        try { return JSON.parse(trimmed); } catch (_) {}
-      }
-      const source = extractObjectSource(trimmed) || (trimmed.startsWith("{") ? trimmed : null);
-      if (!source) throw new Error("Kein QUIZ_DATA-Block gefunden.");
-      try { return new Function('"use strict"; return (' + source + ");")(); }
-      catch (error) { throw new Error("QUIZ_DATA liess sich nicht lesen (" + error.message + ")."); }
-    }
-
-    function validate(payload) {
-      if (!payload || typeof payload !== "object") throw new Error("Unerwartetes Format.");
-      if (!Array.isArray(payload.questions) || !payload.questions.length) throw new Error("Keine Fragen enthalten.");
-      const bad = payload.questions.findIndex((q) => !q || typeof q.stem !== "string" || !Array.isArray(q.statements) || !q.statements.length);
-      if (bad !== -1) throw new Error("Frage " + (bad + 1) + " hat keinen Stamm oder keine Aussagen.");
-      if (String((payload.exam && payload.exam.title) || "").includes("<Fach>")) throw new Error("Das ist noch die unausgefüllte Vorlage.");
-      return payload;
-    }
-
-    function saveExam(payload, fallbackName) {
-      validate(payload);
-      const exam = payload.exam || (payload.exam = {});
-      const title = exam.title || fallbackName || "Übungsprüfung";
-      const id = freeId(slugify(title));
-      localStorage.setItem(DATA_PREFIX + id, JSON.stringify(payload));
-      const list = readIndex();
-      list.unshift({
-        id, title,
-        subtitle: exam.subtitle || "",
-        count: payload.questions.length,
-        blocks: [...new Set(payload.questions.map((q) => q.block).filter(Boolean))].length,
-        folder: cwd,
-        addedAt: Date.now(),
-        updated: Date.now()
-      });
-      writeIndex(list);
-      Sync.schedulePush();
-      return { id, title };
-    }
-
-    function progressFor(entry) {
-      try {
-        const saved = JSON.parse(localStorage.getItem(PROGRESS_PREFIX + entry.id) || "null");
-        if (!saved || !Array.isArray(saved.rounds) || !saved.rounds[0]) return 0;
-        return Object.keys(saved.rounds[0].answers || {}).length;
-      } catch (_) { return 0; }
-    }
-
-    /* ==================== Ordnerbaum ==================== */
-
-    function descendantIds(folderId) {
-      const all = Object.values(Sync.folders()).filter((folder) => !folder.deleted);
-      const ids = [folderId];
-      let frontier = [folderId];
-      let guard = 0;
-      while (frontier.length && guard < 20) {
-        const next = [];
-        all.forEach((folder) => {
-          if (frontier.includes(folder.parent || null) && !ids.includes(folder.id)) {
-            ids.push(folder.id); next.push(folder.id);
-          }
-        });
-        frontier = next; guard += 1;
-      }
-      return ids;
-    }
-    function countIn(folderId) {
-      const ids = descendantIds(folderId);
-      return live().filter((entry) => ids.includes(entry.folder || null)).length;
-    }
-
-    /* ==================== Zeichnen ==================== */
-
-    const contentList = document.getElementById("contentList");
-    const pageTitle = document.getElementById("pageTitle");
-    const pageSubtitle = document.getElementById("pageSubtitle");
-    const backLink = document.getElementById("backLink");
-    const listLabel = document.getElementById("listLabel");
-
-    function makeRow(options) {
-      const row = document.createElement("div");
-      row.className = "row";
-      if (options.kind) row.dataset.kind = options.kind;
-
-      const main = document.createElement(options.href ? "a" : "button");
-      main.className = "row__main";
-      if (options.href) main.href = options.href; else main.type = "button";
-
-      if (options.icon) {
-        const icon = document.createElement("span");
-        icon.className = "row__icon";
-        icon.setAttribute("aria-hidden", "true");
-        icon.textContent = options.icon;
-        main.appendChild(icon);
-      }
-
-      const body = document.createElement("span");
-      body.className = "row__body";
-      const title = document.createElement("span");
-      title.className = "row__title" + (options.strong ? " row__title--strong" : "");
-      title.style.display = "block";
-      title.textContent = options.title;
-      body.appendChild(title);
-      if (options.sub) {
-        const sub = document.createElement("span");
-        sub.className = "row__sub";
-        sub.style.display = "block";
-        sub.textContent = options.sub;
-        body.appendChild(sub);
-      }
-      if (options.meta) {
-        const meta = document.createElement("span");
-        meta.className = "row__meta";
-        meta.style.display = "block";
-        meta.textContent = options.meta;
-        body.appendChild(meta);
-      }
-      if (options.progress) {
-        const track = document.createElement("span");
-        track.className = "track";
-        track.style.display = "block";
-        const fill = document.createElement("span");
-        fill.className = "track__fill" + (options.progress.done ? " is-done" : "");
-        fill.style.display = "block";
-        fill.style.width = options.progress.share + "%";
-        track.appendChild(fill);
-        body.appendChild(track);
-      }
-      main.appendChild(body);
-
-      if (options.count) {
-        const count = document.createElement("span");
-        count.className = "row__count";
-        count.textContent = options.count;
-        main.appendChild(count);
-      }
-      if (options.chevron) {
-        const chevron = document.createElement("span");
-        chevron.className = "row__chevron";
-        chevron.setAttribute("aria-hidden", "true");
-        chevron.textContent = "›";
-        main.appendChild(chevron);
-      }
-      if (options.onOpen) main.addEventListener("click", options.onOpen);
-      row.appendChild(main);
-
-      if (options.onMore) {
-        const more = document.createElement("button");
-        more.className = "row__more";
-        more.type = "button";
-        more.textContent = "•••";
-        more.setAttribute("aria-label", "Mehr");
-        more.addEventListener("click", (event) => { event.preventDefault(); options.onMore(); });
-        row.appendChild(more);
-      }
-      return row;
-    }
-
-    function render() {
-      const path = Sync.folderPath(cwd);
-      const parent = path.length > 1 ? path[path.length - 2] : null;
-
-      pageTitle.textContent = path.length ? path[path.length - 1].name : "Übungsprüfungen";
-      backLink.hidden = !path.length;
-      if (path.length) {
-        backLink.textContent = parent ? parent.name : "Alle Prüfungen";
-        backLink.onclick = () => { cwd = parent ? parent.id : null; render(); };
-      }
-
-      const total = live().length;
-      pageSubtitle.textContent = path.length
-        ? ""
-        : (total ? total + (total === 1 ? " Prüfung" : " Prüfungen") : "Noch nichts importiert");
-
-      contentList.textContent = "";
-      const folders = Sync.childFolders(cwd);
-      const exams = live().filter((entry) => (entry.folder || null) === (cwd || null));
-      listLabel.textContent = folders.length && exams.length ? "Ordner und Prüfungen"
-        : folders.length ? "Ordner" : "Prüfungen";
-
-      folders.forEach((folder) => {
-        const n = countIn(folder.id);
-        contentList.appendChild(makeRow({
-          kind: "folder",
-          icon: "▸", title: folder.name, strong: true,
-          count: n ? String(n) : "",
-          chevron: true,
-          onOpen: () => { cwd = folder.id; render(); },
-          onMore: () => folderMenu(folder)
-        }));
-      });
-
-      exams.forEach((entry) => {
-        const answered = progressFor(entry);
-        const share = entry.count ? Math.round((answered / entry.count) * 100) : 0;
-        const done = entry.count && answered >= entry.count;
-        const bits = [entry.count + (entry.count === 1 ? " Frage" : " Fragen")];
-        if (entry.blocks > 1) bits.push(entry.blocks + " Blöcke");
-        bits.push(done ? "vollständig" : answered ? answered + " beantwortet" : "nicht begonnen");
-
-        contentList.appendChild(makeRow({
-          kind: "exam",
-          href: "quiz.html?exam=" + encodeURIComponent(entry.id),
-          title: entry.title,
-          sub: entry.subtitle || "",
-          meta: bits.join(" · "),
-          progress: answered ? { share, done } : null,
-          chevron: true,
-          onMore: () => examMenu(entry)
-        }));
-      });
-
-      if (!folders.length && !exams.length) {
-        const note = document.createElement("p");
-        note.className = "list__note";
-        note.textContent = path.length
-          ? "Dieser Ordner ist leer."
-          : "Noch nichts hier. Importiere unten eine Prüfung oder lege einen Ordner an.";
-        contentList.appendChild(note);
-      }
-
-      document.getElementById("importTarget").textContent =
-        "Hinzufügen zu " + (path.length ? path.map((f) => f.name).join(" › ") : "Alle Prüfungen");
-    }
-
-    /* ==================== Blatt ==================== */
-
-    const sheet = document.getElementById("sheet");
-    const sheetBody = document.getElementById("sheetBody");
-    const sheetTitle = document.getElementById("sheetTitle");
-    document.getElementById("sheetCancel").addEventListener("click", () => sheet.close());
-    sheet.addEventListener("click", (event) => { if (event.target === sheet) sheet.close(); });
-
-    function openSheet(title, entries) {
-      sheetTitle.textContent = title;
-      sheetBody.textContent = "";
-      entries.forEach((entry) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "pick" + (entry.current ? " is-current" : "") + (entry.danger ? " pick--danger" : "");
-        if (entry.depth) button.style.paddingLeft = (14 + entry.depth * 16) + "px";
-        button.textContent = entry.label;
-        button.addEventListener("click", () => { sheet.close(); entry.run(); });
-        sheetBody.appendChild(button);
-      });
-      sheet.showModal();
-    }
-
-    function folderChoices(current, exclude, onPick) {
-      const entries = [{ label: "Alle Prüfungen", current: !current, run: () => onPick(null) }];
-      Sync.folderTree(null, 0).forEach(({ folder, depth }) => {
-        if (exclude && exclude.includes(folder.id)) return;
-        entries.push({ label: folder.name, depth: depth + 1, current: folder.id === current, run: () => onPick(folder.id) });
-      });
-      return entries;
-    }
-
-    document.getElementById("newFolderButton").addEventListener("click", () => {
-      const name = prompt("Name des Ordners");
-      if (!name || !name.trim()) return;
-      cwd = Sync.createFolder(name, cwd);
-      render();
+      ev.target.value=""; render();
+      note(body,bad.length?[ok.length?"Importiert: "+ok.join(", "):"Nichts importiert.",...bad]
+        :["Importiert: "+ok.join(", ")],!bad.length);
     });
 
-    function folderMenu(folder) {
-      openSheet(folder.name, [
-        { label: "Umbenennen", run: () => {
-            const name = prompt("Neuer Name", folder.name);
-            if (name && name.trim()) { Sync.renameFolder(folder.id, name); render(); }
-          } },
-        { label: "Verschieben", run: () => openSheet("Verschieben nach",
-            folderChoices(folder.parent || null, descendantIds(folder.id), (target) => {
-              Sync.moveFolder(folder.id, target); render();
-            })) },
-        { label: "Löschen", danger: true, run: () => {
-            if (!confirm("Ordner «" + folder.name + "» löschen? Inhalt und Unterordner rücken eine Ebene hoch.")) return;
-            Sync.deleteFolder(folder.id); render();
-          } }
-      ]);
-    }
-
-    function examMenu(entry) {
-      openSheet(entry.title, [
-        { label: "Verschieben", run: () => openSheet("Verschieben nach",
-            folderChoices(entry.folder || null, null, (target) => { Sync.setExamFolder(entry.id, target); render(); })) },
-        { label: "Fortschritt zurücksetzen", run: () => {
-            if (!confirm("Alle Antworten dieser Prüfung löschen? Das gilt auch auf deinen anderen Geräten.")) return;
-            localStorage.setItem(PROGRESS_PREFIX + entry.id, JSON.stringify({
-              questionCount: entry.count, round: 0,
-              rounds: [{ label: "Originalversuch", items: [], answers: {}, flags: {} }]
-            }));
-            render();
-          } },
-        { label: "JSON sichern", run: () => {
-            const raw = localStorage.getItem(DATA_PREFIX + entry.id) || "{}";
-            const url = URL.createObjectURL(new Blob([raw], { type: "application/json" }));
-            const link = document.createElement("a");
-            link.href = url; link.download = entry.id + ".json"; link.click();
-            setTimeout(() => URL.revokeObjectURL(url), 4000);
-          } },
-        { label: "Entfernen", danger: true, run: () => {
-            if (!confirm("«" + entry.title + "» entfernen? Das gilt auch auf deinen anderen Geräten.")) return;
-            localStorage.removeItem(DATA_PREFIX + entry.id);
-            localStorage.removeItem(PROGRESS_PREFIX + entry.id);
-            /* Grabstein statt Löschung, sonst kehrt der Eintrag beim nächsten
-               Abgleich vom anderen Gerät zurück. */
-            const list = readIndex();
-            const found = list.find((item) => item.id === entry.id);
-            if (found) { found.deleted = true; found.updated = Date.now(); }
-            writeIndex(list);
-            Sync.schedulePush();
-            render();
-          } }
-      ]);
-    }
-
-    /* ==================== Import ==================== */
-
-    const importNote = document.getElementById("importNote");
-    function report(target, lines, ok) {
-      target.textContent = "";
-      const box = document.createElement("div");
-      box.className = "note " + (ok ? "note--ok" : "note--bad");
-      lines.forEach((line, index) => {
-        if (index) box.appendChild(document.createElement("br"));
-        box.appendChild(document.createTextNode(line));
-      });
-      target.appendChild(box);
-    }
-
-    document.getElementById("fileInput").addEventListener("change", async (event) => {
-      const files = [...event.target.files];
-      if (!files.length) return;
-      const ok = [], failed = [];
-      for (const file of files) {
-        try { ok.push(saveExam(parsePayload(await file.text()), file.name.replace(/\.[^.]+$/, "")).title); }
-        catch (error) { failed.push(file.name + ": " + error.message); }
-      }
-      event.target.value = "";
-      render();
-      if (ok.length && !failed.length) report(importNote, ["Importiert: " + ok.join(", ")], true);
-      else if (ok.length) report(importNote, ["Importiert: " + ok.join(", "), ...failed], false);
-      else report(importNote, failed, false);
+    body.querySelector("#pb").addEventListener("click",()=>{
+      const f=body.querySelector("#pi");
+      try{const s=saveExam(parsePayload(f.value),"Eingefügte Prüfung");f.value="";render();
+        note(body,["Importiert: "+s.title],true);}
+      catch(e){note(body,[e.message],false);}
     });
 
-    document.getElementById("pasteButton").addEventListener("click", () => {
-      const field = document.getElementById("pasteInput");
-      try {
-        const saved = saveExam(parsePayload(field.value), "Eingefügte Prüfung");
-        field.value = ""; render();
-        report(importNote, ["Importiert: " + saved.title], true);
-      } catch (error) { report(importNote, [error.message], false); }
-    });
-
-    document.getElementById("repoButton").addEventListener("click", async () => {
-      const button = document.getElementById("repoButton");
-      const base = document.getElementById("repoUrl").value.trim();
-      if (!base) return;
-      button.disabled = true; button.textContent = "Lade …";
-      try {
-        const response = await fetch(base, { cache: "no-store" });
-        if (!response.ok) throw new Error("Liste nicht erreichbar (HTTP " + response.status + ").");
-        const listing = await response.json();
-        const entries = Array.isArray(listing) ? listing : (listing.exams || []);
-        if (!entries.length) throw new Error("Die Liste enthält keine Einträge.");
-        const known = new Set(live().map((item) => item.title));
-        const ok = [], failed = [];
-        for (const item of entries) {
-          const file = typeof item === "string" ? item : item.file;
-          if (!file) continue;
-          const url = new URL(file, new URL(base, location.href)).href;
-          try {
-            const fileResponse = await fetch(url, { cache: "no-store" });
-            if (!fileResponse.ok) throw new Error("HTTP " + fileResponse.status);
-            const payload = parsePayload(await fileResponse.text());
-            const title = (payload.exam && payload.exam.title) || file;
-            if (known.has(title)) continue;
-            ok.push(saveExam(payload, file).title);
-          } catch (error) { failed.push(file + ": " + error.message); }
+    body.querySelector("#rb").addEventListener("click",async()=>{
+      const btn=body.querySelector("#rb"), base=body.querySelector("#ru").value.trim();
+      if(!base)return;
+      btn.disabled=true;btn.textContent="Lade …";
+      try{
+        const r=await fetch(base,{cache:"no-store"});
+        if(!r.ok)throw new Error("Liste nicht erreichbar (HTTP "+r.status+").");
+        const listing=await r.json();
+        const entries=Array.isArray(listing)?listing:(listing.exams||[]);
+        if(!entries.length)throw new Error("Die Liste enthält keine Einträge.");
+        const known=new Set(live().map(i=>i.title));
+        const ok=[],bad=[];
+        for(const it of entries){
+          const file=typeof it==="string"?it:it.file; if(!file)continue;
+          const url=new URL(file,new URL(base,location.href)).href;
+          try{
+            const fr=await fetch(url,{cache:"no-store"});
+            if(!fr.ok)throw new Error("HTTP "+fr.status);
+            const p=parsePayload(await fr.text());
+            const t=(p.exam&&p.exam.title)||file;
+            if(known.has(t))continue;
+            ok.push(saveExam(p,file).title);
+          }catch(err){bad.push(file+": "+err.message);}
         }
         render();
-        if (!ok.length && !failed.length) report(importNote, ["Alles bereits vorhanden."], true);
-        else if (!failed.length) report(importNote, ["Neu geladen: " + ok.join(", ")], true);
-        else report(importNote, [ok.length ? "Neu geladen: " + ok.join(", ") : "Nichts geladen.", ...failed], false);
-      } catch (error) { report(importNote, [error.message], false); }
-      finally { button.disabled = false; button.textContent = "Jetzt laden"; }
+        note(body,!ok.length&&!bad.length?["Alles bereits vorhanden."]
+          :bad.length?[ok.length?"Neu geladen: "+ok.join(", "):"Nichts geladen.",...bad]
+          :["Neu geladen: "+ok.join(", ")],!bad.length);
+      }catch(e){note(body,[e.message],false);}
+      finally{btn.disabled=false;btn.textContent="Jetzt laden";}
     });
+  });
+}
+$("#importBtn").addEventListener("click",importSheet);
 
-    /* ==================== Abgleich ==================== */
+/* ==================== Abgleich ==================== */
+function syncSheet(){
+  openSheet("Abgleich zwischen Geräten",body=>{
+    const st=Sync.meta();
+    body.innerHTML=`
+      <p class="hint">Adresse deines Cloudflare Workers und ein Schlüssel. Auf dem ersten
+      Gerät den Schlüssel erzeugen, auf jedem weiteren denselben eintragen. Wer den
+      Schlüssel hat, sieht deine Prüfungen — er ist das Passwort.</p>
+      <label class="field"><span>Worker-Adresse</span>
+        <input type="url" id="ep" placeholder="https://pruefungen-sync.name.workers.dev" spellcheck="false" autocapitalize="off"></label>
+      <label class="field"><span>Schlüssel</span>
+        <input type="text" id="ky" class="keybox" placeholder="16–64 Zeichen, a–z und 0–9" spellcheck="false" autocapitalize="off" autocorrect="off"></label>
+      <div class="pairbtn">
+        <button class="btn ghost" id="gk" type="button">Erzeugen</button>
+        <button class="btn ghost" id="ck" type="button">Kopieren</button>
+      </div>
+      <button class="btn" id="sv" type="button">Verbinden</button>
+      <button class="btn ghost" id="fg" type="button"${Sync.configured()?"":" hidden"}>Verbindung trennen</button>`;
+    body.querySelector("#ep").value=st.endpoint||"";
+    body.querySelector("#ky").value=st.key||"";
 
-    const syncNote = document.getElementById("syncNote");
-    const syncDot = document.getElementById("syncDot");
-    const syncState = document.getElementById("syncState");
-    const endpointInput = document.getElementById("endpointInput");
-    const keyInput = document.getElementById("keyInput");
-
-    function loadSyncFields() {
-      const state = Sync.meta();
-      if (document.activeElement !== endpointInput) endpointInput.value = state.endpoint || "";
-      if (document.activeElement !== keyInput) keyInput.value = state.key || "";
-      document.getElementById("forgetSyncButton").hidden = !Sync.configured();
-      if (!Sync.configured()) {
-        syncState.textContent = "aus";
-        syncDot.className = "dot";
-      } else if (state.lastSync) {
-        syncState.textContent = new Date(state.lastSync)
-          .toLocaleString("de-CH", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-        syncDot.className = "dot is-ok";
-      } else {
-        syncState.textContent = "wartet";
-        syncDot.className = "dot is-idle";
-      }
-    }
-
-    document.getElementById("genKeyButton").addEventListener("click", () => {
-      keyInput.value = Sync.randomKey(24);
+    body.querySelector("#gk").addEventListener("click",()=>{
+      body.querySelector("#ky").value=Sync.randomKey(24);});
+    body.querySelector("#ck").addEventListener("click",async()=>{
+      const k=body.querySelector("#ky"); if(!k.value)return;
+      try{await navigator.clipboard.writeText(k.value);note(body,["Schlüssel kopiert."],true);}
+      catch(_){k.select();note(body,["Konnte nicht kopieren — das Feld ist markiert."],false);}
     });
-
-    document.getElementById("copyKeyButton").addEventListener("click", async () => {
-      if (!keyInput.value) return;
-      try { await navigator.clipboard.writeText(keyInput.value); report(syncNote, ["Schlüssel kopiert."], true); }
-      catch (_) { keyInput.select(); report(syncNote, ["Konnte nicht kopieren — das Feld ist markiert."], false); }
+    body.querySelector("#sv").addEventListener("click",async()=>{
+      const btn=body.querySelector("#sv");
+      const ep=body.querySelector("#ep").value.trim();
+      const ky=body.querySelector("#ky").value.trim().toLowerCase();
+      if(!/^https?:\/\//.test(ep)){note(body,["Die Adresse muss mit https:// beginnen."],false);return;}
+      if(!/^[a-z0-9]{16,64}$/.test(ky)){note(body,["Der Schlüssel braucht 16–64 Zeichen aus a–z und 0–9."],false);return;}
+      btn.disabled=true;btn.textContent="Verbinde …";
+      try{
+        await Sync.test(ep);
+        const s=Sync.meta(); s.endpoint=ep; s.key=ky; s.rev=null; s.uploaded={};
+        Sync.saveMeta(s);
+        const res=await Sync.sync();
+        if(!res.ok)throw new Error(res.reason);
+        render();
+        note(body,["Verbunden."+(res.pulledExams?" "+res.pulledExams+" Prüfung(en) geladen.":"")
+          +" Denselben Schlüssel auf dem anderen Gerät eintragen."],true);
+        body.querySelector("#fg").hidden=false;
+      }catch(e){note(body,["Fehlgeschlagen: "+e.message],false);}
+      finally{btn.disabled=false;btn.textContent="Verbinden";}
     });
-
-    document.getElementById("saveSyncButton").addEventListener("click", async () => {
-      const button = document.getElementById("saveSyncButton");
-      const endpoint = endpointInput.value.trim();
-      const key = keyInput.value.trim().toLowerCase();
-      if (!/^https?:\/\//.test(endpoint)) { report(syncNote, ["Die Adresse muss mit https:// beginnen."], false); return; }
-      if (!/^[a-z0-9]{16,64}$/.test(key)) { report(syncNote, ["Der Schlüssel braucht 16–64 Zeichen aus a–z und 0–9."], false); return; }
-      button.disabled = true; button.textContent = "Verbinde …";
-      try {
-        await Sync.test(endpoint);
-        const state = Sync.meta();
-        state.endpoint = endpoint; state.key = key; state.rev = null; state.uploaded = {};
-        Sync.saveMeta(state);
-        const result = await Sync.sync();
-        if (!result.ok) throw new Error(result.reason);
-        render(); loadSyncFields();
-        report(syncNote, ["Verbunden."
-          + (result.pulledExams ? " " + result.pulledExams + " Prüfung(en) geladen." : "")
-          + " Denselben Schlüssel auf dem anderen Gerät eintragen."], true);
-      } catch (error) {
-        report(syncNote, ["Fehlgeschlagen: " + error.message], false);
-      } finally { button.disabled = false; button.textContent = "Verbinden"; }
+    body.querySelector("#fg").addEventListener("click",()=>{
+      if(!confirm("Verbindung trennen? Die Daten auf diesem Gerät bleiben erhalten."))return;
+      const s=Sync.meta();s.endpoint="";s.key="";s.rev=null;s.lastSync=0;s.uploaded={};
+      Sync.saveMeta(s);render();note(body,["Getrennt."],true);
     });
+  });
+}
+$("#syncBtn").addEventListener("click",syncSheet);
 
-    document.getElementById("forgetSyncButton").addEventListener("click", () => {
-      if (!confirm("Verbindung trennen? Die Daten auf diesem Gerät bleiben erhalten.")) return;
-      const state = Sync.meta();
-      state.endpoint = ""; state.key = ""; state.rev = null; state.lastSync = 0; state.uploaded = {};
-      Sync.saveMeta(state);
-      loadSyncFields();
-      report(syncNote, ["Getrennt."], true);
-    });
-
-    Sync.onSync(() => { render(); loadSyncFields(); });
-
-    /* ==================== Start ==================== */
-
-    render();
-    loadSyncFields();
-    if (!Sync.configured()) document.getElementById("syncFold").open = false;
-    window.addEventListener("pageshow", () => { render(); loadSyncFields(); });
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
-    }
-  })();
-  </script>
+/* ==================== Start ==================== */
+Sync.onSync(()=>render());
+render();
+window.addEventListener("pageshow",render);
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+})();
+</script>
 </body>
 </html>
