@@ -8,7 +8,13 @@
         {
           "type": "folder",
           "title": "Semester 1",
-          "children": []
+          "children": [
+            {
+              "type": "folder",
+              "title": "Bewegungsapparat",
+              "children": []
+            }
+          ]
         }
       ]
     },
