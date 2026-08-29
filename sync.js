@@ -31,7 +31,12 @@
   const NATIVE_SET = Storage.prototype.setItem;
 
   const listeners = [];
+  /* Öffentliche Quizzes schreiben bei jeder Antwort. Bei einer ganzen
+     Klasse liefe das Gratiskontingent von Cloudflare KV schnell voll,
+     deshalb wird gebündelt statt sofort geschickt. */
+  const PUSH_DELAY = 30000;
   let pushTimer = null;
+  let pendingPush = false;
   let running = null;
 
   /* ====================== Speicher ====================== */
@@ -65,6 +70,17 @@
   }
 
   function saveMeta(next) { writeJSON(META_KEY, next); }
+
+  /* Erst wenn wirklich etwas gelöst wurde, bekommt das Gerät einen Code.
+     Sonst legte jeder Seitenaufruf einen leeren Eintrag im Speicher an. */
+  function ensureKeyInternal() {
+    const state = meta();
+    if (state.key) return state.key;
+    if (!state.endpoint) return "";
+    state.key = randomKey(24);
+    saveMeta(state);
+    return state.key;
+  }
 
   function randomKey(length) {
     const alphabet = "abcdefghijkmnpqrstuvwxyz23456789";
@@ -222,7 +238,7 @@
         try { before = JSON.parse(localStorage.getItem(key) || "null"); } catch (_) {}
         try { after = JSON.parse(value); } catch (_) {}
         native.call(this, key, value);
-        if (after) { stampProgress(examId, before, after); schedulePush(); }
+        if (after) { stampProgress(examId, before, after); ensureKeyInternal(); schedulePush(); }
         return;
       }
       return native.call(this, key, value);
@@ -334,13 +350,18 @@
       };
     });
 
+    /* Alle Fortschrittsschlüssel einsammeln — auch die der öffentlichen
+       Quizzes, die kein Verzeichniseintrag sind. */
     const progress = {};
-    Object.keys(exams).forEach((id) => {
-      const data = readJSON(PROGRESS_PREFIX + id, null);
-      if (!data) return;
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith(PROGRESS_PREFIX)) continue;
+      const id = key.slice(PROGRESS_PREFIX.length);
+      const data = readJSON(key, null);
+      if (!data) continue;
       const stamps = state.stamps[id] || { updated: 0, rounds: {} };
       progress[id] = { data, stamps, updated: stamps.updated || 0 };
-    });
+    }
 
     return { v: 1, folders: folders(), exams, progress };
   }
@@ -488,8 +509,18 @@
 
   function schedulePush() {
     if (!configured()) return;
+    pendingPush = true;
     clearTimeout(pushTimer);
-    pushTimer = setTimeout(() => sync(), 1200);
+    pushTimer = setTimeout(() => { pendingPush = false; sync(); }, PUSH_DELAY);
+  }
+
+  /* Beim Verlassen der Seite sofort losschicken, sonst ginge die letzte
+     halbe Minute Arbeit verloren. */
+  function flush() {
+    if (!pendingPush) return;
+    clearTimeout(pushTimer);
+    pendingPush = false;
+    sync();
   }
 
   /* ====================== Nach aussen ====================== */
@@ -498,6 +529,34 @@
     meta,
     saveMeta,
     configured,
+    flush,
+
+    /* Die Worker-Adresse steht in content/index.json, damit Besucher nichts
+       einrichten müssen. Der Schlüssel bleibt geräteeigen. */
+    setEndpoint(endpoint) {
+      const state = meta();
+      if (state.endpoint === endpoint) return;
+      state.endpoint = endpoint || "";
+      state.rev = null;
+      saveMeta(state);
+    },
+
+    /* Beim ersten gelösten Quiz bekommt jedes Gerät still einen Schlüssel.
+       Er ist der Fortsetzungscode, den man auf dem zweiten Gerät eingibt. */
+    ensureKey() {
+      const state = meta();
+      if (!state.key) { state.key = randomKey(24); saveMeta(state); }
+      return state.key;
+    },
+
+    useKey(key) {
+      const clean = String(key || "").trim().toLowerCase().replace(/\s+/g, "");
+      if (!/^[a-z0-9]{16,64}$/.test(clean)) throw new Error("Ungültiger Code.");
+      const state = meta();
+      state.key = clean; state.rev = null; state.uploaded = {}; state.lastSync = 0;
+      saveMeta(state);
+      return sync();
+    },
     randomKey,
     sync,
     schedulePush,
@@ -521,12 +580,24 @@
 
   interceptProgressWrites();
 
+  /* Die Worker-Adresse kommt aus config.js und gilt für beide Seiten. */
+  if (global.APP_CONFIG && global.APP_CONFIG.syncEndpoint) {
+    const state = meta();
+    if (state.endpoint !== global.APP_CONFIG.syncEndpoint) {
+      state.endpoint = global.APP_CONFIG.syncEndpoint;
+      state.rev = null;
+      saveMeta(state);
+    }
+  }
+
   /* Beim Zurückkehren auf die Seite frisch abgleichen. */
   global.addEventListener("pageshow", () => sync());
   global.addEventListener("online", () => sync());
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") sync();
+    else flush();
   });
+  global.addEventListener("pagehide", flush);
 
   global.Sync = Sync;
 })(window);

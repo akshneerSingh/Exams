@@ -1,7 +1,7 @@
 /* Offline-Cache für die App-Hülle.
    Bei jeder Änderung an index.html oder quiz.html die VERSION erhöhen,
    sonst liefert das iPhone weiter die alte Fassung aus dem Cache. */
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = "pruefungen-" + VERSION;
 
 const SHELL = [
@@ -9,6 +9,8 @@ const SHELL = [
   "./index.html",
   "./quiz.html",
   "./sync.js",
+  "./config.js",
+  "./content/index.json",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png"
@@ -41,7 +43,7 @@ self.addEventListener("fetch", (event) => {
 
   /* Prüfungslisten und -dateien immer frisch holen, sonst kommt beim
      Synchronisieren ewig die alte Liste zurück. Ohne Netz aus dem Cache. */
-  if (url.pathname.includes("/exams/")) {
+  if (url.pathname.includes("/exams/") || url.pathname.includes("/content/")) {
     event.respondWith(
       fetch(request)
         .then((response) => {

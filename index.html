@@ -7,21 +7,17 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>Übungsprüfungen</title>
+<title>Übungsprüfungen und Unterlagen</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 /* ============================================================================
-   Bibliothek im Aufbau der Prüfungstrainer.
+   Startseite.
 
-   Links eine feste Schiene: Ordner sind dort die Navigation, unten Fortschritt
-   und Werkzeuge. Rechts die Bühne mit genau einer Sache — den Prüfungen des
-   gewählten Ordners, und ganz oben das, was man in neun von zehn Fällen will:
-   da weitermachen, wo man aufgehört hat.
-
-   Import und Abgleich sind aus der Seite verschwunden. Sie liegen als Blatt
-   hinter den Werkzeugen, weil man sie zweimal im Semester braucht und eine
-   Prüfung täglich.
+   Links die Schiene mit den Abschnitten aus content/index.json, rechts der
+   Inhalt des gewählten Ordners. Alles, was hier steht, liegt im Repository und
+   ist für jeden sichtbar. Was nicht sichtbar ist: der gelöste Fortschritt —
+   der bleibt im Browser des jeweiligen Besuchers.
    ========================================================================== */
 
 :root{
@@ -39,7 +35,7 @@ body{margin:0;background:var(--bg);color:var(--label);font-family:var(--sans);
   font-size:16px;line-height:1.5;letter-spacing:-.011em;
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 ::selection{background:rgba(10,132,255,.35)}
-button,input,textarea{font:inherit;color:inherit}
+button,input{font:inherit;color:inherit}
 button{border:0;background:transparent;cursor:pointer;padding:0}
 a{color:inherit;text-decoration:none}
 [hidden]{display:none!important}
@@ -57,35 +53,29 @@ a{color:inherit;text-decoration:none}
 .railtitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);padding:0 8px;margin:26px 0 8px}
 .seg{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
-.seg button{display:flex;align-items:center;gap:8px;
-  width:100%;color:var(--label-2);font-size:14px;
-  font-weight:500;letter-spacing:-.011em;padding:9px 10px;border-radius:9px;
-  text-align:left;transition:background .15s,color .15s}
+.seg button{display:flex;align-items:center;gap:8px;width:100%;color:var(--label-2);
+  font-size:14px;font-weight:500;letter-spacing:-.011em;padding:9px 10px;
+  border-radius:9px;text-align:left;transition:background .15s,color .15s}
 .seg button:hover{background:rgba(118,118,128,.16);color:var(--label)}
-.seg button[aria-selected="true"]{background:rgba(10,132,255,.16);color:var(--blue);
-  font-weight:600}
+.seg button[aria-selected="true"]{background:rgba(10,132,255,.16);color:var(--blue);font-weight:600}
 .seg .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .seg .cnt{margin-left:auto;padding-left:10px;font-size:11.5px;font-weight:600;
   color:var(--label-3);font-variant-numeric:tabular-nums}
 .seg button[aria-selected="true"] .cnt{color:var(--blue);opacity:.85}
-.seg .kebab{flex:none;width:22px;text-align:center;color:var(--label-3);
-  font-size:12px;letter-spacing:.04em;opacity:0;transition:opacity .15s}
-.seg button:hover .kebab,.seg button[aria-selected="true"] .kebab{opacity:1}
+.seg .sect{margin-top:14px}
 .railfoot{margin-top:auto;padding-top:18px}
 .mini{padding:0 8px 12px}
-.mini .lab{font-size:11.5px;color:var(--label-3);font-weight:500;
-  display:flex;justify-content:space-between;margin-bottom:7px;
-  font-variant-numeric:tabular-nums}
+.mini .lab{font-size:11.5px;color:var(--label-3);font-weight:500;display:flex;
+  justify-content:space-between;margin-bottom:7px;font-variant-numeric:tabular-nums}
 .progress{height:4px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
-.progress-fill{height:100%;width:0;background:var(--blue);border-radius:3px;
-  transition:width .35s ease}
+.progress-fill{height:100%;width:0;background:var(--blue);border-radius:3px;transition:width .35s ease}
 .tools{display:flex;flex-direction:column;gap:2px}
 .chip{display:flex;align-items:center;gap:8px;width:100%;color:var(--label-2);
   font-size:13.5px;font-weight:500;padding:8px 10px;border-radius:9px;
   text-align:left;transition:.15s}
 .chip:hover{background:rgba(118,118,128,.16);color:var(--label)}
 .lamp{width:7px;height:7px;border-radius:50%;background:var(--label-3);margin-left:auto;flex:none}
-.lamp.ok{background:var(--green)} .lamp.idle{background:var(--orange)}
+.lamp.ok{background:var(--green)}
 
 /* ============ Bühne ============ */
 main{margin-left:var(--rail-w);padding:46px 28px 80px}
@@ -93,14 +83,13 @@ main > article{max-width:760px;margin:0 auto;min-width:0}
 .crumb{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:10px;
   display:inline-flex;align-items:center;gap:4px}
 h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:0}
-.sub{font-size:14px;color:var(--label-3);margin-top:6px}
+.sub{font-size:14px;color:var(--label-3);margin-top:6px;max-width:56ch}
 .sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);margin:34px 0 10px}
 
-/* Fortsetzen */
 .resume{display:block;background:linear-gradient(180deg,rgba(10,132,255,.14),rgba(10,132,255,.06));
   border:.5px solid rgba(10,132,255,.28);border-radius:16px;padding:20px;
-  transition:.15s;margin-top:8px}
+  transition:.15s;margin-top:18px}
 .resume:hover{border-color:rgba(10,132,255,.5)}
 .resume .kick{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
   color:var(--blue);margin-bottom:9px}
@@ -108,36 +97,33 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .resume .where{font-size:14px;color:var(--label-2);margin-top:5px}
 .resume .row{display:flex;align-items:center;gap:14px;margin-top:16px}
 .resume .progress{flex:1}
-.resume .pct{font-size:13px;font-weight:600;color:var(--blue);
-  font-variant-numeric:tabular-nums;flex:none}
+.resume .pct{font-size:13px;font-weight:600;color:var(--blue);font-variant-numeric:tabular-nums;flex:none}
 .resume .go{background:var(--blue);color:#fff;border-radius:100px;padding:9px 18px;
   font-size:14.5px;font-weight:600;letter-spacing:-.012em;flex:none}
 
-/* Prüfungskarten */
 .cards{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
-.card{position:relative;display:flex;align-items:center;gap:12px;
-  background:var(--card);border:.5px solid transparent;border-radius:14px;
-  padding:15px 16px;transition:.15s}
+.card{display:flex;align-items:center;gap:12px;background:var(--card);
+  border-radius:14px;padding:15px 16px;transition:.15s;min-width:0;text-align:left}
 .card:hover{background:var(--card-2)}
-.card .body{flex:1 1 0;min-width:0;max-width:100%}
-.card h3,.card .meta{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card h3{font-size:16.5px;font-weight:600;letter-spacing:-.016em;margin:0;line-height:1.3}
+.card .ico{flex:none;width:26px;text-align:center;color:var(--label-3);font-size:15px}
+.card .body{flex:1 1 0;min-width:0;max-width:100%;text-align:left}
+.card h3{font-size:16.5px;font-weight:600;letter-spacing:-.016em;margin:0;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card h3,.card .meta{display:block;max-width:100%}
 .card .meta{font-size:13px;color:var(--label-3);margin-top:3px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .body,.card .foot{display:block;max-width:100%}
+.card .foot{display:flex}
+.resume h2,.resume .where{overflow-wrap:break-word}
 .card .foot{display:flex;align-items:center;gap:10px;margin-top:11px;min-width:0}
 .card .foot .progress{flex:1;max-width:200px}
 .card .stat{font-size:12px;color:var(--label-3);font-variant-numeric:tabular-nums}
 .card .stat.done{color:var(--green)}
-.kebab-btn{flex:none;width:34px;height:34px;border-radius:50%;color:var(--label-3);
-  font-size:13px;letter-spacing:.04em;transition:.15s}
-.kebab-btn:hover{background:rgba(118,118,128,.2);color:var(--label)}
 .chev{flex:none;color:var(--label-3);font-size:17px}
 
 .empty{background:var(--card);border-radius:14px;padding:26px 20px;text-align:center}
 .empty b{display:block;font-size:16px;font-weight:600;margin-bottom:5px}
 .empty p{margin:0;font-size:14px;color:var(--label-3);line-height:1.5}
-.empty .go{display:inline-block;margin-top:16px;background:var(--blue);color:#fff;
-  border-radius:100px;padding:9px 18px;font-size:14.5px;font-weight:600}
 
 /* ============ Blatt ============ */
 dialog{width:min(460px,calc(100vw - 28px));padding:0;border:.5px solid var(--hair);
@@ -147,39 +133,19 @@ dialog::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);bac
 .sheet-head{padding:20px 20px 0;font-size:18px;font-weight:700;letter-spacing:-.02em}
 .sheet-body{padding:16px 20px;display:grid;gap:12px;max-height:66vh;overflow-y:auto}
 .sheet-foot{padding:0 20px 20px}
-.pick{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;
-  border-radius:11px;background:var(--card-2);text-align:left;font-size:15px;
-  letter-spacing:-.012em;transition:.15s}
-.pick:hover{background:var(--raised)}
-.pick.cur{color:var(--blue);font-weight:600}
-.pick.cur::after{content:"✓";margin-left:auto}
-.pick.danger{color:var(--red)}
 .btn{display:block;width:100%;background:var(--blue);color:#fff;border-radius:100px;
   padding:12px 24px;font-size:15.5px;font-weight:600;letter-spacing:-.012em;
   text-align:center;transition:.15s}
 .btn:hover{opacity:.88}
 .btn.ghost{background:rgba(118,118,128,.24);color:var(--label)}
-.btn:disabled{opacity:.35;cursor:not-allowed}
-.pairbtn{display:flex;gap:8px}.pairbtn>.btn{flex:1}
-.fold{border-radius:12px;background:var(--card-2);overflow:hidden}
-.fold>summary{list-style:none;cursor:pointer;padding:13px 15px;font-size:15px;
-  font-weight:500;display:flex;align-items:center}
-.fold>summary::-webkit-details-marker{display:none}
-.fold>summary::after{content:"›";margin-left:auto;color:var(--label-3);transition:transform .18s}
-.fold[open]>summary::after{transform:rotate(90deg)}
-.fold-body{padding:0 15px 15px;display:grid;gap:11px}
-.hint{font-size:13px;color:var(--label-3);line-height:1.5}
-.hint code{background:rgba(118,118,128,.2);border-radius:5px;padding:1px 5px;
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
-label.field{display:grid;gap:5px}
-label.field>span{font-size:12px;color:var(--label-3);font-weight:500}
-input[type=url],input[type=text],textarea{width:100%;padding:11px 13px;
-  border:.5px solid var(--hair);border-radius:10px;background:#000;
-  font-size:15px;letter-spacing:-.012em}
-textarea{min-height:120px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-size:12.5px;letter-spacing:0}
-input[type=file]{font-size:13.5px;color:var(--label-2)}
-.keybox{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;font-size:13.5px}
+.hint{font-size:13.5px;color:var(--label-3);line-height:1.5}
+.code{display:block;padding:14px;border-radius:12px;background:#000;
+  border:.5px solid var(--hair);text-align:center;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;
+  letter-spacing:.08em;word-break:break-all;color:var(--label)}
+input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
+  border-radius:10px;background:#000;font-size:15px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
 .note{padding:11px 13px;border-radius:10px;font-size:13.5px;line-height:1.45}
 .note.ok{background:rgba(48,209,88,.14);color:var(--green)}
 .note.bad{background:rgba(255,69,58,.14);color:var(--red)}
@@ -194,44 +160,45 @@ input[type=file]{font-size:13.5px;color:var(--label-2)}
     backdrop-filter:saturate(180%) blur(20px);overflow-x:auto;scrollbar-width:none}
   .rail::-webkit-scrollbar{display:none}
   .brand,.railtitle,.mini{display:none}
-  .seg{flex-direction:row;gap:2px;background:rgba(118,118,128,.2);
-    border-radius:9px;padding:2px;min-width:0;overflow-x:auto;overflow-y:hidden;
-    scrollbar-width:none}
+  .seg{flex-direction:row;gap:2px;background:rgba(118,118,128,.2);border-radius:9px;
+    padding:2px;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
   .seg::-webkit-scrollbar{display:none}
-  .railfoot,.tools{flex:none}
-  .card .chev{display:none}
   .seg button{padding:6px 11px;font-size:13px;border-radius:7px;white-space:nowrap}
-  .seg .cnt,.seg .kebab{display:none}
+  .seg .cnt{display:none}
+  .seg .sect{margin-top:0}
+  .railfoot,.tools{flex:none}
   .railfoot{margin:0 0 0 auto;padding:0}
   .tools{flex-direction:row}
   .chip{padding:6px 10px;font-size:13px;white-space:nowrap}
   .chip .lbl{display:none}
   main{margin-left:0;padding:24px 16px 60px;width:100%;min-width:0}
+  h1{font-size:26px}
   .card{padding:14px}
   .card .foot .progress{max-width:none}
-  h1{font-size:26px}
+  .card .chev{display:none}
   .resume .row{flex-wrap:wrap}
   .resume .go{width:100%;text-align:center}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<script src="config.js"></script>
 <script src="sync.js"></script>
 </head>
 <body>
 
 <aside class="rail">
-  <div class="brand"><b>Übungsprüfungen</b><span id="brandSub">Kprim · ETH Medizin</span></div>
-  <div class="railtitle">Ordner</div>
-  <nav class="seg" id="folderNav"></nav>
+  <div class="brand"><b id="brandTitle">Übungsprüfungen</b><span id="brandSub">wird geladen …</span></div>
+  <div class="railtitle">Bereiche</div>
+  <nav class="seg" id="nav"></nav>
   <div class="railfoot">
-    <div class="mini">
+    <div class="mini" id="mini" hidden>
       <div class="lab"><span>Beantwortet</span><span id="ratio">0 / 0</span></div>
       <div class="progress"><div class="progress-fill" id="pfill"></div></div>
     </div>
     <div class="tools">
-      <button class="chip" id="newFolder" type="button"><span class="lbl">Neuer Ordner</span><span aria-hidden="true" class="ico">＋</span></button>
-      <button class="chip" id="importBtn" type="button"><span class="lbl">Hinzufügen</span><span aria-hidden="true" class="ico">↓</span></button>
-      <button class="chip" id="syncBtn" type="button"><span class="lbl">Abgleich</span><span class="lamp" id="lamp"></span></button>
+      <button class="chip" id="deviceBtn" type="button">
+        <span class="lbl">Gerät wechseln</span><span class="lamp" id="lamp"></span>
+      </button>
     </div>
   </div>
 </aside>
@@ -239,12 +206,10 @@ input[type=file]{font-size:13.5px;color:var(--label-2)}
 <main>
   <article>
     <button class="crumb" id="crumb" type="button" hidden></button>
-    <h1 id="title">Alle Prüfungen</h1>
+    <h1 id="title">…</h1>
     <p class="sub" id="sub"></p>
-
     <div id="resumeSlot"></div>
-
-    <div class="sectitle" id="listTitle">Prüfungen</div>
+    <div class="sectitle" id="listTitle" hidden></div>
     <div class="cards" id="cards"></div>
   </article>
 </main>
@@ -259,437 +224,290 @@ input[type=file]{font-size:13.5px;color:var(--label-2)}
 (() => {
 "use strict";
 
-const INDEX_KEY="pruefung:index", DATA="pruefung:data:", PROG="pruefung:progress:";
-let cwd = null;
+const CFG = window.APP_CONFIG || {};
+const PROG = "pruefung:progress:";
+const $ = s => document.querySelector(s);
 
-/* ==================== Speicher ==================== */
-const rd = (k,f)=>{try{const v=localStorage.getItem(k);return v===null?f:JSON.parse(v);}catch(_){return f;}};
-const idx = ()=>{const l=rd(INDEX_KEY,[]);return Array.isArray(l)?l:[];};
-const wr = (l)=>localStorage.setItem(INDEX_KEY,JSON.stringify(l));
-const live = ()=>idx().filter(e=>!e.deleted);
+let TREE = null;      /* Abschnitte aus content/index.json */
+let path = [];        /* Indexpfad in den Baum, z.B. [0,1,0] */
 
-function slug(t){return String(t||"pruefung").toLowerCase()
-  .replace(/[äàáâ]/g,"a").replace(/[öòóô]/g,"o").replace(/[üùúû]/g,"u")
-  .replace(/ß/g,"ss").replace(/[éèêë]/g,"e")
-  .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40)||"pruefung";}
-function freeId(b){const t=idx().map(e=>e.id);if(!t.includes(b))return b;
-  let n=2;while(t.includes(b+"-"+n))n+=1;return b+"-"+n;}
-
-/* ==================== Prüfungsdaten ==================== */
-function extract(text){
-  const m=text.match(/KPRIM-DATEN:\s*START[^\n]*\n([\s\S]*?)\/\/\s*=*\s*KPRIM-DATEN:\s*ENDE/);
-  if(m){const i=m[1].match(/=\s*([\s\S]*?);\s*$/);if(i)return i[1].trim();}
-  const a=text.match(/(?:const|let|var)\s+QUIZ_DATA\s*=\s*([\s\S]*?);\s*(?:\n\s*(?:\/\/|\(\(|<\/script>))/);
-  return a?a[1].trim():null;
+/* ==================== Baum ==================== */
+function nodeAt(p){
+  let node = { children: TREE ? TREE.sections : [] };
+  p.forEach(i => { node = (node.children || [])[i]; });
+  return node;
 }
-function parsePayload(text){
-  const t=String(text||"").trim();
-  if(!t) throw new Error("Die Datei ist leer.");
-  if(t.startsWith("{")){try{return JSON.parse(t);}catch(_){}}
-  const src=extract(t)||(t.startsWith("{")?t:null);
-  if(!src) throw new Error("Kein QUIZ_DATA-Block gefunden.");
-  try{return new Function('"use strict"; return ('+src+");")();}
-  catch(e){throw new Error("QUIZ_DATA liess sich nicht lesen ("+e.message+").");}
+function isFolder(n){ return n && (n.type === "folder" || Array.isArray(n.sections) || (!n.type && n.children)); }
+function countQuiz(n){
+  if(!n) return 0;
+  if(n.type === "quiz" || n.type === "pdf") return 1;
+  return (n.children || []).reduce((s,c) => s + countQuiz(c), 0);
 }
-function validate(p){
-  if(!p||typeof p!=="object") throw new Error("Unerwartetes Format.");
-  if(!Array.isArray(p.questions)||!p.questions.length) throw new Error("Keine Fragen enthalten.");
-  const bad=p.questions.findIndex(q=>!q||typeof q.stem!=="string"||!Array.isArray(q.statements)||!q.statements.length);
-  if(bad!==-1) throw new Error("Frage "+(bad+1)+" hat keinen Stamm oder keine Aussagen.");
-  if(String((p.exam&&p.exam.title)||"").includes("<Fach>")) throw new Error("Das ist noch die unausgefüllte Vorlage.");
-  return p;
+function quizzesIn(n, out){
+  out = out || [];
+  if(!n) return out;
+  if(n.type === "quiz") out.push(n);
+  (n.children || []).forEach(c => quizzesIn(c, out));
+  return out;
 }
-function saveExam(payload,fallback){
-  validate(payload);
-  const ex=payload.exam||(payload.exam={});
-  const title=ex.title||fallback||"Übungsprüfung";
-  const id=freeId(slug(title));
-  localStorage.setItem(DATA+id,JSON.stringify(payload));
-  const l=idx();
-  l.unshift({id,title,subtitle:ex.subtitle||"",count:payload.questions.length,
-    blocks:[...new Set(payload.questions.map(q=>q.block).filter(Boolean))].length,
-    folder:cwd,addedAt:Date.now(),updated:Date.now()});
-  wr(l); Sync.schedulePush();
-  return {id,title};
-}
-function answered(e){
-  const s=rd(PROG+e.id,null);
-  if(!s||!Array.isArray(s.rounds)||!s.rounds[0])return 0;
-  return Object.keys(s.rounds[0].answers||{}).length;
-}
-function lastQ(e){
-  const s=rd(PROG+e.id,null);
-  if(!s||!Array.isArray(s.rounds))return null;
-  const r=s.rounds[s.round||0]||s.rounds[0];
-  return r&&Number.isInteger(r.lastQ)?r.lastQ:null;
+function allQuizzes(){
+  return (TREE ? TREE.sections : []).reduce((a,s) => a.concat(quizzesIn(s)), []);
 }
 
-/* ==================== Ordner ==================== */
-function descend(id){
-  const all=Object.values(Sync.folders()).filter(f=>!f.deleted);
-  const ids=[id]; let front=[id], guard=0;
-  while(front.length&&guard<20){
-    const next=[];
-    all.forEach(f=>{if(front.includes(f.parent||null)&&!ids.includes(f.id)){ids.push(f.id);next.push(f.id);}});
-    front=next; guard+=1;
-  }
-  return ids;
+/* ==================== Fortschritt ==================== */
+const rd = (k,f) => { try{ const v = localStorage.getItem(k); return v===null?f:JSON.parse(v); }catch(_){ return f; } };
+const idFor = q => "file:" + q.file;
+function progressOf(q){
+  const s = rd(PROG + idFor(q), null);
+  if(!s || !Array.isArray(s.rounds) || !s.rounds[0]) return { done:0, total:0, last:null };
+  const r0 = s.rounds[0];
+  const r = s.rounds[s.round || 0] || r0;
+  return {
+    done: Object.keys(r0.answers || {}).length,
+    total: s.questionCount || 0,
+    last: r && Number.isInteger(r.lastQ) ? r.lastQ : null
+  };
 }
-const countIn = id => live().filter(e=>descend(id).includes(e.folder||null)).length;
 
 /* ==================== Zeichnen ==================== */
-const $=s=>document.querySelector(s);
-
 function renderRail(){
-  const nav=$("#folderNav"); nav.textContent="";
-  const mk=(label,id,depth,count)=>{
-    const b=document.createElement("button");
-    b.type="button";
-    b.setAttribute("aria-selected", String((id||null)===(cwd||null)));
-    b.style.paddingLeft=(10+depth*14)+"px";
-    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=label;
-    const cnt=document.createElement("span"); cnt.className="cnt"; cnt.textContent=count;
-    b.append(nm,cnt);
-    if(id){
-      const k=document.createElement("span"); k.className="kebab"; k.textContent="•••";
-      k.addEventListener("click",ev=>{ev.stopPropagation();folderMenu(Sync.folders()[id]);});
-      b.appendChild(k);
-    }
-    b.addEventListener("click",()=>{cwd=id;render();});
+  const nav = $("#nav"); nav.textContent = "";
+  if(!TREE) return;
+
+  const add = (label, target, depth, count, isSection) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = isSection ? "sect" : "";
+    b.setAttribute("aria-selected", String(JSON.stringify(target) === JSON.stringify(path)));
+    b.style.paddingLeft = (10 + depth*14) + "px";
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = label;
+    const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = count || "";
+    b.append(nm, cnt);
+    b.addEventListener("click", () => { path = target; render(); });
     nav.appendChild(b);
   };
-  mk("Alle Prüfungen",null,0,live().filter(e=>!e.folder).length);
-  Sync.folderTree(null,0).forEach(({folder,depth})=>mk(folder.name,folder.id,depth+1,countIn(folder.id)));
 
-  const all=live();
-  const tot=all.reduce((s,e)=>s+(e.count||0),0);
-  const don=all.reduce((s,e)=>s+answered(e),0);
-  $("#ratio").textContent=don+" / "+tot;
-  $("#pfill").style.width=(tot?Math.round(don/tot*100):0)+"%";
-  $("#brandSub").textContent=all.length?all.length+(all.length===1?" Prüfung":" Prüfungen"):"noch leer";
+  TREE.sections.forEach((section, si) => {
+    add(section.title, [si], 0, countQuiz(section), true);
+    const walk = (node, base, depth) => {
+      (node.children || []).forEach((child, ci) => {
+        if(child.type !== "folder") return;
+        add(child.title, base.concat(ci), depth, countQuiz(child), false);
+        if(depth < 6) walk(child, base.concat(ci), depth + 1);
+      });
+    };
+    walk(section, [si], 1);
+  });
 
-  const st=Sync.meta();
-  $("#lamp").className="lamp"+(Sync.configured()?(st.lastSync?" ok":" idle"):"");
+  const quizzes = allQuizzes();
+  const totals = quizzes.reduce((acc,q) => {
+    const p = progressOf(q);
+    acc.done += p.done; acc.total += p.total; return acc;
+  }, { done:0, total:0 });
+  const mini = $("#mini");
+  mini.hidden = !totals.total;
+  if(totals.total){
+    $("#ratio").textContent = totals.done + " / " + totals.total;
+    $("#pfill").style.width = Math.round(totals.done/totals.total*100) + "%";
+  }
+  $("#lamp").className = "lamp" + (Sync.configured() && Sync.meta().lastSync ? " ok" : "");
 }
 
 function renderStage(){
-  const path=Sync.folderPath(cwd);
-  const parent=path.length>1?path[path.length-2]:null;
-  $("#title").textContent=path.length?path[path.length-1].name:"Alle Prüfungen";
-  const crumb=$("#crumb");
-  crumb.hidden=!path.length;
-  if(path.length){
-    crumb.textContent="‹ "+(parent?parent.name:"Alle Prüfungen");
-    crumb.onclick=()=>{cwd=parent?parent.id:null;render();};
+  if(!TREE) return;
+  const node = path.length ? nodeAt(path) : null;
+  const parent = path.length > 1 ? path.slice(0,-1) : (path.length ? [] : null);
+
+  $("#title").textContent = node ? node.title : (TREE.title || "Übungsprüfungen");
+  $("#sub").textContent = node ? (node.blurb || "") : (TREE.blurb || "");
+  const crumb = $("#crumb");
+  crumb.hidden = parent === null;
+  if(parent !== null){
+    crumb.textContent = "‹ " + (parent.length ? nodeAt(parent).title : "Übersicht");
+    crumb.onclick = () => { path = parent; render(); };
   }
 
-  const here=live().filter(e=>(e.folder||null)===(cwd||null));
-  $("#sub").textContent=here.length?here.length+(here.length===1?" Prüfung":" Prüfungen"):"";
-
-  /* Fortsetzen: die zuletzt beantwortete, noch nicht fertige Prüfung. */
-  const slot=$("#resumeSlot"); slot.textContent="";
-  const stamps=Sync.meta().stamps||{};
-  const open=live()
-    .filter(e=>{const a=answered(e);return a>0&&a<e.count;})
-    .sort((a,b)=>((stamps[b.id]||{}).updated||0)-((stamps[a.id]||{}).updated||0))[0];
-  if(open&&!cwd){
-    const a=answered(open), pct=Math.round(a/open.count*100), q=lastQ(open);
-    const el=document.createElement("a");
-    el.className="resume";
-    el.href="quiz.html?exam="+encodeURIComponent(open.id);
-    el.innerHTML='<div class="kick">Fortsetzen</div><h2></h2><div class="where"></div>'
-      +'<div class="row"><div class="progress"><div class="progress-fill"></div></div>'
-      +'<span class="pct"></span><span class="go">Weiterlösen</span></div>';
-    el.querySelector("h2").textContent=open.title;
-    el.querySelector(".where").textContent=
-      (q!==null?"Zuletzt Frage "+(q+1)+" · ":"")+a+" von "+open.count+" beantwortet";
-    el.querySelector(".progress-fill").style.width=pct+"%";
-    el.querySelector(".pct").textContent=pct+"%";
+  /* Fortsetzen: das zuletzt bearbeitete, noch offene Quiz. */
+  const slot = $("#resumeSlot"); slot.textContent = "";
+  const stamps = Sync.meta().stamps || {};
+  const open = allQuizzes()
+    .map(q => ({ q, p: progressOf(q) }))
+    .filter(x => x.p.done > 0 && x.p.total && x.p.done < x.p.total)
+    .sort((a,b) => ((stamps[idFor(b.q)]||{}).updated||0) - ((stamps[idFor(a.q)]||{}).updated||0))[0];
+  if(open && !path.length){
+    const pct = Math.round(open.p.done/open.p.total*100);
+    const el = document.createElement("a");
+    el.className = "resume";
+    el.href = "quiz.html?file=" + encodeURIComponent(open.q.file);
+    el.innerHTML = '<div class="kick">Fortsetzen</div><h2></h2><div class="where"></div>'
+      + '<div class="row"><div class="progress"><div class="progress-fill"></div></div>'
+      + '<span class="pct"></span><span class="go">Weiterlösen</span></div>';
+    el.querySelector("h2").textContent = open.q.title;
+    el.querySelector(".where").textContent =
+      (open.p.last !== null ? "Zuletzt Frage " + (open.p.last+1) + " · " : "")
+      + open.p.done + " von " + open.p.total + " beantwortet";
+    el.querySelector(".progress-fill").style.width = pct + "%";
+    el.querySelector(".pct").textContent = pct + "%";
     slot.appendChild(el);
   }
 
-  $("#listTitle").textContent=cwd?"In diesem Ordner":"Prüfungen";
-  const cards=$("#cards"); cards.textContent="";
+  const kids = node ? (node.children || []) : TREE.sections;
+  const entries = kids.filter(c => c.type === "pdf" || c.type === "quiz");
+  const folders = kids.filter(c => c.type === "folder" || !c.type);
 
-  if(!here.length){
-    const e=document.createElement("div");
-    e.className="empty";
-    e.innerHTML="<b></b><p></p>";
-    e.querySelector("b").textContent=cwd?"Dieser Ordner ist leer":"Noch keine Prüfung";
-    e.querySelector("p").textContent=cwd
-      ? "Verschiebe eine Prüfung hierher oder importiere direkt in diesen Ordner."
-      : "Importiere eine generierte Prüfung — als JSON oder als alte HTML-Datei.";
-    const go=document.createElement("button");
-    go.className="go"; go.type="button"; go.textContent="Prüfung hinzufügen";
-    go.addEventListener("click",importSheet);
-    e.appendChild(go);
-    cards.appendChild(e);
-    return;
-  }
+  const list = $("#listTitle");
+  const cards = $("#cards"); cards.textContent = "";
+  list.hidden = !(entries.length || folders.length);
+  list.textContent = entries.length ? "Inhalt" : "Bereiche";
 
-  here.forEach(entry=>{
-    const a=answered(entry), pct=entry.count?Math.round(a/entry.count*100):0;
-    const done=entry.count&&a>=entry.count;
-
-    const card=document.createElement("div");
-    card.className="card";
-    card.dataset.kind="exam";
-
-    const link=document.createElement("a");
-    link.className="body";
-    link.href="quiz.html?exam="+encodeURIComponent(entry.id);
-    link.innerHTML='<h3></h3><div class="meta"></div>'
-      +'<div class="foot"><div class="progress"><div class="progress-fill"></div></div>'
-      +'<span class="stat"></span></div>';
-    link.querySelector("h3").textContent=entry.title;
-    const bits=[];
-    if(entry.subtitle)bits.push(entry.subtitle);
-    bits.push(entry.count+(entry.count===1?" Frage":" Fragen"));
-    if(entry.blocks>1)bits.push(entry.blocks+" Blöcke");
-    link.querySelector(".meta").textContent=bits.join(" · ");
-    link.querySelector(".progress-fill").style.width=pct+"%";
-    if(done)link.querySelector(".progress-fill").style.background="var(--green)";
-    const stat=link.querySelector(".stat");
-    stat.textContent=done?"vollständig":a?a+" / "+entry.count:"nicht begonnen";
-    if(done)stat.classList.add("done");
-
-    const kb=document.createElement("button");
-    kb.className="kebab-btn"; kb.type="button"; kb.textContent="•••";
-    kb.setAttribute("aria-label","Mehr");
-    kb.addEventListener("click",()=>examMenu(entry));
-
-    const ch=document.createElement("span");
-    ch.className="chev"; ch.setAttribute("aria-hidden","true"); ch.textContent="›";
-
-    card.append(link,kb,ch);
+  folders.forEach((child, i) => {
+    const idx = kids.indexOf(child);
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "card";
+    card.dataset.kind = "folder";
+    card.innerHTML = '<span class="ico" aria-hidden="true">▸</span>'
+      + '<span class="body"><h3></h3><span class="meta"></span></span>'
+      + '<span class="chev" aria-hidden="true">›</span>';
+    card.querySelector("h3").textContent = child.title;
+    const n = countQuiz(child);
+    card.querySelector(".meta").textContent = child.blurb || (n ? n + (n===1?" Eintrag":" Einträge") : "leer");
+    card.addEventListener("click", () => { path = (path.length?path:[]).concat(idx); render(); });
     cards.appendChild(card);
   });
-}
 
-function render(){renderRail();renderStage();}
+  entries.forEach(child => {
+    if(child.type === "pdf"){
+      const a = document.createElement("a");
+      a.className = "card";
+      a.dataset.kind = "pdf";
+      a.href = child.file;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.innerHTML = '<span class="ico" aria-hidden="true">▤</span>'
+        + '<span class="body"><h3></h3><span class="meta"></span></span>'
+        + '<span class="chev" aria-hidden="true">↗</span>';
+      a.querySelector("h3").textContent = child.title;
+      a.querySelector(".meta").textContent = child.meta || "PDF";
+      cards.appendChild(a);
+      return;
+    }
 
-/* ==================== Blatt ==================== */
-const sheet=$("#sheet");
-$("#sheetClose").addEventListener("click",()=>sheet.close());
-sheet.addEventListener("click",e=>{if(e.target===sheet)sheet.close();});
-
-function openSheet(title,build){
-  $("#sheetHead").textContent=title;
-  const body=$("#sheetBody"); body.textContent="";
-  build(body);
-  sheet.showModal();
-}
-function picks(list){
-  return body=>list.forEach(it=>{
-    const b=document.createElement("button");
-    b.type="button";
-    b.className="pick"+(it.cur?" cur":"")+(it.danger?" danger":"");
-    if(it.depth)b.style.paddingLeft=(14+it.depth*16)+"px";
-    b.textContent=it.label;
-    b.addEventListener("click",()=>{sheet.close();it.run();});
-    body.appendChild(b);
+    const p = progressOf(child);
+    const pct = p.total ? Math.round(p.done/p.total*100) : 0;
+    const done = p.total && p.done >= p.total;
+    const a = document.createElement("a");
+    a.className = "card";
+    a.dataset.kind = "quiz";
+    a.href = "quiz.html?file=" + encodeURIComponent(child.file);
+    a.innerHTML = '<span class="ico" aria-hidden="true">◉</span>'
+      + '<span class="body"><h3></h3><span class="meta"></span>'
+      + '<span class="foot"><span class="progress"><span class="progress-fill"></span></span>'
+      + '<span class="stat"></span></span></span>'
+      + '<span class="chev" aria-hidden="true">›</span>';
+    a.querySelector("h3").textContent = child.title;
+    a.querySelector(".meta").textContent = child.meta || "Kprim-Übungsprüfung";
+    const fill = a.querySelector(".progress-fill");
+    fill.style.display = "block";
+    fill.style.height = "100%";
+    fill.style.width = pct + "%";
+    if(done) fill.style.background = "var(--green)";
+    const stat = a.querySelector(".stat");
+    stat.textContent = done ? "vollständig" : p.done ? p.done + " / " + p.total : "nicht begonnen";
+    if(done) stat.classList.add("done");
+    if(!p.done) a.querySelector(".foot").style.display = "none";
+    cards.appendChild(a);
   });
-}
-function folderChoices(cur,exclude,onPick){
-  const out=[{label:"Alle Prüfungen",cur:!cur,run:()=>onPick(null)}];
-  Sync.folderTree(null,0).forEach(({folder,depth})=>{
-    if(exclude&&exclude.includes(folder.id))return;
-    out.push({label:folder.name,depth:depth+1,cur:folder.id===cur,run:()=>onPick(folder.id)});
-  });
-  return out;
-}
 
-$("#newFolder").addEventListener("click",()=>{
-  const n=prompt("Name des Ordners");
-  if(!n||!n.trim())return;
-  cwd=Sync.createFolder(n,cwd); render();
-});
-
-function folderMenu(f){
-  if(!f)return;
-  openSheet(f.name,picks([
-    {label:"Umbenennen",run:()=>{const n=prompt("Neuer Name",f.name);
-      if(n&&n.trim()){Sync.renameFolder(f.id,n);render();}}},
-    {label:"Verschieben",run:()=>openSheet("Verschieben nach",
-      picks(folderChoices(f.parent||null,descend(f.id),t=>{Sync.moveFolder(f.id,t);render();})))},
-    {label:"Löschen",danger:true,run:()=>{
-      if(!confirm("Ordner «"+f.name+"» löschen? Inhalt und Unterordner rücken eine Ebene hoch."))return;
-      if((cwd||null)===f.id)cwd=f.parent||null;
-      Sync.deleteFolder(f.id);render();}}
-  ]));
+  if(!entries.length && !folders.length){
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.innerHTML = "<b>Noch nichts hier</b><p>Dieser Bereich ist leer.</p>";
+    cards.appendChild(e);
+  }
 }
 
-function examMenu(e){
-  openSheet(e.title,picks([
-    {label:"Verschieben",run:()=>openSheet("Verschieben nach",
-      picks(folderChoices(e.folder||null,null,t=>{Sync.setExamFolder(e.id,t);render();})))},
-    {label:"Fortschritt zurücksetzen",run:()=>{
-      if(!confirm("Alle Antworten dieser Prüfung löschen? Das gilt auch auf deinen anderen Geräten."))return;
-      localStorage.setItem(PROG+e.id,JSON.stringify({questionCount:e.count,round:0,
-        rounds:[{label:"Originalversuch",items:[],answers:{},flags:{}}]}));
-      render();}},
-    {label:"JSON sichern",run:()=>{
-      const raw=localStorage.getItem(DATA+e.id)||"{}";
-      const u=URL.createObjectURL(new Blob([raw],{type:"application/json"}));
-      const a=document.createElement("a");a.href=u;a.download=e.id+".json";a.click();
-      setTimeout(()=>URL.revokeObjectURL(u),4000);}},
-    {label:"Entfernen",danger:true,run:()=>{
-      if(!confirm("«"+e.title+"» entfernen? Das gilt auch auf deinen anderen Geräten."))return;
-      localStorage.removeItem(DATA+e.id);localStorage.removeItem(PROG+e.id);
-      /* Grabstein statt Löschung, sonst kehrt der Eintrag beim nächsten
-         Abgleich vom anderen Gerät zurück. */
-      const l=idx();const f=l.find(i=>i.id===e.id);
-      if(f){f.deleted=true;f.updated=Date.now();}
-      wr(l);Sync.schedulePush();render();}}
-  ]));
-}
+function render(){ renderRail(); renderStage(); }
 
-/* ==================== Import ==================== */
-function note(host,lines,ok){
-  const old=host.querySelector(".note"); if(old)old.remove();
-  const box=document.createElement("div");
-  box.className="note "+(ok?"ok":"bad");
-  lines.forEach((t,i)=>{if(i)box.appendChild(document.createElement("br"));
-    box.appendChild(document.createTextNode(t));});
+/* ==================== Gerät wechseln ==================== */
+const sheet = $("#sheet");
+$("#sheetClose").addEventListener("click", () => sheet.close());
+sheet.addEventListener("click", e => { if(e.target === sheet) sheet.close(); });
+
+function note(host, text, ok){
+  const old = host.querySelector(".note"); if(old) old.remove();
+  const box = document.createElement("div");
+  box.className = "note " + (ok ? "ok" : "bad");
+  box.textContent = text;
   host.appendChild(box);
 }
 
-function importSheet(){
-  const path=Sync.folderPath(cwd);
-  openSheet("Hinzufügen zu "+(path.length?path.map(f=>f.name).join(" › "):"Alle Prüfungen"),body=>{
-    body.innerHTML=`
-      <details class="fold" open><summary>Datei wählen</summary><div class="fold-body">
-        <p class="hint">Aus «Dateien» oder iCloud Drive. Nimmt <code>.json</code> und die alten <code>.html</code>-Prüfungen.</p>
-        <input type="file" id="fi" accept=".json,.html,.htm,application/json,text/html" multiple>
-      </div></details>
-      <details class="fold"><summary>Text einfügen</summary><div class="fold-body">
-        <p class="hint">Den <code>QUIZ_DATA</code>-Block oder reines JSON einsetzen.</p>
-        <textarea id="pi" placeholder='{ "exam": { "title": "…" }, "questions": [ … ] }' spellcheck="false"></textarea>
-        <button class="btn" id="pb" type="button">Importieren</button>
-      </div></details>
-      <details class="fold"><summary>Aus Repository laden</summary><div class="fold-body">
-        <p class="hint">Lädt alles, was in <code>exams/index.json</code> steht.</p>
-        <input type="url" id="ru" value="exams/index.json" spellcheck="false">
-        <button class="btn ghost" id="rb" type="button">Jetzt laden</button>
-      </div></details>`;
+$("#deviceBtn").addEventListener("click", () => {
+  $("#sheetHead").textContent = "Auf anderem Gerät fortsetzen";
+  const body = $("#sheetBody"); body.textContent = "";
 
-    body.querySelector("#fi").addEventListener("change",async ev=>{
-      const files=[...ev.target.files]; if(!files.length)return;
-      const ok=[],bad=[];
-      for(const f of files){
-        try{ok.push(saveExam(parsePayload(await f.text()),f.name.replace(/\.[^.]+$/,"")).title);}
-        catch(err){bad.push(f.name+": "+err.message);}
-      }
-      ev.target.value=""; render();
-      note(body,bad.length?[ok.length?"Importiert: "+ok.join(", "):"Nichts importiert.",...bad]
-        :["Importiert: "+ok.join(", ")],!bad.length);
-    });
+  if(!CFG.syncEndpoint){
+    body.innerHTML = '<p class="hint">Für diese Seite ist kein Abgleich eingerichtet. '
+      + 'Der Fortschritt bleibt im Browser dieses Geräts.</p>';
+    sheet.showModal();
+    return;
+  }
 
-    body.querySelector("#pb").addEventListener("click",()=>{
-      const f=body.querySelector("#pi");
-      try{const s=saveExam(parsePayload(f.value),"Eingefügte Prüfung");f.value="";render();
-        note(body,["Importiert: "+s.title],true);}
-      catch(e){note(body,[e.message],false);}
-    });
+  const code = Sync.ensureKey();
+  body.innerHTML = '<p class="hint">Dein Fortschritt gehört zu diesem Code. '
+    + 'Gib ihn auf dem anderen Gerät ein, und du machst dort weiter, wo du aufgehört hast. '
+    + 'Wer den Code hat, sieht deinen Fortschritt — also nicht öffentlich teilen.</p>'
+    + '<code class="code" id="mycode"></code>'
+    + '<button class="btn ghost" id="copy" type="button">Code kopieren</button>'
+    + '<p class="hint">Du hast schon einen Code von einem anderen Gerät? Hier eintragen — '
+    + 'der Fortschritt beider Geräte wird zusammengeführt, es geht nichts verloren.</p>'
+    + '<input type="text" id="incode" placeholder="Code eingeben" spellcheck="false" autocapitalize="off" autocorrect="off">'
+    + '<button class="btn" id="use" type="button">Übernehmen</button>';
+  body.querySelector("#mycode").textContent = code;
 
-    body.querySelector("#rb").addEventListener("click",async()=>{
-      const btn=body.querySelector("#rb"), base=body.querySelector("#ru").value.trim();
-      if(!base)return;
-      btn.disabled=true;btn.textContent="Lade …";
-      try{
-        const r=await fetch(base,{cache:"no-store"});
-        if(!r.ok)throw new Error("Liste nicht erreichbar (HTTP "+r.status+").");
-        const listing=await r.json();
-        const entries=Array.isArray(listing)?listing:(listing.exams||[]);
-        if(!entries.length)throw new Error("Die Liste enthält keine Einträge.");
-        const known=new Set(live().map(i=>i.title));
-        const ok=[],bad=[];
-        for(const it of entries){
-          const file=typeof it==="string"?it:it.file; if(!file)continue;
-          const url=new URL(file,new URL(base,location.href)).href;
-          try{
-            const fr=await fetch(url,{cache:"no-store"});
-            if(!fr.ok)throw new Error("HTTP "+fr.status);
-            const p=parsePayload(await fr.text());
-            const t=(p.exam&&p.exam.title)||file;
-            if(known.has(t))continue;
-            ok.push(saveExam(p,file).title);
-          }catch(err){bad.push(file+": "+err.message);}
-        }
-        render();
-        note(body,!ok.length&&!bad.length?["Alles bereits vorhanden."]
-          :bad.length?[ok.length?"Neu geladen: "+ok.join(", "):"Nichts geladen.",...bad]
-          :["Neu geladen: "+ok.join(", ")],!bad.length);
-      }catch(e){note(body,[e.message],false);}
-      finally{btn.disabled=false;btn.textContent="Jetzt laden";}
-    });
+  body.querySelector("#copy").addEventListener("click", async () => {
+    try{ await navigator.clipboard.writeText(code); note(body, "Code kopiert.", true); }
+    catch(_){ note(body, "Konnte nicht kopieren — Code von Hand abtippen.", false); }
   });
-}
-$("#importBtn").addEventListener("click",importSheet);
 
-/* ==================== Abgleich ==================== */
-function syncSheet(){
-  openSheet("Abgleich zwischen Geräten",body=>{
-    const st=Sync.meta();
-    body.innerHTML=`
-      <p class="hint">Adresse deines Cloudflare Workers und ein Schlüssel. Auf dem ersten
-      Gerät den Schlüssel erzeugen, auf jedem weiteren denselben eintragen. Wer den
-      Schlüssel hat, sieht deine Prüfungen — er ist das Passwort.</p>
-      <label class="field"><span>Worker-Adresse</span>
-        <input type="url" id="ep" placeholder="https://pruefungen-sync.name.workers.dev" spellcheck="false" autocapitalize="off"></label>
-      <label class="field"><span>Schlüssel</span>
-        <input type="text" id="ky" class="keybox" placeholder="16–64 Zeichen, a–z und 0–9" spellcheck="false" autocapitalize="off" autocorrect="off"></label>
-      <div class="pairbtn">
-        <button class="btn ghost" id="gk" type="button">Erzeugen</button>
-        <button class="btn ghost" id="ck" type="button">Kopieren</button>
-      </div>
-      <button class="btn" id="sv" type="button">Verbinden</button>
-      <button class="btn ghost" id="fg" type="button"${Sync.configured()?"":" hidden"}>Verbindung trennen</button>`;
-    body.querySelector("#ep").value=st.endpoint||"";
-    body.querySelector("#ky").value=st.key||"";
-
-    body.querySelector("#gk").addEventListener("click",()=>{
-      body.querySelector("#ky").value=Sync.randomKey(24);});
-    body.querySelector("#ck").addEventListener("click",async()=>{
-      const k=body.querySelector("#ky"); if(!k.value)return;
-      try{await navigator.clipboard.writeText(k.value);note(body,["Schlüssel kopiert."],true);}
-      catch(_){k.select();note(body,["Konnte nicht kopieren — das Feld ist markiert."],false);}
-    });
-    body.querySelector("#sv").addEventListener("click",async()=>{
-      const btn=body.querySelector("#sv");
-      const ep=body.querySelector("#ep").value.trim();
-      const ky=body.querySelector("#ky").value.trim().toLowerCase();
-      if(!/^https?:\/\//.test(ep)){note(body,["Die Adresse muss mit https:// beginnen."],false);return;}
-      if(!/^[a-z0-9]{16,64}$/.test(ky)){note(body,["Der Schlüssel braucht 16–64 Zeichen aus a–z und 0–9."],false);return;}
-      btn.disabled=true;btn.textContent="Verbinde …";
-      try{
-        await Sync.test(ep);
-        const s=Sync.meta(); s.endpoint=ep; s.key=ky; s.rev=null; s.uploaded={};
-        Sync.saveMeta(s);
-        const res=await Sync.sync();
-        if(!res.ok)throw new Error(res.reason);
-        render();
-        note(body,["Verbunden."+(res.pulledExams?" "+res.pulledExams+" Prüfung(en) geladen.":"")
-          +" Denselben Schlüssel auf dem anderen Gerät eintragen."],true);
-        body.querySelector("#fg").hidden=false;
-      }catch(e){note(body,["Fehlgeschlagen: "+e.message],false);}
-      finally{btn.disabled=false;btn.textContent="Verbinden";}
-    });
-    body.querySelector("#fg").addEventListener("click",()=>{
-      if(!confirm("Verbindung trennen? Die Daten auf diesem Gerät bleiben erhalten."))return;
-      const s=Sync.meta();s.endpoint="";s.key="";s.rev=null;s.lastSync=0;s.uploaded={};
-      Sync.saveMeta(s);render();note(body,["Getrennt."],true);
-    });
+  body.querySelector("#use").addEventListener("click", async () => {
+    const btn = body.querySelector("#use");
+    btn.disabled = true; btn.textContent = "Übernehme …";
+    try{
+      const result = await Sync.useKey(body.querySelector("#incode").value);
+      if(!result || !result.ok) throw new Error((result && result.reason) || "Abgleich fehlgeschlagen.");
+      render();
+      body.querySelector("#mycode").textContent = Sync.meta().key;
+      note(body, "Übernommen. Dein Fortschritt ist jetzt auf beiden Geräten gleich.", true);
+    }catch(e){ note(body, e.message, false); }
+    finally{ btn.disabled = false; btn.textContent = "Übernehmen"; }
   });
-}
-$("#syncBtn").addEventListener("click",syncSheet);
+
+  sheet.showModal();
+});
 
 /* ==================== Start ==================== */
-Sync.onSync(()=>render());
-render();
-window.addEventListener("pageshow",render);
+if(CFG.syncEndpoint) Sync.setEndpoint(CFG.syncEndpoint);
+Sync.onSync(() => render());
+
+fetch(CFG.contentIndex || "content/index.json", { cache: "no-cache" })
+  .then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+  .then(data => {
+    TREE = data;
+    $("#brandTitle").textContent = data.title || "Übungsprüfungen";
+    $("#brandSub").textContent = data.subtitle || "ETH Medizin";
+    render();
+    if(Sync.configured() && Sync.meta().key) Sync.sync();
+  })
+  .catch(err => {
+    $("#title").textContent = "Inhalt nicht erreichbar";
+    $("#sub").textContent = "content/index.json liess sich nicht laden (" + err.message + ").";
+    $("#brandSub").textContent = "Fehler";
+  });
+
+window.addEventListener("pageshow", () => { if(TREE) render(); });
 if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
 })();
 </script>

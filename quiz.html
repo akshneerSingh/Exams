@@ -10,7 +10,58 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Kprim-Übungsprüfung</title>
+  <script src="config.js"></script>
   <script src="sync.js"></script>
+  <script>
+  /* ==================== Öffentliches Quiz laden ==========================
+     Die Engine liest ihre Fragen weiter aus dem Speicher. Ein Quiz aus dem
+     Repository wird deshalb einmal geholt, unter einer aus dem Pfad
+     abgeleiteten Kennung abgelegt und die Seite dann auf dem gewohnten Weg
+     geöffnet. Die Kennung ist auf jedem Gerät dieselbe — nur so findet der
+     Abgleich den Fortschritt wieder.
+
+     Danach wird die hübsche Adresse wiederhergestellt, damit ein geteilter
+     Link ?file=… bleibt und nicht zu ?exam=file%3A… wird.
+     ========================================================================= */
+  (() => {
+    const params = new URLSearchParams(location.search);
+    const file = params.get("file");
+    if (!file) return;
+    if (/^(https?:)?\/\//.test(file) || file.includes("..")) {
+      document.write("Ungültiger Pfad.");
+      throw new Error("bad path");
+    }
+
+    const id = "file:" + file;
+    const dataKey = "pruefung:data:" + id;
+    const target = "quiz.html?exam=" + encodeURIComponent(id);
+    const pretty = location.pathname + "?file=" + encodeURIComponent(file);
+
+    const go = () => {
+      sessionStorage.setItem("pruefung:pretty", pretty);
+      location.replace(target);
+    };
+
+    const cached = localStorage.getItem(dataKey);
+    fetch(file, { cache: "no-cache" })
+      .then((response) => {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.text();
+      })
+      .then((text) => {
+        JSON.parse(text);
+        localStorage.setItem(dataKey, text);
+        go();
+      })
+      .catch(() => {
+        /* Ohne Netz reicht die zuletzt geholte Fassung. */
+        if (cached) { go(); return; }
+        document.body && (document.body.textContent = "Quiz nicht erreichbar.");
+      });
+
+    throw new Error("laedt");   /* haelt die Engine an, bis umgeleitet ist */
+  })();
+  </script>
   <style>
     :root {
       --navy: #1a3a6b;
@@ -1606,7 +1657,15 @@
     // ================= PRÜFUNG AUS DER BIBLIOTHEK LADEN ==================
     // Diese Datei enthält keine Fragen mehr. Die Fragen liegen als JSON in der
     // Bibliothek (index.html) und werden hier über ?exam=<id> geladen.
+    /* Zwei Wege hinein:
+         ?file=content/quizzes/x.json   öffentliches Quiz, direkt aus dem Repo
+         ?exam=<id>                     importierte Prüfung aus dem Speicher
+       Der Fortschritt wird beim Dateiweg unter dem Pfad abgelegt. Der ist auf
+       jedem Gerät derselbe, also findet der Abgleich ihn wieder. */
+    const QUIZ_FILE = new URLSearchParams(location.search).get("file");
+
     const QUIZ_DATA = (() => {
+      if (QUIZ_FILE) return null;
       const id = new URLSearchParams(location.search).get("exam");
       if (!id) return null;
       let payload = null;
@@ -1621,9 +1680,12 @@
       return payload;
     })();
 
+    /* Ohne Daten läuft die Engine nicht an. Beim Dateiweg hat das Skript im
+       Kopf bereits umgeleitet — hier wird nur noch angehalten, damit die
+       Engine nicht ins Leere greift. */
     if (!QUIZ_DATA) {
-      location.replace("./");
-      throw new Error("Keine Prüfung geladen — zurück zur Bibliothek.");
+      if (!QUIZ_FILE) location.replace("./");
+      throw new Error("Keine Prüfung geladen.");
     }
     // ============== ENDE BIBLIOTHEKS-LOADER ==============================
 
@@ -3352,6 +3414,13 @@ ${buildApkg.toString()}
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden" && window.Sync && Sync.configured()) Sync.sync();
     });
+
+    (() => {
+      const pretty = sessionStorage.getItem("pruefung:pretty");
+      if (!pretty) return;
+      sessionStorage.removeItem("pruefung:pretty");
+      try { history.replaceState(null, "", pretty); } catch (_) { /* egal */ }
+    })();
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
