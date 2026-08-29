@@ -29,6 +29,11 @@
               "type": "folder",
               "title": "3 Sem",
               "children": []
+            },
+            {
+              "type": "folder",
+              "title": "4 Sem",
+              "children": []
             }
           ]
         },
