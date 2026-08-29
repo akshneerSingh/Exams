@@ -125,6 +125,33 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .empty b{display:block;font-size:16px;font-weight:600;margin-bottom:5px}
 .empty p{margin:0;font-size:14px;color:var(--label-3);line-height:1.5}
 
+/* ============ Verwaltung ============ */
+.rowbtn{flex:none;width:34px;height:34px;border-radius:50%;color:var(--label-3);
+  font-size:13px;letter-spacing:.04em;transition:.15s}
+.rowbtn:hover{background:rgba(118,118,128,.2);color:var(--label)}
+.seg .kebab{flex:none;width:20px;text-align:center;color:var(--label-3);font-size:11px;
+  letter-spacing:.04em;opacity:0;transition:opacity .15s}
+.seg button:hover .kebab,.seg button[aria-selected="true"] .kebab{opacity:1}
+.drop{border:1.5px dashed var(--hair);border-radius:14px;padding:26px 18px;
+  text-align:center;color:var(--label-3);font-size:14px;transition:.15s}
+.drop.over{border-color:var(--blue);color:var(--blue);background:rgba(10,132,255,.07)}
+.queue{display:grid;gap:6px}
+.qrow{display:flex;align-items:center;gap:10px;background:var(--card-2);
+  border-radius:10px;padding:9px 11px;min-width:0}
+.qrow .qi{flex:none;color:var(--label-3);font-size:13px;width:18px;text-align:center}
+.qrow input{flex:1;min-width:0;background:transparent;border:0;border-radius:0;
+  padding:2px 0;font-size:14.5px;font-family:var(--sans);letter-spacing:-.012em}
+.qrow .qm{flex:none;font-size:12px;color:var(--label-3);white-space:nowrap}
+.qrow .qx{flex:none;color:var(--label-3);font-size:15px;width:22px}
+.qrow.bad{background:rgba(255,69,58,.12)}
+.qrow.bad .qm{color:var(--red)}
+.busy{opacity:.5;pointer-events:none}
+.pick{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;
+  border-radius:11px;background:var(--card-2);text-align:left;font-size:15px;
+  letter-spacing:-.012em;transition:.15s}
+.pick:hover{background:var(--raised)}
+.pick.danger{color:var(--red)}
+
 /* ============ Blatt ============ */
 dialog{width:min(460px,calc(100vw - 28px));padding:0;border:.5px solid var(--hair);
   border-radius:18px;background:var(--card);color:var(--label);
@@ -183,6 +210,7 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
 </style>
 <script src="config.js"></script>
 <script src="sync.js"></script>
+<script src="admin.js"></script>
 </head>
 <body>
 
@@ -198,6 +226,15 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
     <div class="tools">
       <button class="chip" id="deviceBtn" type="button">
         <span class="lbl">Gerät wechseln</span><span class="lamp" id="lamp"></span>
+      </button>
+      <button class="chip" id="addBtn" type="button" hidden>
+        <span class="lbl">Hochladen</span><span aria-hidden="true">↑</span>
+      </button>
+      <button class="chip" id="folderBtn" type="button" hidden>
+        <span class="lbl">Neuer Ordner</span><span aria-hidden="true">＋</span>
+      </button>
+      <button class="chip" id="adminBtn" type="button" hidden>
+        <span class="lbl">Verwaltung</span><span aria-hidden="true">⚙</span>
       </button>
     </div>
   </div>
@@ -283,6 +320,12 @@ function renderRail(){
     const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = label;
     const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = count || "";
     b.append(nm, cnt);
+    if(admin && target.length){
+      const k = document.createElement("span");
+      k.className = "kebab"; k.textContent = "•••";
+      k.addEventListener("click", ev => { ev.stopPropagation(); nodeMenu(target); });
+      b.appendChild(k);
+    }
     b.addEventListener("click", () => { path = target; render(); });
     nav.appendChild(b);
   };
@@ -374,6 +417,7 @@ function renderStage(){
     card.querySelector(".meta").textContent = child.blurb || (n ? n + (n===1?" Eintrag":" Einträge") : "leer");
     card.addEventListener("click", () => { path = (path.length?path:[]).concat(idx); render(); });
     cards.appendChild(card);
+    if(admin) attachMenu(card, (path.length?path:[]).concat(idx));
   });
 
   entries.forEach(child => {
@@ -390,6 +434,7 @@ function renderStage(){
       a.querySelector("h3").textContent = child.title;
       a.querySelector(".meta").textContent = child.meta || "PDF";
       cards.appendChild(a);
+      if(admin) attachMenu(a, (path.length?path:[]).concat(kids.indexOf(child)));
       return;
     }
 
@@ -417,6 +462,7 @@ function renderStage(){
     if(done) stat.classList.add("done");
     if(!p.done) a.querySelector(".foot").style.display = "none";
     cards.appendChild(a);
+    if(admin) attachMenu(a, (path.length?path:[]).concat(kids.indexOf(child)));
   });
 
   if(!entries.length && !folders.length){
@@ -486,6 +532,286 @@ $("#deviceBtn").addEventListener("click", () => {
   sheet.showModal();
 });
 
+/* ====================================================================
+   Verwaltung
+
+   Sichtbar nur, wenn auf diesem Gerät ein GitHub-Token hinterlegt ist.
+   Jede Änderung schreibt content/index.json neu und committet sie zusammen
+   mit den neuen Dateien in einem Zug.
+   ==================================================================== */
+
+let admin = false;
+
+/* Ein Blatt mit Auswahlknöpfen. Die öffentliche Fassung hat sonst nur das
+   Gerätewechsel-Blatt, das seinen Inhalt selbst schreibt. */
+function menuSheet(title, items){
+  $("#sheetHead").textContent = title;
+  const body = $("#sheetBody"); body.textContent = "";
+  items.forEach(item => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "pick" + (item.danger ? " danger" : "");
+    if(item.depth) b.style.paddingLeft = (14 + item.depth*16) + "px";
+    b.textContent = item.label;
+    b.addEventListener("click", () => { sheet.close(); item.run(); });
+    body.appendChild(b);
+  });
+  sheet.showModal();
+}
+
+function refreshAdmin(){
+  admin = !!(window.Admin && Admin.enabled());
+  $("#addBtn").hidden = !admin;
+  $("#folderBtn").hidden = !admin;
+  $("#adminBtn").hidden = !(admin || new URLSearchParams(location.search).has("admin"));
+}
+
+/* Der Baum wird lokal geändert und danach als ganze Datei committet. */
+function treeJSON(){ return JSON.stringify(TREE, null, 2) + "\n"; }
+
+async function saveTree(message, extra){
+  const changes = (extra || []).concat([
+    { path: (CFG.contentIndex || "content/index.json"), content: treeJSON() }
+  ]);
+  await Admin.commit(changes, message);
+}
+
+function parentOf(p){ return p.slice(0, -1); }
+function listAt(p){
+  return p.length ? (nodeAt(p).children || (nodeAt(p).children = [])) : TREE.sections;
+}
+
+/* Alle Ordner als flache Liste, für die Verschieben-Auswahl. */
+function folderList(){
+  const out = [];
+  const walk = (node, base, depth) => {
+    (node.children || []).forEach((child, i) => {
+      if(child.type !== "folder") return;
+      out.push({ label: child.title, target: base.concat(i), depth });
+      walk(child, base.concat(i), depth + 1);
+    });
+  };
+  TREE.sections.forEach((section, si) => {
+    out.push({ label: section.title, target: [si], depth: 0 });
+    walk(section, [si], 1);
+  });
+  return out;
+}
+
+function attachMenu(card, target){
+  const b = document.createElement("button");
+  b.className = "rowbtn"; b.type = "button"; b.textContent = "•••";
+  b.setAttribute("aria-label", "Verwalten");
+  b.addEventListener("click", ev => { ev.preventDefault(); ev.stopPropagation(); nodeMenu(target); });
+  const chev = card.querySelector(".chev");
+  if(chev) card.insertBefore(b, chev); else card.appendChild(b);
+}
+
+function nodeMenu(target){
+  const node = nodeAt(target);
+  const isSection = target.length === 1;
+  const items = [
+    { label: "Umbenennen", run: async () => {
+        const name = prompt("Neuer Titel", node.title);
+        if(!name || !name.trim()) return;
+        node.title = name.trim();
+        await run("Umbenannt: " + node.title, () => saveTree("Umbenannt: " + node.title));
+      } }
+  ];
+
+  if(!isSection){
+    items.push({ label: "Verschieben", run: () => {
+      const choices = folderList()
+        .filter(f => JSON.stringify(f.target) !== JSON.stringify(target)
+                  && !JSON.stringify(f.target).startsWith(JSON.stringify(target).slice(0,-1)))
+        .map(f => ({ label: f.label, depth: f.depth, run: async () => {
+          const from = listAt(parentOf(target));
+          const [moved] = from.splice(target[target.length-1], 1);
+          listAt(f.target).push(moved);
+          path = parentOf(target).length ? parentOf(target) : [];
+          await run("Verschoben: " + moved.title, () => saveTree("Verschoben: " + moved.title));
+        }}));
+      menuSheet("Verschieben nach", choices);
+    }});
+
+    items.push({ label: "Löschen", danger: true, run: async () => {
+      const label = node.title;
+      const isEntry = node.type === "pdf" || node.type === "quiz";
+      if(!confirm("«" + label + "» löschen?" + (isEntry ? " Die Datei wird ebenfalls entfernt." : ""))) return;
+      const file = node.file;
+      listAt(parentOf(target)).splice(target[target.length-1], 1);
+      path = parentOf(target);
+      const extra = isEntry && file ? [{ path: file, remove: true }] : [];
+      await run("Gelöscht: " + label, () => saveTree("Gelöscht: " + label, extra));
+    }});
+  }
+
+  menuSheet(node.title, items);
+}
+
+/* Eine Schreibaktion mit Rückmeldung und Neuzeichnen. */
+async function run(what, fn){
+  const body = $("#sheetBody");
+  try{
+    document.body.classList.add("busy");
+    await fn();
+    render();
+    flash(what + " · gespeichert");
+  }catch(e){
+    alert("Fehlgeschlagen: " + e.message + "\n\nDie Seite lädt neu, damit nichts durcheinander gerät.");
+    location.reload();
+  }finally{
+    document.body.classList.remove("busy");
+  }
+}
+
+function flash(text){
+  const el = document.createElement("div");
+  el.className = "note ok";
+  el.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99;box-shadow:0 20px 50px rgba(0,0,0,.6)";
+  el.textContent = text + " — in etwa einer Minute live.";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+/* -------------------- Neuer Ordner -------------------- */
+$("#folderBtn").addEventListener("click", async () => {
+  const name = prompt("Name des Ordners");
+  if(!name || !name.trim()) return;
+  const folder = { type: "folder", title: name.trim(), children: [] };
+  listAt(path).push(folder);
+  await run("Ordner «" + folder.title + "»", () => saveTree("Ordner angelegt: " + folder.title));
+});
+
+/* -------------------- Hochladen -------------------- */
+$("#addBtn").addEventListener("click", () => {
+  if(!path.length){
+    alert("Wähle links zuerst einen Ordner. In die Übersicht selbst lässt sich nichts legen.");
+    return;
+  }
+  const here = Sync ? null : null;
+  $("#sheetHead").textContent = "Hochladen nach «" + nodeAt(path).title + "»";
+  const body = $("#sheetBody"); body.textContent = "";
+  body.innerHTML = '<div class="drop" id="drop">PDF, HTML oder JSON hierher ziehen<br>oder klicken zum Auswählen'
+    + '<input type="file" id="picker" multiple accept=".pdf,.html,.htm,.json" hidden></div>'
+    + '<div class="queue" id="queue"></div>'
+    + '<p class="hint">Alte HTML-Prüfungen werden beim Hochladen automatisch in JSON umgewandelt. '
+    + 'Titel lassen sich vor dem Speichern noch ändern.</p>'
+    + '<button class="btn" id="doUpload" type="button" hidden>Hochladen</button>';
+
+  const drop = body.querySelector("#drop");
+  const picker = body.querySelector("#picker");
+  const queueEl = body.querySelector("#queue");
+  const button = body.querySelector("#doUpload");
+  const queue = [];
+
+  drop.addEventListener("click", () => picker.click());
+  ["dragenter","dragover"].forEach(t => drop.addEventListener(t, e => {
+    e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave","drop"].forEach(t => drop.addEventListener(t, e => {
+    e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => take([...(e.dataTransfer.files || [])]));
+  picker.addEventListener("change", () => { take([...picker.files]); picker.value = ""; });
+
+  async function take(files){
+    for(const file of files){
+      try{ queue.push(await Admin.prepare(file)); }
+      catch(err){ queue.push({ error: err.message, title: file.name }); }
+    }
+    draw();
+  }
+
+  function draw(){
+    queueEl.textContent = "";
+    queue.forEach((item, i) => {
+      const row = document.createElement("div");
+      row.className = "qrow" + (item.error ? " bad" : "");
+      const ico = document.createElement("span");
+      ico.className = "qi"; ico.textContent = item.error ? "✕" : (item.kind === "pdf" ? "▤" : "◉");
+      const name = document.createElement(item.error ? "span" : "input");
+      if(item.error){ name.textContent = item.title; name.style.flex = "1"; }
+      else { name.value = item.title; name.addEventListener("input", () => { item.title = name.value; }); }
+      const meta = document.createElement("span");
+      meta.className = "qm";
+      meta.textContent = item.error ? item.error : (item.meta + (item.converted ? " · umgewandelt" : ""));
+      const x = document.createElement("button");
+      x.className = "qx"; x.type = "button"; x.textContent = "✕";
+      x.addEventListener("click", () => { queue.splice(i,1); draw(); });
+      row.append(ico, name, meta, x);
+      queueEl.appendChild(row);
+    });
+    button.hidden = !queue.some(q => !q.error);
+  }
+
+  button.addEventListener("click", async () => {
+    const good = queue.filter(q => !q.error);
+    if(!good.length) return;
+    button.disabled = true; button.textContent = "Lade hoch …";
+    const folder = path.map(i => "x").length;   /* nur zur Lesbarkeit */
+    const base = "content/" + (nodeAt([path[0]]).id === "quizzes" ? "quizzes" : "unterlagen") + "/";
+    const extra = [];
+    good.forEach(item => {
+      const file = base + Admin.slug(item.title) + (item.kind === "pdf" ? ".pdf" : ".json");
+      extra.push({ path: file, content: item.content });
+      listAt(path).push({
+        type: item.kind, title: item.title, file,
+        meta: item.meta
+      });
+    });
+    try{
+      document.body.classList.add("busy");
+      await saveTree("Hochgeladen: " + good.map(g => g.title).join(", "), extra);
+      sheet.close(); render();
+      flash(good.length + (good.length === 1 ? " Datei" : " Dateien") + " hochgeladen");
+    }catch(e){
+      alert("Fehlgeschlagen: " + e.message);
+      location.reload();
+    }finally{
+      document.body.classList.remove("busy");
+      button.disabled = false; button.textContent = "Hochladen";
+    }
+  });
+
+  sheet.showModal();
+});
+
+/* -------------------- Anmeldung -------------------- */
+$("#adminBtn").addEventListener("click", () => {
+  $("#sheetHead").textContent = "Verwaltung";
+  const body = $("#sheetBody"); body.textContent = "";
+
+  if(Admin.enabled()){
+    body.innerHTML = '<p class="hint">Angemeldet für <b>' + Admin.repo() + '</b>. '
+      + 'Änderungen werden sofort ins Repository geschrieben und sind nach etwa '
+      + 'einer Minute auf der Seite sichtbar.</p>'
+      + '<button class="btn ghost" id="out" type="button">Abmelden</button>';
+    body.querySelector("#out").addEventListener("click", () => {
+      Admin.logout(); refreshAdmin(); render(); sheet.close();
+    });
+    sheet.showModal();
+    return;
+  }
+
+  body.innerHTML = '<p class="hint">Mit einem GitHub-Token kannst du Unterlagen und Quizzes '
+    + 'direkt hier hochladen und Ordner verwalten. Der Token bleibt in diesem Browser.</p>'
+    + '<input type="text" id="tok" placeholder="github_pat_…" spellcheck="false" autocapitalize="off">'
+    + '<button class="btn" id="in" type="button">Anmelden</button>'
+    + '<p class="hint">Token erstellen: GitHub → Settings → Developer settings → '
+    + 'Personal access tokens → Fine-grained tokens. Nur dieses eine Repository auswählen, '
+    + 'unter Permissions <b>Contents: Read and write</b>.</p>';
+
+  body.querySelector("#in").addEventListener("click", async () => {
+    const btn = body.querySelector("#in");
+    btn.disabled = true; btn.textContent = "Prüfe …";
+    try{
+      await Admin.login(body.querySelector("#tok").value);
+      refreshAdmin(); render(); sheet.close(); flash("Angemeldet");
+    }catch(e){ note(body, e.message, false); }
+    finally{ btn.disabled = false; btn.textContent = "Anmelden"; }
+  });
+  sheet.showModal();
+});
+
 /* ==================== Start ==================== */
 if(CFG.syncEndpoint) Sync.setEndpoint(CFG.syncEndpoint);
 Sync.onSync(() => render());
@@ -496,6 +822,7 @@ fetch(CFG.contentIndex || "content/index.json", { cache: "no-cache" })
     TREE = data;
     $("#brandTitle").textContent = data.title || "Übungsprüfungen";
     $("#brandSub").textContent = data.subtitle || "ETH Medizin";
+    refreshAdmin();
     render();
     if(Sync.configured() && Sync.meta().key) Sync.sync();
   })
