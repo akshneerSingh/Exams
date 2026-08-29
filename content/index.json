@@ -37,11 +37,6 @@
             },
             {
               "type": "folder",
-              "title": "5 Sem",
-              "children": []
-            },
-            {
-              "type": "folder",
               "title": "6 Sem",
               "children": []
             }
@@ -50,7 +45,13 @@
         {
           "type": "folder",
           "title": "3 Year",
-          "children": []
+          "children": [
+            {
+              "type": "folder",
+              "title": "5 Sem",
+              "children": []
+            }
+          ]
         }
       ]
     },
