@@ -4,19 +4,7 @@
       "id": "unterlagen",
       "title": "Semesterunterlagen",
       "blurb": "Zusammenfassungen und Skripte als PDF.",
-      "children": [
-        {
-          "type": "folder",
-          "title": "Semester 1",
-          "children": [
-            {
-              "type": "folder",
-              "title": "Bewegungsapparat",
-              "children": []
-            }
-          ]
-        }
-      ]
+      "children": []
     },
     {
       "id": "quizzes",
