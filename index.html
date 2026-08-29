@@ -59,6 +59,14 @@ a{color:inherit;text-decoration:none}
 .seg button:hover{background:rgba(118,118,128,.16);color:var(--label)}
 .seg button[aria-selected="true"]{background:rgba(10,132,255,.16);color:var(--blue);font-weight:600}
 .seg .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Klapp-Pfeil links vom Namen. Wo es nichts zu klappen gibt, hält ein
+   unsichtbarer Platzhalter die Namen trotzdem auf einer Fluchtlinie. */
+.seg .tw{flex:none;width:16px;margin-left:-4px;display:grid;place-items:center;
+  color:var(--label-3);font-size:9px;border-radius:4px;
+  transition:transform .16s ease,background .15s,color .15s}
+.seg .tw:hover{background:rgba(118,118,128,.3);color:var(--label)}
+.seg .tw.closed{transform:rotate(-90deg)}
+.seg .tw.leaf{visibility:hidden}
 .seg .cnt{margin-left:auto;padding-left:10px;font-size:11.5px;font-weight:600;
   color:var(--label-3);font-variant-numeric:tabular-nums}
 .seg button[aria-selected="true"] .cnt{color:var(--blue);opacity:.85}
@@ -451,16 +459,64 @@ function search(term){
 }
 
 /* ==================== Zeichnen ==================== */
+/* ==================== Auf- und zugeklappte Ordner ====================
+   Gemerkt wird, was zugeklappt ist — nicht, was offen ist. So bleiben neu
+   hinzugekommene Ordner sichtbar, statt still zuzubleiben. */
+
+const FOLD_KEY = "pruefung:folded";
+let folded = new Set();
+try { folded = new Set(JSON.parse(localStorage.getItem(FOLD_KEY) || "[]")); } catch(_) {}
+
+const foldId = target => target.join(".");
+function saveFolds(){
+  try { localStorage.setItem(FOLD_KEY, JSON.stringify([...folded])); } catch(_) {}
+}
+function toggleFold(target){
+  const id = foldId(target);
+  if(folded.has(id)) folded.delete(id); else folded.add(id);
+  saveFolds();
+  renderRail();
+}
+/* Ein Ordner ist verborgen, wenn irgendein Vorfahre zugeklappt ist. */
+function hidden(target){
+  for(let i = 1; i < target.length; i += 1){
+    if(folded.has(target.slice(0, i).join("."))) return true;
+  }
+  return false;
+}
+/* Beim Navigieren die Vorfahren des Ziels aufklappen, sonst führt ein
+   Suchtreffer in einen unsichtbaren Ordner. */
+function revealPath(target){
+  let changed = false;
+  for(let i = 1; i <= target.length; i += 1){
+    const id = target.slice(0, i).join(".");
+    if(folded.delete(id)) changed = true;
+  }
+  if(changed) saveFolds();
+}
+
 function renderRail(){
   const nav = $("#nav"); nav.textContent = "";
   if(!TREE) return;
 
-  const add = (label, target, depth, count, isSection) => {
+  const add = (label, target, depth, count, isSection, hasKids) => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = isSection ? "sect" : "";
     b.setAttribute("aria-selected", String(JSON.stringify(target) === JSON.stringify(path)));
     b.style.paddingLeft = (10 + depth*14) + "px";
+
+    const tw = document.createElement("span");
+    const closed = folded.has(foldId(target));
+    tw.className = "tw" + (hasKids ? (closed ? " closed" : "") : " leaf");
+    tw.textContent = "▼";
+    tw.setAttribute("aria-hidden", "true");
+    if(hasKids){
+      b.setAttribute("aria-expanded", String(!closed));
+      tw.addEventListener("click", ev => { ev.stopPropagation(); toggleFold(target); });
+    }
+    b.appendChild(tw);
+
     const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = label;
     const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = count || "";
     b.append(nm, cnt);
@@ -470,7 +526,7 @@ function renderRail(){
       k.addEventListener("click", ev => { ev.stopPropagation(); nodeMenu(target); });
       b.appendChild(k);
     }
-    b.addEventListener("click", () => { path = target; render(); });
+    b.addEventListener("click", () => { path = target; revealPath(target); render(); });
     if(admin && target.length){
       makeDropTarget(b, target);
       if(target.length > 1) makeDraggable(b, target);
@@ -478,13 +534,16 @@ function renderRail(){
     nav.appendChild(b);
   };
 
+  const hasFolders = node => (node.children || []).some(c => c.type === "folder");
+
   TREE.sections.forEach((section, si) => {
-    add(section.title, [si], 0, countQuiz(section), true);
+    add(section.title, [si], 0, countQuiz(section), true, hasFolders(section));
     const walk = (node, base, depth) => {
       (node.children || []).forEach((child, ci) => {
         if(child.type !== "folder") return;
-        add(child.title, base.concat(ci), depth, countQuiz(child), false);
-        if(depth < 6) walk(child, base.concat(ci), depth + 1);
+        const here = base.concat(ci);
+        if(!hidden(here)) add(child.title, here, depth, countQuiz(child), false, hasFolders(child));
+        if(depth < 6) walk(child, here, depth + 1);
       });
     };
     walk(section, [si], 1);
@@ -561,7 +620,8 @@ function renderResults(){
         + '<span class="chev" aria-hidden="true">›</span>';
       card.querySelector("h3").textContent = hit.node.title;
       card.querySelector(".meta").textContent = hit.where;
-      card.addEventListener("click", () => { clearQuery(); path = hit.target; render(); });
+      card.addEventListener("click", () => {
+        clearQuery(); path = hit.target; revealPath(hit.target); render(); });
       cards.appendChild(card);
       return;
     }
@@ -640,7 +700,7 @@ function renderHomeStage(){
     tile.querySelector("p").textContent = section.blurb || "";
     const n = countQuiz(section);
     tile.querySelector(".n").textContent = n ? n + (n === 1 ? " Eintrag" : " Einträge") : "noch leer";
-    tile.addEventListener("click", () => { path = [si]; render(); });
+    tile.addEventListener("click", () => { path = [si]; revealPath([si]); render(); });
     tiles.appendChild(tile);
   });
   cards.appendChild(tiles);
@@ -692,7 +752,7 @@ function renderStage(){
     const n = countQuiz(child);
     card.querySelector(".meta").textContent = child.blurb || (n ? n + (n===1?" Eintrag":" Einträge") : "leer");
     const here = (path.length?path:[]).concat(idx);
-    card.addEventListener("click", () => { path = here; render(); });
+    card.addEventListener("click", () => { path = here; revealPath(here); render(); });
     cards.appendChild(card);
     if(admin){ attachMenu(card, here); makeDraggable(card, here); makeDropTarget(card, here); }
   });
@@ -926,9 +986,19 @@ function makeDropTarget(el, target){
     ev.dataTransfer.dropEffect = "move";
     el.classList.add("into");
   });
-  el.addEventListener("dragleave", () => el.classList.remove("into"));
+  let hover = null;
+  el.addEventListener("dragenter", () => {
+    if(!ok()) return;
+    clearTimeout(hover);
+    hover = setTimeout(() => { revealPath(target); renderRail(); }, 700);
+  });
+  el.addEventListener("dragleave", () => {
+    clearTimeout(hover);
+    el.classList.remove("into");
+  });
   el.addEventListener("drop", async ev => {
     ev.preventDefault();
+    clearTimeout(hover);
     el.classList.remove("into");
     if(!ok()) return;
     const src = dragSource;
@@ -962,6 +1032,7 @@ async function moveNode(src, dest){
   (destNode.children || (destNode.children = [])).push(moved);
   /* Der Zielpfad kann sich durch das Entfernen verschoben haben. */
   path = pathOf(destNode) || [];
+  revealPath(path);
   await run("«" + moved.title + "» nach «" + destNode.title + "»",
             () => saveTree("Verschoben: " + moved.title));
 }
