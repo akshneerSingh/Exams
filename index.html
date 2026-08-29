@@ -8,8 +8,21 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Übungsprüfungen und Unterlagen</title>
+<meta name="description" content="Zusammenfassungen und Kprim-Übungsprüfungen zu den Modulen des Medizinstudiums an der ETH Zürich.">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="canonical" href="https://akshneer.com/">
+
+<!-- Vorschau beim Teilen in Nachrichten, Slack, WhatsApp -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Übungsprüfungen">
+<meta property="og:title" content="Übungsprüfungen und Unterlagen">
+<meta property="og:description" content="Zusammenfassungen und Kprim-Übungsprüfungen zu den Modulen des Medizinstudiums an der ETH Zürich.">
+<meta property="og:image" content="https://akshneer.com/icon-512.png">
+<meta property="og:url" content="https://akshneer.com/">
+<meta property="og:locale" content="de_CH">
+<meta name="twitter:card" content="summary">
 <style>
 /* ============================================================================
    Startseite.
@@ -200,6 +213,23 @@ body.rail-off .railshow{display:grid}
 .tile .n{margin-top:14px;font-size:12.5px;color:var(--label-3);
   font-variant-numeric:tabular-nums}
 
+/* ============ Fusszeile und Rechtliches ============ */
+.railfoot .legal{display:flex;gap:10px;padding:12px 10px 2px;flex-wrap:wrap}
+.railfoot .legal a{font-size:11.5px;color:var(--label-3);transition:color .15s}
+.railfoot .legal a:hover{color:var(--label-2)}
+.brandlink{display:block;width:100%;text-align:left;padding:0 8px;
+  border-radius:8px;transition:background .15s}
+.brandlink:hover{background:rgba(118,118,128,.14)}
+.prose{max-width:62ch}
+.prose h2{font-size:19px;font-weight:600;letter-spacing:-.02em;margin:30px 0 8px}
+.prose h2:first-child{margin-top:0}
+.prose p{margin:0 0 12px;font-size:15.5px;line-height:1.6;color:var(--label-2)}
+.prose a{color:var(--blue)}
+.prose ul{margin:0 0 12px;padding-left:20px;color:var(--label-2);
+  font-size:15.5px;line-height:1.6}
+.prose li{margin-bottom:5px}
+.prose .small{font-size:13.5px;color:var(--label-3)}
+
 /* ============ Verwaltung ============ */
 .rowbtn{flex:none;width:34px;height:34px;border-radius:50%;color:var(--label-3);
   font-size:13px;letter-spacing:.04em;transition:.15s}
@@ -298,7 +328,9 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
 
 <aside class="rail">
   <button class="railtoggle" id="railToggle" type="button" title="Seitenleiste ausblenden (⌘B)" aria-label="Seitenleiste ausblenden">⊟</button>
-  <div class="brand"><b id="brandTitle">Übungsprüfungen</b><span id="brandSub">wird geladen …</span></div>
+  <button class="brand brandlink" id="brandHome" type="button" title="Zur Startseite">
+    <b id="brandTitle">Übungsprüfungen</b><span id="brandSub">wird geladen …</span>
+  </button>
   <div class="search" id="searchBox">
     <span class="mag" aria-hidden="true">⌕</span>
     <input type="search" id="q" placeholder="Suchen" spellcheck="false"
@@ -325,6 +357,10 @@ input[type=text]{width:100%;padding:11px 13px;border:.5px solid var(--hair);
       <button class="chip" id="adminBtn" type="button" hidden>
         <span class="lbl">Verwaltung</span><span aria-hidden="true">⚙</span>
       </button>
+    </div>
+    <div class="legal">
+      <a href="#impressum" id="linkImpressum">Impressum</a>
+      <a href="#daten" id="linkDaten">Daten</a>
     </div>
   </div>
 </aside>
@@ -710,6 +746,7 @@ function renderStage(){
   if(!TREE) return;
   const old = document.getElementById("lead");
   if(old) old.remove();
+  if(page) return renderPage(page);
   if(query.trim().length >= 2) return renderResults();
   if(!path.length) { renderHomeStage(); return; }
   const node = nodeAt(path);
@@ -816,7 +853,25 @@ function renderStage(){
   }
 }
 
-function render(){ renderRail(); renderStage(); }
+function render(){
+  renderRail();
+  renderStage();
+  updateTitle();
+}
+
+/* Der Tab-Titel nennt den Ort — bei zwanzig offenen Tabs der Unterschied
+   zwischen Wiederfinden und Durchklicken. */
+function updateTitle(){
+  const site = (TREE && TREE.title) || "Übungsprüfungen";
+  if(page) return;                                  /* renderPage setzt selbst */
+  if(query.trim().length >= 2){
+    document.title = "Suche: " + query.trim() + " · " + site;
+  } else if(path.length){
+    document.title = nodeAt(path).title + " · " + site;
+  } else {
+    document.title = site;
+  }
+}
 
 /* ==================== Gerät wechseln ==================== */
 const sheet = $("#sheet");
@@ -1265,6 +1320,119 @@ $("#adminBtn").addEventListener("click", () => {
   sheet.showModal();
 });
 
+/* ====================================================================
+   Impressum und Datenhinweis
+
+   Eigene Ansichten statt eigener Dateien: der Aufbau der Seite bleibt eine
+   einzige HTML-Datei, und der Anker in der Adresse macht sie teilbar.
+   ==================================================================== */
+
+const PAGES = {
+  impressum: {
+    title: "Impressum",
+    html: `
+      <h2>Verantwortlich für den Inhalt</h2>
+      <p>Akshneer Singh<br>
+      Studierender der Humanmedizin, ETH Zürich<br>
+      <a href="mailto:sakshneer@ethz.ch">sakshneer@ethz.ch</a></p>
+
+      <h2>Zweck der Seite</h2>
+      <p>Diese Seite ist ein privates Lernangebot für Mitstudierende. Sie steht
+      in keiner Verbindung zur ETH Zürich, wird nicht von ihr betrieben und
+      gibt keine offiziellen Lehrmeinungen wieder.</p>
+
+      <h2>Inhalte</h2>
+      <p>Die Zusammenfassungen und Übungsfragen sind eigene Ausarbeitungen. Sie
+      ersetzen keine Vorlesung und keine Lehrbücher, und Richtigkeit ist nicht
+      garantiert. Wer einen Fehler findet, darf mir gern schreiben.</p>
+
+      <h2>Nutzung</h2>
+      <p>Die Inhalte dürfen zum eigenen Lernen benutzt werden. Für eine
+      Weiterverbreitung oder Veröffentlichung frag bitte kurz an.</p>
+
+      <p class="small">Bemerkst du, dass hier Material steht, das dir gehört,
+      melde dich unter der obigen Adresse — ich nehme es umgehend herunter.</p>`
+  },
+  daten: {
+    title: "Daten",
+    html: `
+      <h2>Was gespeichert wird</h2>
+      <p>Wenn du ein Quiz löst, merkt sich dein Browser deine Antworten und wie
+      weit du gekommen bist. Das bleibt auf deinem Gerät, im Speicher des
+      Browsers, und ist für mich nicht einsehbar.</p>
+
+      <h2>Wenn du auf ein zweites Gerät wechselst</h2>
+      <p>Benutzt du «Gerät wechseln», bekommt dein Gerät einen zufälligen Code,
+      und dein Fortschritt wird unter diesem Code bei Cloudflare abgelegt,
+      damit dein anderes Gerät ihn abholen kann. Gespeichert werden dabei nur
+      deine Antworten — kein Name, keine Mailadresse, kein Konto.</p>
+      <p>Der Code ist der Zugang. Wer ihn hat, sieht diesen Fortschritt, deshalb
+      gib ihn nicht weiter. Ohne Code findet niemand die Daten, auch ich nicht:
+      es gibt keine Liste der Codes.</p>
+
+      <h2>Was nicht passiert</h2>
+      <ul>
+        <li>Keine Werbung, keine Analyse-Werkzeuge, keine Zählpixel</li>
+        <li>Keine Weitergabe an Dritte</li>
+        <li>Keine Anmeldung, also auch keine Namen oder Mailadressen</li>
+      </ul>
+
+      <h2>Alles löschen</h2>
+      <p>Über «Gerät wechseln» kannst du sehen, welcher Code zu diesem Gerät
+      gehört. Löschst du die Website-Daten in deinem Browser, ist der örtliche
+      Fortschritt weg. Soll auch die Kopie bei Cloudflare verschwinden, schreib
+      mir mit deinem Code an <a href="mailto:sakshneer@ethz.ch">sakshneer@ethz.ch</a>.</p>
+
+      <h2>Betrieb</h2>
+      <p>Die Seite liegt bei GitHub Pages, der Abgleich läuft über einen
+      Cloudflare Worker. Beide sehen technisch bedingt deine IP-Adresse, wie
+      jeder Webserver.</p>
+
+      <p class="small">Stand: August 2026 · Fragen an
+      <a href="mailto:sakshneer@ethz.ch">sakshneer@ethz.ch</a></p>`
+  }
+};
+
+let page = null;   /* "impressum" | "daten" | null */
+
+function renderPage(key){
+  const info = PAGES[key];
+  $("#crumb").hidden = false;
+  $("#crumb").textContent = "‹ Übersicht";
+  $("#crumb").onclick = () => goHome();
+  $("#title").textContent = info.title;
+  $("#sub").textContent = "";
+  $("#resumeSlot").textContent = "";
+  $("#listTitle").hidden = true;
+  const cards = $("#cards");
+  cards.textContent = "";
+  const box = document.createElement("div");
+  box.className = "prose";
+  box.innerHTML = info.html;
+  cards.appendChild(box);
+  document.title = info.title + " · Übungsprüfungen";
+}
+
+function goHome(){
+  page = null; path = []; clearQuery();
+  if(location.hash) history.replaceState(null, "", location.pathname + location.search);
+  render();
+}
+
+function openPage(key){
+  page = key; clearQuery();
+  history.replaceState(null, "", "#" + key);
+  render();
+}
+
+$("#brandHome").addEventListener("click", goHome);
+$("#linkImpressum").addEventListener("click", e => { e.preventDefault(); openPage("impressum"); });
+$("#linkDaten").addEventListener("click", e => { e.preventDefault(); openPage("daten"); });
+window.addEventListener("hashchange", () => {
+  const key = location.hash.replace("#", "");
+  if(PAGES[key]) { page = key; render(); } else if(page) { goHome(); }
+});
+
 /* ==================== Seitenleiste ====================
    Der Zustand bleibt pro Gerät erhalten. Auf schmalen Geräten ist die
    Schiene eine Leiste am oberen Rand — dort gibt es nichts einzuklappen. */
@@ -1301,12 +1469,12 @@ function clearQuery(){
 qInput.addEventListener("input", () => {
   $("#searchBox").classList.toggle("has", qInput.value.length > 0);
   clearTimeout(qTimer);
-  qTimer = setTimeout(() => { query = qInput.value; renderStage(); }, 90);
+  qTimer = setTimeout(() => { query = qInput.value; renderStage(); updateTitle(); }, 90);
 });
 qInput.addEventListener("keydown", e => {
-  if(e.key === "Escape"){ clearQuery(); renderStage(); qInput.blur(); }
+  if(e.key === "Escape"){ clearQuery(); renderStage(); updateTitle(); qInput.blur(); }
 });
-$("#qx").addEventListener("click", () => { clearQuery(); renderStage(); qInput.focus(); });
+$("#qx").addEventListener("click", () => { clearQuery(); renderStage(); updateTitle(); qInput.focus(); });
 
 /* Schrägstrich springt ins Suchfeld, wie in vielen Nachschlagewerken. */
 document.addEventListener("keydown", e => {
@@ -1327,6 +1495,8 @@ fetch(CFG.contentIndex || "content/index.json", { cache: "no-cache" })
     TREE = data;
     $("#brandTitle").textContent = data.title || "Übungsprüfungen";
     $("#brandSub").textContent = data.subtitle || "ETH Medizin";
+    const hash = location.hash.replace("#", "");
+    if(PAGES[hash]) page = hash;
     refreshAdmin();
     render();
     if(Sync.configured() && Sync.meta().key) Sync.sync();

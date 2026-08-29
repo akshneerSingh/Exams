@@ -1,0 +1,7 @@
+# Suchmaschinen dürfen die Seite lesen. Einzelne Quiz-Aufrufe sind für den
+# Index wertlos, deshalb bleiben sie aussen vor.
+User-agent: *
+Allow: /
+Disallow: /quiz.html
+
+Sitemap: https://akshneer.com/sitemap.xml
