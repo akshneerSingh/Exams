@@ -9,6 +9,11 @@
           "type": "folder",
           "title": "1 Year",
           "children": []
+        },
+        {
+          "type": "folder",
+          "title": "2 Year",
+          "children": []
         }
       ]
     },
