@@ -197,6 +197,9 @@ body.rail-off .railshow{display:grid}
 .card.into{box-shadow:inset 0 0 0 2px var(--blue);background:rgba(10,132,255,.1)}
 .seg button.into{box-shadow:inset 0 0 0 2px var(--blue)}
 .hintline{font-size:12.5px;color:var(--label-3);margin:0 0 10px}
+.grouphead{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--label-3);margin:22px 0 8px}
+.grouphead:first-child{margin-top:0}
 
 /* ============ Startseite ============ */
 .hero{margin-bottom:8px}
@@ -452,7 +455,7 @@ function fold(text){
 
 function search(term){
   const q = fold(term).trim();
-  if(q.length < 2) return [];
+  if(q.length < 2) return { groups: [], total: 0 };
   const hits = [];
 
   const walk = (node, trail, target) => {
@@ -483,15 +486,38 @@ function search(term){
     walk(section, [section.title], [si]);
   });
 
-  /* Einträge vor Ordnern, dann nach Güte, dann alphabetisch. */
-  hits.sort((a, b) => {
-    const ea = a.node.file ? 0 : 1;
-    const eb = b.node.file ? 0 : 1;
-    if(ea !== eb) return ea - eb;
-    if(a.score !== b.score) return a.score - b.score;
-    return a.node.title.localeCompare(b.node.title, "de");
-  });
-  return hits.slice(0, 60);
+  /* Innerhalb einer Gruppe: erst nach Güte, dann alphabetisch. */
+  const byScore = (a, b) => a.score !== b.score
+    ? a.score - b.score
+    : a.node.title.localeCompare(b.node.title, "de");
+
+  const folders = hits.filter(h => !h.node.file).sort(byScore);
+  const entries = hits.filter(h => h.node.file).sort(byScore);
+
+  /* Welche Gruppe zuerst kommt, entscheidet ihr bester Treffer. Sucht man
+     «Biochemie», ist der gleichnamige Ordner ein Namenstreffer, die Dateien
+     darin nur Pfadtreffer — dann gehört der Ordner nach oben. Vorher standen
+     Einträge immer vorn, und der gesuchte Ordner rutschte auf Platz fünf. */
+  const best = list => list.length ? list[0].score : 99;
+  const foldersFirst = best(folders) <= best(entries);
+
+  return {
+    groups: foldersFirst
+      ? [{ label: "Ordner", items: folders }, { label: "Unterlagen und Quizzes", items: entries }]
+      : [{ label: "Unterlagen und Quizzes", items: entries }, { label: "Ordner", items: folders }],
+    total: folders.length + entries.length
+  };
+}
+
+/* Jeder Ortswechsel läuft über diesen Weg. Vorher setzte jeder Klick nur
+   `path`, und wer im Impressum stand, blieb dort hängen, weil `page` gesetzt
+   blieb und renderStage es zuerst abfragt. */
+function goTo(target){
+  page = null;
+  path = target;
+  revealPath(target);
+  if(location.hash) history.replaceState(null, "", location.pathname + location.search);
+  render();
 }
 
 /* ==================== Zeichnen ==================== */
@@ -562,7 +588,7 @@ function renderRail(){
       k.addEventListener("click", ev => { ev.stopPropagation(); nodeMenu(target); });
       b.appendChild(k);
     }
-    b.addEventListener("click", () => { path = target; revealPath(target); render(); });
+    b.addEventListener("click", () => goTo(target));
     if(admin && target.length){
       makeDropTarget(b, target);
       if(target.length > 1) makeDraggable(b, target);
@@ -637,34 +663,44 @@ function entryCard(child, target, showPath){
 }
 
 function renderResults(){
-  const hits = search(query);
+  const found = search(query);
   $("#crumb").hidden = true;
   $("#title").textContent = "Suche";
-  $("#sub").textContent = hits.length
-    ? hits.length + (hits.length === 1 ? " Treffer" : " Treffer") + " für «" + query.trim() + "»"
+  $("#sub").textContent = found.total
+    ? found.total + (found.total === 1 ? " Treffer" : " Treffer") + " für «" + query.trim() + "»"
     : "Nichts gefunden für «" + query.trim() + "»";
   $("#resumeSlot").textContent = "";
   $("#listTitle").hidden = true;
 
   const cards = $("#cards"); cards.textContent = "";
-  hits.forEach(hit => {
-    if(!hit.node.file){
-      const card = document.createElement("button");
-      card.type = "button"; card.className = "card"; card.dataset.kind = "folder";
-      card.innerHTML = '<span class="ico" aria-hidden="true">▸</span>'
-        + '<span class="body"><h3></h3><span class="meta"></span></span>'
-        + '<span class="chev" aria-hidden="true">›</span>';
-      card.querySelector("h3").textContent = hit.node.title;
-      card.querySelector(".meta").textContent = hit.where;
-      card.addEventListener("click", () => {
-        clearQuery(); path = hit.target; revealPath(hit.target); render(); });
-      cards.appendChild(card);
-      return;
-    }
-    cards.appendChild(entryCard(hit.node, hit.target, hit.where));
+
+  found.groups.forEach(group => {
+    if(!group.items.length) return;
+    const head = document.createElement("div");
+    head.className = "grouphead";
+    head.textContent = group.label + " · " + group.items.length;
+    cards.appendChild(head);
+
+    group.items.forEach(hit => {
+      if(!hit.node.file){
+        const card = document.createElement("button");
+        card.type = "button"; card.className = "card"; card.dataset.kind = "folder";
+        card.innerHTML = '<span class="ico" aria-hidden="true">▸</span>'
+          + '<span class="body"><h3></h3><span class="meta"></span></span>'
+          + '<span class="chev" aria-hidden="true">›</span>';
+        card.querySelector("h3").textContent = hit.node.title;
+        const n = countQuiz(hit.node);
+        card.querySelector(".meta").textContent =
+          hit.where + (n ? " · " + n + (n === 1 ? " Eintrag" : " Einträge") : "");
+        card.addEventListener("click", () => { clearQuery(); goTo(hit.target); });
+        cards.appendChild(card);
+        return;
+      }
+      cards.appendChild(entryCard(hit.node, hit.target, hit.where));
+    });
   });
 
-  if(!hits.length){
+  if(!found.total){
     const e = document.createElement("div");
     e.className = "empty";
     e.innerHTML = "<b>Keine Treffer</b><p>Suche nach Titeln von Unterlagen, Quizzes oder Ordnern.</p>";
@@ -736,7 +772,7 @@ function renderHomeStage(){
     tile.querySelector("p").textContent = section.blurb || "";
     const n = countQuiz(section);
     tile.querySelector(".n").textContent = n ? n + (n === 1 ? " Eintrag" : " Einträge") : "noch leer";
-    tile.addEventListener("click", () => { path = [si]; revealPath([si]); render(); });
+    tile.addEventListener("click", () => goTo([si]));
     tiles.appendChild(tile);
   });
   cards.appendChild(tiles);
@@ -757,7 +793,7 @@ function renderStage(){
   const crumb = $("#crumb");
   crumb.hidden = false;
   crumb.textContent = "‹ " + (parent.length ? nodeAt(parent).title : "Übersicht");
-  crumb.onclick = () => { path = parent; render(); };
+  crumb.onclick = () => goTo(parent);
 
   renderResume();
 
@@ -789,7 +825,7 @@ function renderStage(){
     const n = countQuiz(child);
     card.querySelector(".meta").textContent = child.blurb || (n ? n + (n===1?" Eintrag":" Einträge") : "leer");
     const here = (path.length?path:[]).concat(idx);
-    card.addEventListener("click", () => { path = here; revealPath(here); render(); });
+    card.addEventListener("click", () => goTo(here));
     cards.appendChild(card);
     if(admin){ attachMenu(card, here); makeDraggable(card, here); makeDropTarget(card, here); }
   });
@@ -1469,7 +1505,15 @@ function clearQuery(){
 qInput.addEventListener("input", () => {
   $("#searchBox").classList.toggle("has", qInput.value.length > 0);
   clearTimeout(qTimer);
-  qTimer = setTimeout(() => { query = qInput.value; renderStage(); updateTitle(); }, 90);
+  qTimer = setTimeout(() => {
+    query = qInput.value;
+    if(page && query.trim().length >= 2){
+      page = null;
+      if(location.hash) history.replaceState(null, "", location.pathname + location.search);
+      renderRail();
+    }
+    renderStage(); updateTitle();
+  }, 90);
 });
 qInput.addEventListener("keydown", e => {
   if(e.key === "Escape"){ clearQuery(); renderStage(); updateTitle(); qInput.blur(); }
