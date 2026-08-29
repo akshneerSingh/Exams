@@ -13,6 +13,11 @@
               "type": "folder",
               "title": "1 Sem",
               "children": []
+            },
+            {
+              "type": "folder",
+              "title": "2 Sem",
+              "children": []
             }
           ]
         },
