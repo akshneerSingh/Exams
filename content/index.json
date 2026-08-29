@@ -24,7 +24,13 @@
         {
           "type": "folder",
           "title": "2 Year",
-          "children": []
+          "children": [
+            {
+              "type": "folder",
+              "title": "3 Sem",
+              "children": []
+            }
+          ]
         },
         {
           "type": "folder",
