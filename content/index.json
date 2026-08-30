@@ -110,6 +110,11 @@
                   "type": "folder",
                   "title": "Statistik 1",
                   "children": []
+                },
+                {
+                  "type": "folder",
+                  "title": "Mathematik 2",
+                  "children": []
                 }
               ]
             }
