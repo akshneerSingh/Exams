@@ -221,33 +221,63 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);margin:34px 0 10px}
 
-.resume{position:relative;display:block;margin-top:18px;
-  background:linear-gradient(180deg,rgba(10,132,255,.15),rgba(10,132,255,.06));
-  border:.5px solid rgba(10,132,255,.28);border-radius:18px;padding:20px;
-  transition:transform .26s var(--spring-soft),box-shadow .26s var(--spring),
+/* ============ Fortsetzen als Kachelfeld ============
+   Statt einer breiten Karte für genau eine Prüfung: quadratische Kacheln wie
+   Widgets, mehrere nebeneinander. Der Ring zeigt den Anteil, ohne dass man
+   eine Zahl lesen muss. */
+
+.resumehead{display:flex;align-items:center;gap:10px;margin:26px 0 10px}
+.resumehead .lbl{font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--label-3)}
+.resumehead .act{margin-left:auto;color:var(--label-3);font-size:12.5px;
+  font-weight:500;padding:4px 8px;border-radius:7px;
+  transition:background .15s ease,color .15s ease}
+.resumehead .act:hover{background:rgba(118,118,128,.18);color:var(--label)}
+
+.tilegrid{display:grid;gap:10px;margin-bottom:30px;
+  grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
+
+.wtile{position:relative;display:flex;flex-direction:column;
+  aspect-ratio:1;min-width:0;padding:16px;
+  border:.5px solid var(--hair);border-radius:22px;
+  background:var(--card);color:inherit;text-align:left;
+  transition:transform .24s var(--spring-soft),box-shadow .24s var(--spring),
              border-color .16s ease}
-.resume:hover{border-color:rgba(10,132,255,.55);transform:translateY(-3px);
-  box-shadow:0 14px 40px rgba(10,132,255,.22)}
-.resume:active{transform:translateY(-1px) scale(.996);transition-duration:.09s}
-.resume{position:relative}
-.resume-off{position:absolute;top:10px;right:10px;width:28px;height:28px;
+.wtile:hover{transform:translateY(-3px);box-shadow:var(--lift-hi);
+  border-color:rgba(10,132,255,.4)}
+.wtile:active{transform:translateY(-1px) scale(.99);transition-duration:.09s}
+.wtile .kick{font-size:10.5px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--blue)}
+.wtile h3{margin:8px 0 0;font-size:15.5px;font-weight:600;letter-spacing:-.018em;
+  line-height:1.28;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.wtile .foot{margin-top:auto;display:flex;align-items:flex-end;gap:10px}
+.wtile .meta{flex:1;min-width:0;font-size:12px;color:var(--label-3);
+  letter-spacing:-.005em;font-variant-numeric:tabular-nums}
+.wtile .meta b{display:block;color:var(--label-2);font-weight:500;font-size:12.5px}
+
+/* Ring: zwei Kreise übereinander, der obere wird über die Strichlücke
+   aufgezogen. Kein Bild, keine Bibliothek. */
+.ring{flex:none;width:46px;height:46px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:4.5;stroke-linecap:round}
+.ring .bg{stroke:var(--fill-strong,rgba(118,118,128,.22))}
+.ring .fg{stroke:var(--blue);transition:stroke-dashoffset .5s var(--spring)}
+.wtile.done .ring .fg{stroke:var(--green)}
+.ringwrap{position:relative;flex:none;width:46px;height:46px}
+.ringwrap span{position:absolute;inset:0;display:grid;place-items:center;
+  font-size:13px;font-weight:600;color:var(--label-2);
+  font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.ringwrap span::after{content:"%";font-size:9px;font-weight:600;
+  color:var(--label-3);margin-left:1px;align-self:center}
+.ringwrap span{display:flex;align-items:center;justify-content:center}
+
+.wtile .off{position:absolute;top:8px;right:8px;width:26px;height:26px;
   border-radius:50%;display:grid;place-items:center;
-  color:var(--label-3);font-size:12px;opacity:0;
+  color:var(--label-3);font-size:11px;opacity:0;
   transition:opacity .15s ease,background .15s ease,color .15s ease}
-.resume:hover .resume-off{opacity:1}
-.resume-off:hover{background:rgba(118,118,128,.24);color:var(--label)}
-@media (hover:none){ .resume-off{opacity:1} }
-.resume .go{transition:transform .2s var(--spring-soft),opacity .15s}
-.resume:hover .go{transform:scale(1.03)}
-.resume .kick{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--blue);margin-bottom:9px}
-.resume h2{font-size:21px;font-weight:600;letter-spacing:-.02em;margin:0;line-height:1.25}
-.resume .where{font-size:14px;color:var(--label-2);margin-top:5px}
-.resume .row{display:flex;align-items:center;gap:14px;margin-top:16px}
-.resume .progress{flex:1}
-.resume .pct{font-size:13px;font-weight:600;color:var(--blue);font-variant-numeric:tabular-nums;flex:none}
-.resume .go{background:var(--blue);color:#fff;border-radius:100px;padding:9px 18px;
-  font-size:14.5px;font-weight:600;letter-spacing:-.012em;flex:none}
+.wtile:hover .off{opacity:1}
+.wtile .off:hover{background:rgba(118,118,128,.24);color:var(--label)}
+@media (hover:none){ .wtile .off{opacity:1} }
 
 .cards{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
 .card{display:flex;align-items:center;gap:12px;background:var(--card);
@@ -861,7 +891,7 @@ function progressSheet(){
   menuSheet("Fortschritt", [
     { label: "Fortschritt anzeigen" + (showProgress ? "   ✓" : ""),
       run: () => setShow(SHOW_KEY, !showProgress) },
-    { label: "Fortsetzen-Karte anzeigen" + (showResume ? "   ✓" : ""),
+    { label: "Fortsetzen-Kacheln anzeigen" + (showResume ? "   ✓" : ""),
       run: () => setShow(RESUME_KEY, !showResume) }
   ]);
 }
@@ -1154,45 +1184,102 @@ function renderResults(){
   }
 }
 
-/* Die zuletzt bearbeitete, noch offene Prüfung — auf der Startseite und in
-   jedem Ordner, damit man von überall zurück in die Arbeit kommt. */
-function renderResume(){
-  const slot = $("#resumeSlot"); slot.textContent = "";
-  if(!showProgress || !showResume) return;
+/* ====================================================================
+   Fortsetzen
+
+   Alle angefangenen Prüfungen als quadratische Kacheln, zuletzt bearbeitete
+   zuerst. Der Ring ersetzt den Balken: in einem Quadrat liest er sich besser
+   und zeigt den Anteil, ohne dass man die Zahl braucht.
+
+   Ein- und ausblenden geht direkt hier über die Kopfzeile — und bleibt so,
+   bis man es zurücknimmt.
+   ==================================================================== */
+
+const RESUME_MAX = 6;
+
+function openQuizzes(){
   const stamps = Sync.meta().stamps || {};
-  const open = allQuizzes()
+  return allQuizzes()
     .map(q => ({ q, p: progressOf(q) }))
     .filter(x => x.p.done > 0 && x.p.total && x.p.done < x.p.total)
-    .sort((a,b) => ((stamps[idFor(b.q)]||{}).updated||0) - ((stamps[idFor(a.q)]||{}).updated||0))[0];
-  if(!open) return;
-  const pct = Math.round(open.p.done/open.p.total*100);
-  const el = document.createElement("a");
-  el.className = "resume";
-  el.href = "quiz.html?file=" + encodeURIComponent(open.q.file);
-  el.innerHTML = '<div class="kick">Fortsetzen</div><h2></h2><div class="where"></div>'
-    + '<div class="row"><div class="progress"><div class="progress-fill"></div></div>'
-    + '<span class="pct"></span><span class="go">Weiterlösen</span></div>';
+    .sort((a, b) => ((stamps[idFor(b.q)] || {}).updated || 0)
+                  - ((stamps[idFor(a.q)] || {}).updated || 0));
+}
 
-  /* Wegklicken bleibt weggeklickt — in den Einstellungen holt man sie zurück. */
-  const off = document.createElement("button");
-  off.className = "resume-off";
-  off.type = "button";
-  off.textContent = "✕";
-  off.title = "Fortsetzen-Karte ausblenden";
-  off.setAttribute("aria-label", "Fortsetzen-Karte ausblenden");
-  off.addEventListener("click", ev => {
-    ev.preventDefault(); ev.stopPropagation();
-    setShow(RESUME_KEY, false);
+function ring(pct, done){
+  const r = 20, c = 2 * Math.PI * r;
+  const wrap = document.createElement("span");
+  wrap.className = "ringwrap";
+  wrap.innerHTML =
+    '<svg class="ring" viewBox="0 0 46 46" aria-hidden="true">'
+    + '<circle class="bg" cx="23" cy="23" r="' + r + '"></circle>'
+    + '<circle class="fg" cx="23" cy="23" r="' + r + '" '
+    + 'stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + c.toFixed(1) + '"></circle>'
+    + '</svg><span>' + pct + '</span>';
+  requestAnimationFrame(() => {
+    const fg = wrap.querySelector(".fg");
+    if(fg) fg.setAttribute("stroke-dashoffset", (c * (1 - pct / 100)).toFixed(1));
   });
-  el.appendChild(off);
-  el.querySelector("h2").textContent = open.q.title;
-  el.querySelector(".where").textContent =
-    (open.p.last !== null ? "Zuletzt Frage " + (open.p.last+1) + " · " : "")
-    + open.p.done + " von " + open.p.total + " beantwortet";
-  const bar = el.querySelector(".progress-fill");
-  el.querySelector(".pct").textContent = pct + "%";
-  slot.appendChild(el);
-  requestAnimationFrame(() => { bar.style.width = pct + "%"; });
+  return wrap;
+}
+
+function resumeTile(entry){
+  const { q, p } = entry;
+  const pct = Math.round(p.done / p.total * 100);
+  const a = document.createElement("a");
+  a.className = "wtile";
+  a.dataset.kind = "resume";
+  a.href = "quiz.html?file=" + encodeURIComponent(q.file);
+
+  const kick = document.createElement("div");
+  kick.className = "kick";
+  kick.textContent = p.last !== null ? "Frage " + (p.last + 1) : "Angefangen";
+
+  const h = document.createElement("h3");
+  h.textContent = q.title;
+
+  const foot = document.createElement("div");
+  foot.className = "foot";
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.innerHTML = "<b></b>";
+  meta.querySelector("b").textContent = p.done + " / " + p.total;
+  meta.append(document.createTextNode("beantwortet"));
+  foot.append(meta, ring(pct, false));
+
+  a.append(kick, h, foot);
+  return a;
+}
+
+function renderResume(){
+  const slot = $("#resumeSlot");
+  slot.textContent = "";
+  if(!showProgress) return;
+
+  const list = openQuizzes();
+  if(!list.length) return;
+
+  /* Kopfzeile mit dem Schalter — auch im ausgeblendeten Zustand sichtbar,
+     sonst käme man ohne Umweg über die Einstellungen nicht zurück. */
+  const head = document.createElement("div");
+  head.className = "resumehead";
+  const lbl = document.createElement("span");
+  lbl.className = "lbl";
+  lbl.textContent = "Fortsetzen";
+  const act = document.createElement("button");
+  act.type = "button";
+  act.className = "act";
+  act.textContent = showResume ? "Ausblenden" : "Einblenden · " + list.length;
+  act.addEventListener("click", () => setShow(RESUME_KEY, !showResume));
+  head.append(lbl, act);
+  slot.appendChild(head);
+
+  if(!showResume) return;
+
+  const grid = document.createElement("div");
+  grid.className = "tilegrid";
+  list.slice(0, RESUME_MAX).forEach(entry => grid.appendChild(resumeTile(entry)));
+  slot.appendChild(grid);
 }
 
 function renderHomeStage(){
@@ -2035,7 +2122,7 @@ function gearSheet(){
     { label: "Darstellung · " + { light:"Hell", dark:"Dunkel", auto:"Automatisch" }[themeMode],
       run: settingsSheet },
     { label: "Sortierung · " + SORTS[sortMode].label, run: sortSheet },
-    { label: "Fortschritt · " + (showProgress ? (showResume ? "sichtbar" : "ohne Karte") : "ausgeblendet"),
+    { label: "Fortschritt · " + (showProgress ? (showResume ? "sichtbar" : "ohne Kacheln") : "ausgeblendet"),
       run: progressSheet },
     { label: "Auf anderem Gerät fortsetzen"
              + (Sync.configured() && Sync.meta().lastSync ? " · aktiv" : ""),
