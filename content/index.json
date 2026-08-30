@@ -119,7 +119,14 @@
                     {
                       "type": "folder",
                       "title": "Part I Proteins/Enzymes",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/biochemie-kprim-ubungsprufung.json",
+                          "meta": "15 Fragen · 5 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
