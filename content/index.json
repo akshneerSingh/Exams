@@ -126,17 +126,16 @@
                     {
                       "type": "folder",
                       "title": "Part I Proteins/Enzymes",
-                      "children": [
-                        {
-                          "type": "folder",
-                          "title": "Part II (Metabolismus)",
-                          "children": []
-                        }
-                      ]
+                      "children": []
                     },
                     {
                       "type": "folder",
                       "title": "Part III Zelluläre Funktionen",
+                      "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Part II (Metabolismus)",
                       "children": []
                     }
                   ]
