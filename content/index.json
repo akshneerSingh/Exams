@@ -126,7 +126,13 @@
                     {
                       "type": "folder",
                       "title": "Part I Proteins/Enzymes",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "folder",
+                          "title": "Part II (Metabolismus)",
+                          "children": []
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
