@@ -41,8 +41,8 @@
   --blue:#0a84ff; --green:#30d158; --red:#ff453a; --orange:#ff9f0a;
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,
          "Helvetica Neue",Helvetica,Arial,sans-serif;
-  --rail-w:274px;
-  --rail-gap:12px;              /* Abstand der Platte zum Fensterrand */
+  --rail-w:308px;
+  --rail-gap:16px;              /* Abstand der Platte zum Fensterrand */
 
   /* Federkurven. Nichts läuft gleichförmig: alles schwingt leicht über und
      pendelt sich ein, damit Bewegungen Gewicht haben statt zu rutschen. */
@@ -107,7 +107,7 @@ a{color:inherit;text-decoration:none}
   display:flex;flex-direction:column;
   padding:18px 12px 12px;
   border:.5px solid var(--hair);
-  border-radius:16px;
+  border-radius:14px;
   background:var(--glass);
   -webkit-backdrop-filter:var(--glass-blur);
   backdrop-filter:var(--glass-blur);
@@ -127,7 +127,7 @@ html[data-theme="light"] .rail{background:var(--glass)}
    die Namen stehen sauber untereinander. */
 .seg button{
   position:relative;display:flex;align-items:center;gap:7px;width:100%;
-  min-height:34px;padding:0 10px 0 6px;
+  min-height:34px;padding:0 12px 0 6px;
   color:var(--label-2);font-size:14px;font-weight:450;letter-spacing:-.012em;
   border-radius:8px;text-align:left;
   transition:background .16s ease,color .16s ease}
@@ -905,7 +905,7 @@ function renderRail(){
     if(depth){
       const pad = document.createElement("span");
       pad.className = "pad";
-      pad.style.width = (depth * 15) + "px";
+      pad.style.width = (depth * 16) + "px";
       pad.setAttribute("aria-hidden", "true");
       b.appendChild(pad);
     }
