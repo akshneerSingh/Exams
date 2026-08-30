@@ -56,20 +56,7 @@
       "id": "quizzes",
       "title": "Mock Exams",
       "blurb": "Kprim-Übungsprüfungen. Der Fortschritt lässt sich auf ein anderes Gerät mitnehmen.",
-      "children": [
-        {
-          "type": "folder",
-          "title": "Biochemie",
-          "children": [
-            {
-              "type": "quiz",
-              "title": "Glykolyse",
-              "file": "content/quizzes/glykolyse.json",
-              "meta": "3 Fragen · Demo"
-            }
-          ]
-        }
-      ]
+      "children": []
     }
   ]
 }
