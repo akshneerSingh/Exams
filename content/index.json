@@ -64,7 +64,13 @@
             {
               "type": "folder",
               "title": "Sem 1",
-              "children": []
+              "children": [
+                {
+                  "type": "folder",
+                  "title": "Nervensystem",
+                  "children": []
+                }
+              ]
             },
             {
               "type": "folder",
