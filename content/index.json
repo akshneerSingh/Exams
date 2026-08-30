@@ -79,6 +79,11 @@
                   "type": "folder",
                   "title": "Chemie",
                   "children": []
+                },
+                {
+                  "type": "folder",
+                  "title": "Molekulare Biologie & Zellbiologie",
+                  "children": []
                 }
               ]
             },
