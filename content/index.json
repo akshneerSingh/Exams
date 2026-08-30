@@ -115,7 +115,13 @@
                 {
                   "type": "folder",
                   "title": "Biochemie",
-                  "children": []
+                  "children": [
+                    {
+                      "type": "folder",
+                      "title": "Part I Proteins/Enzymes",
+                      "children": []
+                    }
+                  ]
                 },
                 {
                   "type": "folder",
