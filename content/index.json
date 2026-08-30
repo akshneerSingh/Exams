@@ -59,18 +59,6 @@
       "children": [
         {
           "type": "folder",
-          "title": "Infektion",
-          "children": [
-            {
-              "type": "quiz",
-              "title": "Parasitologie",
-              "file": "content/quizzes/parasitologie.json",
-              "meta": "90 Fragen · 9 Blöcke"
-            }
-          ]
-        },
-        {
-          "type": "folder",
           "title": "Biochemie",
           "children": [
             {
