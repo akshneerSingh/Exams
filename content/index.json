@@ -129,7 +129,14 @@
                     {
                       "type": "folder",
                       "title": "Bakteriologie",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Infektiologie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/infektiologie-kprim-ubungsprufung.json",
+                          "meta": "80 Fragen · 8 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
