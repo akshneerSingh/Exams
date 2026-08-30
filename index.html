@@ -561,7 +561,17 @@ body.scrolled .mobilebar{
   #drawerBtn{font-size:19px;transition:transform .3s var(--spring)}
   body.drawer #drawerBtn{transform:rotate(90deg)}
 
-  .seg{overflow:visible}
+  /* Im Blatt scrollt die ganze Spalte. Die Fusszeile darf deshalb nicht mehr
+     an den unteren Rand geheftet sein — sonst steht sie über dem Baum, statt
+     ihm zu folgen. */
+  /* Der Baum muss seine volle Höhe einnehmen dürfen. Als Flex-Element mit
+     min-height:0 blieb sein Kasten kurz, während die Zeilen darüber
+     hinausragten — daher lagen sie auf der Fusszeile. */
+  .seg{overflow:visible;flex:0 0 auto;min-height:auto}
+  .railfoot{flex:0 0 auto;margin-top:18px;padding-top:14px;
+    border-top:.5px solid var(--hair)}
+  .mini{padding-bottom:10px}
+
   main{margin-left:0;padding:20px 16px 60px;width:100%;min-width:0}
   h1{font-size:26px}
   .titlerow{flex-wrap:wrap}
