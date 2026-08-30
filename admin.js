@@ -255,7 +255,14 @@
     if (lower.endsWith(".html") || lower.endsWith(".htm") || lower.endsWith(".json")) {
       const text = new TextDecoder().decode(await readFile(file));
       const payload = quizFromHtml(text);
-      const title = (payload.exam && payload.exam.title) || name.replace(/\.[^.]+$/, "");
+      /* Der Titel kommt aus dem Dateinamen, nicht aus dem Inneren der
+         Prüfung. Was du auf dem Rechner benannt hast, steht danach auch auf
+         der Seite — der Generator schreibt sonst seinen eigenen Titel hinein,
+         der mit deiner Ablage nichts zu tun hat. Ändern lässt er sich vor dem
+         Hochladen weiterhin. */
+      const base = name.replace(/\.[^.]+$/, "");
+      const title = base.replace(/[_]+/g, " ").replace(/\s+/g, " ").trim()
+        || (payload.exam && payload.exam.title) || base;
       const blocks = [...new Set(payload.questions.map((q) => q.block).filter(Boolean))].length;
       return {
         kind: "quiz",
