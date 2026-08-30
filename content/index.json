@@ -108,6 +108,11 @@
                           "type": "folder",
                           "title": "Anatomie",
                           "children": []
+                        },
+                        {
+                          "type": "folder",
+                          "title": "Physiologie",
+                          "children": []
                         }
                       ]
                     },
