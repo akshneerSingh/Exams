@@ -78,6 +78,11 @@
                       "type": "folder",
                       "title": "Herzkreislauf",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Atmungssystem",
+                      "children": []
                     }
                   ]
                 }
