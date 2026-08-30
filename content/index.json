@@ -100,6 +100,11 @@
                   "type": "folder",
                   "title": "Pathobiochemie",
                   "children": []
+                },
+                {
+                  "type": "folder",
+                  "title": "Infektion",
+                  "children": []
                 }
               ]
             }
