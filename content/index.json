@@ -136,6 +136,12 @@
                           "title": "Metabolismus — Kprim-Übungsprüfung",
                           "file": "content/quizzes/metabolismus-kprim-ubungsprufung.json",
                           "meta": "15 Fragen · 11 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/biochemie-kprim-ubungsprufung-2.json",
+                          "meta": "15 Fragen · 9 Blöcke"
                         }
                       ]
                     },
