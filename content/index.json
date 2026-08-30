@@ -98,17 +98,18 @@
                     {
                       "type": "folder",
                       "title": "Herzkreislauf",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "Atmungssystem",
                       "children": [
                         {
                           "type": "folder",
                           "title": "Anatomie",
                           "children": []
-                        },
+                        }
+                      ]
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Atmungssystem",
+                      "children": [
                         {
                           "type": "folder",
                           "title": "Physiologie",
