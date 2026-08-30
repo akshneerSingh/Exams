@@ -155,7 +155,26 @@
                     {
                       "type": "folder",
                       "title": "Part III Zelluläre Funktionen",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/biochemie-kprim-ubungsprufung.json",
+                          "meta": "15 Fragen · 11 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/biochemie-kprim-ubungsprufung.json",
+                          "meta": "15 Fragen · 6 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/biochemie-kprim-ubungsprufung.json",
+                          "meta": "15 Fragen · 9 Blöcke"
+                        }
+                      ]
                     }
                   ]
                 },
