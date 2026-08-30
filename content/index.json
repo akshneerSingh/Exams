@@ -132,7 +132,7 @@
                       "children": [
                         {
                           "type": "quiz",
-                          "title": "Hi",
+                          "title": "Bakteriologie & Immunsystem Quiz",
                           "file": "content/quizzes/infektiologie-kprim-ubungsprufung.json",
                           "meta": "80 Fragen · 8 Blöcke"
                         }
