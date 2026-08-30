@@ -120,6 +120,11 @@
                       "type": "folder",
                       "title": "Part I Proteins/Enzymes",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Part II Metabolism",
+                      "children": []
                     }
                   ]
                 },
