@@ -170,6 +170,11 @@
                           "title": "Parasitologie Mock Exam 2",
                           "file": "content/quizzes/parasitologie-mock-exam-2.json",
                           "meta": "80 Fragen · 8 Blöcke"
+                        },
+                        {
+                          "type": "folder",
+                          "title": "hi",
+                          "children": []
                         }
                       ]
                     }
