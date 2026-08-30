@@ -140,6 +140,11 @@
                       "type": "folder",
                       "title": "Parasitologie",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Virologie",
+                      "children": []
                     }
                   ]
                 },
