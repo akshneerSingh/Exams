@@ -132,7 +132,7 @@
                       "children": [
                         {
                           "type": "quiz",
-                          "title": "Bakteriologie + Immunsystem Mock Exam",
+                          "title": "Infektiologie — Kprim-Übungsprüfung",
                           "file": "content/quizzes/infektiologie-kprim-ubungsprufung.json",
                           "meta": "80 Fragen · 8 Blöcke"
                         }
@@ -141,16 +141,6 @@
                     {
                       "type": "folder",
                       "title": "Myokologie",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "Parasitologie",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "Virologie",
                       "children": []
                     }
                   ]
