@@ -126,7 +126,14 @@
                     {
                       "type": "folder",
                       "title": "Part I Proteins/Enzymes",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Kprim Proteinfaltung",
+                          "file": "content/quizzes/Kprim_Proteinfaltung.json",
+                          "meta": "15 Fragen · 5 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
