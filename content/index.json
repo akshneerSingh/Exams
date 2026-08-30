@@ -103,7 +103,13 @@
                     {
                       "type": "folder",
                       "title": "Atmungssystem",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "folder",
+                          "title": "Anatomie",
+                          "children": []
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
