@@ -197,6 +197,17 @@
     return payload;
   }
 
+  /* Der Dateiname bleibt der, unter dem du die Datei ablegst — nur was in
+     einem Pfad oder einer Adresse Ärger macht, wird ersetzt. Umlaute,
+     Grossschreibung und Leerzeichen bleiben erhalten. */
+  function safeName(text) {
+    return String(text || "datei")
+      .replace(/[\\/:*?"<>|#%]+/g, "-")   /* in Pfaden und URLs heikel */
+      .replace(/\s+/g, " ")
+      .replace(/^[.\s-]+|[.\s-]+$/g, "")
+      .slice(0, 90) || "datei";
+  }
+
   function slug(text) {
     return String(text || "datei").toLowerCase()
       .replace(/[äàáâ]/g, "a").replace(/[öòóô]/g, "o").replace(/[üùúû]/g, "u")
@@ -210,10 +221,12 @@
     const lower = name.toLowerCase();
 
     if (lower.endsWith(".pdf")) {
+      const base = name.replace(/\.pdf$/i, "");
       return {
         kind: "pdf",
-        title: name.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").trim(),
-        filename: slug(name.replace(/\.pdf$/i, "")) + ".pdf",
+        title: base.replace(/[_-]+/g, " ").trim(),
+        basename: safeName(base),
+        ext: ".pdf",
         content: new Uint8Array(await readFile(file)),
         meta: "PDF"
       };
@@ -227,7 +240,10 @@
       return {
         kind: "quiz",
         title,
-        filename: slug(title) + ".json",
+        /* Auch eine umgewandelte HTML-Prüfung behält ihren Namen, nur mit
+           anderer Endung. */
+        basename: safeName(name.replace(/\.[^.]+$/, "")),
+        ext: ".json",
         content: JSON.stringify(payload),
         meta: payload.questions.length + " Fragen"
           + (blocks > 1 ? " · " + blocks + " Blöcke" : ""),
@@ -239,7 +255,7 @@
   }
 
   global.Admin = {
-    enabled, login, logout, commit, prepare, quizFromHtml, slug,
+    enabled, login, logout, commit, prepare, quizFromHtml, slug, safeName,
     hasToken: () => Boolean(token()),
     repo: () => config().repo
   };
