@@ -108,7 +108,20 @@
                     {
                       "type": "folder",
                       "title": "Niere & Hömostasie",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/biochemie-kprim-ubungsprufung-2.json",
+                          "meta": "15 Fragen · 9 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie · Metabolismus — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/biochemie-metabolismus-kprim-ubungsprufung.json",
+                          "meta": "30 Fragen · 11 Blöcke"
+                        }
+                      ]
                     }
                   ]
                 },
@@ -127,21 +140,9 @@
                       "children": [
                         {
                           "type": "quiz",
-                          "title": "Biochemie · Metabolismus — Kprim-Übungsprüfung",
-                          "file": "content/quizzes/biochemie-metabolismus-kprim-ubungsprufung.json",
-                          "meta": "30 Fragen · 11 Blöcke"
-                        },
-                        {
-                          "type": "quiz",
                           "title": "Metabolismus — Kprim-Übungsprüfung",
                           "file": "content/quizzes/metabolismus-kprim-ubungsprufung.json",
                           "meta": "15 Fragen · 11 Blöcke"
-                        },
-                        {
-                          "type": "quiz",
-                          "title": "Biochemie — Kprim-Übungsprüfung",
-                          "file": "content/quizzes/biochemie-kprim-ubungsprufung-2.json",
-                          "meta": "15 Fragen · 9 Blöcke"
                         }
                       ]
                     },
