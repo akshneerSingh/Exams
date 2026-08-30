@@ -130,6 +130,11 @@
                       "type": "folder",
                       "title": "Bakteriologie",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Myokologie",
+                      "children": []
                     }
                   ]
                 },
