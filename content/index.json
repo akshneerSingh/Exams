@@ -158,7 +158,20 @@
                     {
                       "type": "folder",
                       "title": "Parasiologie",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Parasitologie Mock Exam 1",
+                          "file": "content/quizzes/parasitologie-mock-exam-1.json",
+                          "meta": "90 Fragen · 9 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Parasitologie Mock Exam 2",
+                          "file": "content/quizzes/parasitologie-mock-exam-2.json",
+                          "meta": "80 Fragen · 8 Blöcke"
+                        }
+                      ]
                     }
                   ]
                 },
