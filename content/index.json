@@ -95,6 +95,11 @@
                   "type": "folder",
                   "title": "Biochemie",
                   "children": []
+                },
+                {
+                  "type": "folder",
+                  "title": "Pathobiochemie",
+                  "children": []
                 }
               ]
             }
