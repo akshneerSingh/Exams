@@ -130,9 +130,27 @@
     const parent = ref.object.sha;
     const head = await api(base + "/git/commits/" + parent);
 
+    /* Löschungen prüfen, bevor sie in den Baum gehen. GitHub bricht den
+       ganzen Commit mit BadObjectState ab, wenn ein Pfad zweimal gelöscht
+       werden soll oder gar nicht existiert — und genau das passiert, wenn
+       zwei Einträge auf dieselbe Datei zeigen. */
+    const removals = changes.filter((c) => c.remove);
+    let present = null;
+    if (removals.length) {
+      try {
+        const tree = await api(base + "/git/trees/" + head.tree.sha + "?recursive=1");
+        present = new Set((tree.tree || [])
+          .filter((e) => e.type === "blob").map((e) => e.path));
+      } catch (_) { present = null; }
+    }
+
     const entries = [];
+    const seen = new Set();
     for (const change of changes) {
+      if (seen.has(change.path)) continue;
+      seen.add(change.path);
       if (change.remove) {
+        if (present && !present.has(change.path)) continue;
         entries.push({ path: change.path, mode: "100644", type: "blob", sha: null });
         continue;
       }
@@ -142,6 +160,8 @@
       });
       entries.push({ path: change.path, mode: "100644", type: "blob", sha: blob.sha });
     }
+
+    if (!entries.length) return null;   /* nichts zu tun */
 
     const tree = await api(base + "/git/trees", {
       method: "POST",
