@@ -147,6 +147,28 @@ html[data-theme="light"] .rail{background:var(--glass)}
   padding:4px 8px;border-radius:7px;transition:background .15s}
 .selbar button:hover{background:rgba(10,132,255,.2)}
 .selbar button.plain{color:var(--label-3)}
+.selbar button.danger{color:var(--red)}
+.selbar button.danger:hover{background:rgba(255,69,58,.16)}
+
+/* Auswahlmodus: die Karten bekommen ein Kästchen und reagieren auf den Klick
+   mit Markieren statt mit Öffnen. */
+.card.pickable{cursor:pointer}
+.card.chosen{box-shadow:inset 0 0 0 2px var(--blue);background:rgba(10,132,255,.08)}
+.card .tick{flex:none;width:20px;height:20px;border-radius:50%;
+  border:1.5px solid var(--label-3);display:grid;place-items:center;
+  font-size:11px;color:transparent;margin-right:2px}
+.card.chosen .tick{border-color:var(--blue);background:var(--blue);color:#fff}
+
+/* Ablegen vom Schreibtisch */
+.dropzone{position:fixed;inset:0;z-index:70;display:none;place-items:center;
+  background:rgba(10,132,255,.14);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+body.dropping .dropzone{display:grid}
+.dropzone .inner{padding:34px 44px;border-radius:22px;
+  border:2px dashed var(--blue);background:var(--card);
+  font-size:17px;font-weight:600;letter-spacing:-.02em;text-align:center}
+.dropzone .inner span{display:block;margin-top:6px;font-size:13.5px;
+  font-weight:400;color:var(--label-2)}
 .seg .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Klapp-Pfeil links vom Namen. Wo es nichts zu klappen gibt, hält ein
    unsichtbarer Platzhalter die Namen trotzdem auf einer Fluchtlinie. */
@@ -185,6 +207,7 @@ html[data-theme="light"] .rail{background:var(--glass)}
   display:grid;place-items:center;color:var(--label-2);font-size:15px;
   transition:background .15s ease,color .15s ease}
 .tool:hover{background:rgba(118,118,128,.2);color:var(--label)}
+.tool.on{color:var(--blue);background:rgba(10,132,255,.16)}
 .tool .lamp{position:absolute;top:5px;right:5px;width:6px;height:6px;margin:0}
 .chip{display:flex;align-items:center;gap:8px;width:100%;color:var(--label-2);
   font-size:13.5px;font-weight:500;padding:8px 10px;border-radius:9px;
@@ -246,11 +269,9 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .wtile:hover{transform:translateY(-3px);box-shadow:var(--lift-hi);
   border-color:rgba(10,132,255,.4)}
 .wtile:active{transform:translateY(-1px) scale(.99);transition-duration:.09s}
-.wtile .kick{font-size:10.5px;font-weight:700;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--blue)}
-.wtile h3{margin:8px 0 0;font-size:15.5px;font-weight:600;letter-spacing:-.018em;
-  line-height:1.28;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.wtile h3{margin:0;font-size:16px;font-weight:600;letter-spacing:-.018em;
+  line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .wtile .foot{margin-top:auto;display:flex;align-items:flex-end;gap:10px}
 .wtile .meta{flex:1;min-width:0;font-size:12px;color:var(--label-3);
   letter-spacing:-.005em;font-variant-numeric:tabular-nums}
@@ -667,6 +688,7 @@ body.scrolled .mobilebar{
       <button class="tool" id="gearBtn" type="button" title="Einstellungen" aria-label="Einstellungen">
         ⚙<span class="lamp" id="lamp"></span>
       </button>
+      <button class="tool" id="selectBtn" type="button" title="Mehrere auswählen" aria-label="Mehrere auswählen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15"/><path d="M2 6.5h.01M2 12h.01M2 17.5h.01"/></svg></button>
       <button class="tool" id="folderPlus" type="button" title="Neuer Ordner" aria-label="Neuer Ordner" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v7.8A1.6 1.6 0 0 1 19.4 19H4.6A1.6 1.6 0 0 1 3 17.4z"/><path d="M12 11.4v4.2M9.9 13.5h4.2"/></svg></button>
       <button class="tool" id="uploadPlus" type="button" title="Dateien hochladen" aria-label="Dateien hochladen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.4V4.2"/><path d="M8.1 8.1 12 4.2l3.9 3.9"/><path d="M4.2 14.6v3.6A1.6 1.6 0 0 0 5.8 19.8h12.4a1.6 1.6 0 0 0 1.6-1.6v-3.6"/></svg></button>
     </div>
@@ -693,6 +715,10 @@ body.scrolled .mobilebar{
     <div class="cards" id="cards"></div>
   </article>
 </main>
+
+<div class="dropzone" id="dropzone" aria-hidden="true">
+  <div class="inner" id="dropinner">Hier ablegen<span></span></div>
+</div>
 
 <dialog id="sheet">
   <div class="sheet-head" id="sheetHead"></div>
@@ -950,7 +976,19 @@ function revealPath(target){
 let picked = new Set();
 const pickId = t => t.join(".");
 
-function clearPick(){ if(picked.size){ picked.clear(); renderRail(); } }
+let selectMode = false;
+
+function clearPick(){
+  const had = picked.size || selectMode;
+  picked.clear();
+  selectMode = false;
+  if(had) render();
+}
+function togglePick(target){
+  const id = pickId(target);
+  if(picked.has(id)) picked.delete(id); else picked.add(id);
+  render();
+}
 
 /* Ist ein Vorfahre ebenfalls markiert, wird der Ordner mitgenommen und darf
    nicht zusätzlich einzeln verschoben werden. */
@@ -958,6 +996,40 @@ function topPicks(){
   const all = [...picked].map(id => id.split(".").map(Number));
   return all.filter(t => !all.some(o =>
     o.length < t.length && o.every((v, i) => t[i] === v)));
+}
+
+/* Alle Dateien unterhalb eines Knotens einsammeln — beim Löschen eines
+   Ordners müssen auch die Dateien darin aus dem Repository verschwinden. */
+function filesUnder(node, out){
+  out = out || [];
+  if(!node) return out;
+  if(node.file) out.push(node.file);
+  (node.children || []).forEach(c => filesUnder(c, out));
+  return out;
+}
+
+async function deleteMany(targets){
+  const nodes = targets.map(t => nodeAt(t)).filter(Boolean);
+  if(!nodes.length) return;
+  const files = [].concat(...nodes.map(n => filesUnder(n)));
+  const what = nodes.length === 1
+    ? "«" + nodes[0].title + "»"
+    : nodes.length + " Einträge";
+  const extra = files.length ? "\n\n" + files.length
+      + (files.length === 1 ? " Datei wird" : " Dateien werden")
+      + " ebenfalls aus dem Repository entfernt." : "";
+  if(!confirm(what + " löschen?" + extra)) return;
+
+  nodes.forEach(node => {
+    const list = listAt(parentOf(pathOf(node) || []));
+    const i = list.indexOf(node);
+    if(i !== -1) list.splice(i, 1);
+  });
+  picked.clear();
+  selectMode = false;
+  path = nodeAt(path) ? path : [];
+  await run(what + " gelöscht",
+            () => saveTree("Gelöscht: " + what, files.map(f => ({ path: f, remove: true }))));
 }
 
 async function moveMany(targets, dest){
@@ -982,12 +1054,12 @@ function renderRail(){
   const nav = $("#nav"); nav.textContent = "";
   if(!TREE) return;
 
-  if(picked.size){
+  if(picked.size || selectMode){
     const bar = document.createElement("div");
     bar.className = "selbar";
     const n = document.createElement("span");
     n.className = "n";
-    n.textContent = picked.size + (picked.size === 1 ? " ausgewählt" : " ausgewählt");
+    n.textContent = picked.size ? picked.size + " ausgewählt" : "Nichts ausgewählt";
     const move = document.createElement("button");
     move.type = "button"; move.textContent = "Verschieben";
     move.addEventListener("click", () => {
@@ -1009,10 +1081,15 @@ function renderRail(){
                      run: () => moveMany(targets, f.target) }));
       menuSheet("Verschieben nach", choices);
     });
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "danger"; del.textContent = "Löschen";
+    del.addEventListener("click", () => deleteMany(topPicks()));
+
     const off = document.createElement("button");
-    off.type = "button"; off.className = "plain"; off.textContent = "Aufheben";
+    off.type = "button"; off.className = "plain"; off.textContent = "Fertig";
     off.addEventListener("click", clearPick);
-    bar.append(n, move, off);
+
+    bar.append(n, move, del, off);
     nav.appendChild(bar);
   }
 
@@ -1053,11 +1130,9 @@ function renderRail(){
     b.addEventListener("click", ev => {
       /* Cmd oder Ctrl markiert, statt zu navigieren. Bereiche selbst lassen
          sich nicht verschieben und deshalb auch nicht markieren. */
-      if((ev.metaKey || ev.ctrlKey) && target.length > 1){
+      if((selectMode || ev.metaKey || ev.ctrlKey) && target.length > 1){
         ev.preventDefault();
-        const id = pickId(target);
-        if(picked.has(id)) picked.delete(id); else picked.add(id);
-        renderRail();
+        togglePick(target);
         return;
       }
       clearPick();
@@ -1199,7 +1274,11 @@ const RESUME_MAX = 6;
 
 function openQuizzes(){
   const stamps = Sync.meta().stamps || {};
+  /* Zeigen zwei Einträge auf dieselbe Datei, ist es derselbe Fortschritt —
+     eine Kachel genügt. */
+  const seen = new Set();
   return allQuizzes()
+    .filter(q => { if(seen.has(q.file)) return false; seen.add(q.file); return true; })
     .map(q => ({ q, p: progressOf(q) }))
     .filter(x => x.p.done > 0 && x.p.total && x.p.done < x.p.total)
     .sort((a, b) => ((stamps[idFor(b.q)] || {}).updated || 0)
@@ -1231,10 +1310,6 @@ function resumeTile(entry){
   a.dataset.kind = "resume";
   a.href = "quiz.html?file=" + encodeURIComponent(q.file);
 
-  const kick = document.createElement("div");
-  kick.className = "kick";
-  kick.textContent = p.last !== null ? "Frage " + (p.last + 1) : "Angefangen";
-
   const h = document.createElement("h3");
   h.textContent = q.title;
 
@@ -1247,7 +1322,7 @@ function resumeTile(entry){
   meta.append(document.createTextNode("beantwortet"));
   foot.append(meta, ring(pct, false));
 
-  a.append(kick, h, foot);
+  a.append(h, foot);
   return a;
 }
 
@@ -1373,7 +1448,13 @@ function renderStage(){
     const n = countQuiz(child);
     card.querySelector(".meta").textContent = child.blurb || (n ? n + (n===1?" Eintrag":" Einträge") : "leer");
     const here = (path.length?path:[]).concat(idx);
-    card.addEventListener("click", () => goTo(here));
+    card.addEventListener("click", ev => {
+      if(admin && (selectMode || ev.metaKey || ev.ctrlKey)){
+        ev.preventDefault(); togglePick(here); return;
+      }
+      goTo(here);
+    });
+    if(admin) markPickable(card, here);
     cards.appendChild(card);
     if(admin){ attachMenu(card, here); makeDraggable(card, here); makeDropTarget(card, here); }
   });
@@ -1394,7 +1475,7 @@ function renderStage(){
       cards.appendChild(a);
       if(admin){
         const t = (path.length?path:[]).concat(idx);
-        attachMenu(a, t); makeDraggable(a, t);
+        attachMenu(a, t); makeDraggable(a, t); markPickable(a, t);
       }
       return;
     }
@@ -1425,7 +1506,7 @@ function renderStage(){
     cards.appendChild(a);
     if(admin){
       const t = (path.length?path:[]).concat(idx);
-      attachMenu(a, t); makeDraggable(a, t);
+      attachMenu(a, t); makeDraggable(a, t); markPickable(a, t);
     }
   });
 
@@ -1589,8 +1670,10 @@ function refreshAdmin(){
   /* Beide Knöpfe stehen überall zur Verfügung. Fehlt für Dateien ein Ordner,
      fragt der Knopf danach — das ist besser, als ihn verschwinden zu lassen
      und den Benutzer suchen zu lassen, wo er hin ist. */
-  ["#folderPlus", "#addFolderHere", "#uploadPlus", "#addFilesHere"]
+  ["#folderPlus", "#addFolderHere", "#uploadPlus", "#addFilesHere", "#selectBtn"]
     .forEach(sel => { const el = $(sel); if(el) el.hidden = !admin; });
+  const sel = $("#selectBtn");
+  if(sel) sel.classList.toggle("on", selectMode);
 }
 
 /* Der Baum wird lokal geändert und danach als ganze Datei committet. */
@@ -1727,6 +1810,28 @@ async function moveNode(src, dest){
             () => saveTree("Verschoben: " + moved.title));
 }
 
+/* Im Auswahlmodus bekommt jede Karte ein Kästchen und fängt den Klick ab.
+   Cmd-Klick funktioniert auch ohne Modus, wie in der Schiene. */
+function markPickable(card, target){
+  card.classList.add("pickable");
+  if(picked.has(pickId(target))) card.classList.add("chosen");
+  if(selectMode){
+    const tick = document.createElement("span");
+    tick.className = "tick";
+    tick.textContent = "✓";
+    tick.setAttribute("aria-hidden", "true");
+    card.insertBefore(tick, card.firstChild);
+  }
+  if(card.tagName === "A"){
+    card.addEventListener("click", ev => {
+      if(selectMode || ev.metaKey || ev.ctrlKey){
+        ev.preventDefault(); ev.stopPropagation();
+        togglePick(target);
+      }
+    });
+  }
+}
+
 function attachMenu(card, target){
   const b = document.createElement("button");
   b.className = "rowbtn"; b.type = "button"; b.textContent = "•••";
@@ -1830,13 +1935,41 @@ async function newFolder(){
 
 /* In der Fusszeile jeweils direkt; das Plus neben dem Titel bleibt der
    gebündelte Weg, weil dort beides in Reichweite liegen soll. */
+$("#selectBtn").addEventListener("click", () => {
+  selectMode = !selectMode;
+  if(!selectMode) picked.clear();
+  render();
+});
 $("#folderPlus").addEventListener("click", newFolder);
 $("#uploadPlus").addEventListener("click", uploadSheet);
 $("#addFolderHere").addEventListener("click", newFolder);
 $("#addFilesHere").addEventListener("click", uploadSheet);
 
 /* -------------------- Hochladen -------------------- */
-function uploadSheet(){
+/* Alle bereits vergebenen Dateipfade einsammeln. */
+function usedFiles(){
+  const out = new Set();
+  const walk = list => (list || []).forEach(child => {
+    if(child.file) out.add(child.file);
+    if(child.children) walk(child.children);
+  });
+  walk(TREE.sections);
+  return out;
+}
+
+/* Zwei Prüfungen mit demselben Titel ergaben denselben Dateinamen — die
+   zweite überschrieb die erste, und beide Einträge zeigten danach auf
+   dieselbe Datei. Deshalb wird durchgezählt, bis der Pfad frei ist. */
+function freeFile(base, slug, ext, pending){
+  const taken = usedFiles();
+  (pending || []).forEach(c => taken.add(c.path));
+  let name = base + slug + ext;
+  let n = 2;
+  while(taken.has(name)){ name = base + slug + "-" + n + ext; n += 1; }
+  return name;
+}
+
+function uploadSheet(dropped){
   /* In der Übersicht selbst können keine Dateien liegen — also erst den
      Zielordner wählen und dann normal weiter. */
   if(!path.length){
@@ -1912,7 +2045,8 @@ function uploadSheet(){
     const base = "content/" + (nodeAt([path[0]]).id === "quizzes" ? "quizzes" : "unterlagen") + "/";
     const extra = [];
     good.forEach(item => {
-      const file = base + Admin.slug(item.title) + (item.kind === "pdf" ? ".pdf" : ".json");
+      const file = freeFile(base, Admin.slug(item.title),
+                            item.kind === "pdf" ? ".pdf" : ".json", extra);
       extra.push({ path: file, content: item.content });
       listAt(path).push({
         type: item.kind, title: item.title, file,
@@ -1934,6 +2068,8 @@ function uploadSheet(){
   });
 
   sheet.showModal();
+  /* Vom Schreibtisch gezogene Dateien landen direkt in der Liste. */
+  if(dropped && dropped.length) take(dropped);
 }
 
 /* -------------------- Anmeldung -------------------- */
@@ -2222,6 +2358,59 @@ document.addEventListener("keydown", e => {
      && !sheet.open){
     e.preventDefault(); qInput.focus();
   }
+});
+
+/* ==================== Ablegen vom Schreibtisch ====================
+   Dateien direkt ins Fenster ziehen. Der Zähler auf dem Fenster ist nötig,
+   weil dragleave auch beim Überfahren von Kindelementen feuert — ohne ihn
+   flackerte die Fläche bei jeder Bewegung.
+   ==================================================================== */
+
+let dragDepth = 0;
+
+function carriesFiles(ev){
+  const t = ev.dataTransfer && ev.dataTransfer.types;
+  return t && [...t].includes("Files");
+}
+
+function dropHint(){
+  const inner = $("#dropinner");
+  const where = path.length ? nodeAt(path).title : null;
+  inner.firstChild.textContent = where ? "Ablegen in «" + where + "»" : "Ordner wählen";
+  inner.querySelector("span").textContent = where
+    ? "PDF, HTML oder JSON"
+    : "Öffne zuerst einen Ordner, dann kannst du hier ablegen.";
+}
+
+window.addEventListener("dragenter", ev => {
+  if(!admin || !carriesFiles(ev)) return;
+  ev.preventDefault();
+  dragDepth += 1;
+  dropHint();
+  document.body.classList.add("dropping");
+});
+window.addEventListener("dragover", ev => {
+  if(!admin || !carriesFiles(ev)) return;
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect = path.length ? "copy" : "none";
+});
+window.addEventListener("dragleave", ev => {
+  if(!admin || !carriesFiles(ev)) return;
+  dragDepth = Math.max(0, dragDepth - 1);
+  if(!dragDepth) document.body.classList.remove("dropping");
+});
+window.addEventListener("drop", async ev => {
+  if(!admin || !carriesFiles(ev)) return;
+  ev.preventDefault();
+  dragDepth = 0;
+  document.body.classList.remove("dropping");
+  const files = [...(ev.dataTransfer.files || [])];
+  if(!files.length) return;
+  if(!path.length){
+    alert("Öffne zuerst einen Ordner — in der Übersicht können keine Dateien liegen.");
+    return;
+  }
+  uploadSheet(files);
 });
 
 /* ==================== Start ==================== */
