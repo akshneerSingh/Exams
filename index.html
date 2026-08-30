@@ -221,13 +221,22 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);margin:34px 0 10px}
 
-.resume{display:block;background:linear-gradient(180deg,rgba(10,132,255,.15),rgba(10,132,255,.06));
-  border:.5px solid rgba(10,132,255,.28);border-radius:18px;padding:20px;margin-top:18px;
+.resume{position:relative;display:block;margin-top:18px;
+  background:linear-gradient(180deg,rgba(10,132,255,.15),rgba(10,132,255,.06));
+  border:.5px solid rgba(10,132,255,.28);border-radius:18px;padding:20px;
   transition:transform .26s var(--spring-soft),box-shadow .26s var(--spring),
              border-color .16s ease}
 .resume:hover{border-color:rgba(10,132,255,.55);transform:translateY(-3px);
   box-shadow:0 14px 40px rgba(10,132,255,.22)}
 .resume:active{transform:translateY(-1px) scale(.996);transition-duration:.09s}
+.resume{position:relative}
+.resume-off{position:absolute;top:10px;right:10px;width:28px;height:28px;
+  border-radius:50%;display:grid;place-items:center;
+  color:var(--label-3);font-size:12px;opacity:0;
+  transition:opacity .15s ease,background .15s ease,color .15s ease}
+.resume:hover .resume-off{opacity:1}
+.resume-off:hover{background:rgba(118,118,128,.24);color:var(--label)}
+@media (hover:none){ .resume-off{opacity:1} }
 .resume .go{transition:transform .2s var(--spring-soft),opacity .15s}
 .resume:hover .go{transform:scale(1.03)}
 .resume .kick{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
@@ -568,9 +577,12 @@ body.scrolled .mobilebar{
      min-height:0 blieb sein Kasten kurz, während die Zeilen darüber
      hinausragten — daher lagen sie auf der Fusszeile. */
   .seg{overflow:visible;flex:0 0 auto;min-height:auto}
-  .railfoot{flex:0 0 auto;margin-top:18px;padding-top:14px;
+  /* Fortschrittsbalken und Werkzeuge sind hier fehl am Platz: das Zahnrad
+     steht oben rechts in der Leiste, und der Balken gehört auf die Seite,
+     nicht in die Navigation. */
+  .mini,.tools{display:none}
+  .railfoot{flex:0 0 auto;margin-top:14px;padding-top:12px;
     border-top:.5px solid var(--hair)}
-  .mini{padding-bottom:10px}
 
   main{margin-left:0;padding:20px 16px 60px;width:100%;min-width:0}
   h1{font-size:26px}
@@ -826,6 +838,34 @@ function ordered(list){
   });
 }
 
+/* ==================== Fortschritt anzeigen ====================
+   Zwei getrennte Schalter, weil es zwei verschiedene Wünsche sind: der eine
+   blendet jede Fortschrittsanzeige aus, der andere nur die grosse
+   Fortsetzen-Karte auf der Startseite. */
+
+const SHOW_KEY = "pruefung:show-progress";
+const RESUME_KEY = "pruefung:show-resume";
+let showProgress = true, showResume = true;
+try {
+  showProgress = localStorage.getItem(SHOW_KEY) !== "off";
+  showResume = localStorage.getItem(RESUME_KEY) !== "off";
+} catch(_) {}
+
+function setShow(key, value){
+  try { localStorage.setItem(key, value ? "on" : "off"); } catch(_) {}
+  if(key === SHOW_KEY) showProgress = value; else showResume = value;
+  render();
+}
+
+function progressSheet(){
+  menuSheet("Fortschritt", [
+    { label: "Fortschritt anzeigen" + (showProgress ? "   ✓" : ""),
+      run: () => setShow(SHOW_KEY, !showProgress) },
+    { label: "Fortsetzen-Karte anzeigen" + (showResume ? "   ✓" : ""),
+      run: () => setShow(RESUME_KEY, !showResume) }
+  ]);
+}
+
 function sortSheet(){
   menuSheet("Sortierung", Object.keys(SORTS).map(key => ({
     label: SORTS[key].label + (sortMode === key ? "   ✓" : ""),
@@ -1021,7 +1061,7 @@ function renderRail(){
     acc.done += p.done; acc.total += p.total; return acc;
   }, { done:0, total:0 });
   const mini = $("#mini");
-  mini.hidden = !totals.total;
+  mini.hidden = !totals.total || !showProgress;
   if(totals.total){
     $("#ratio").textContent = totals.done + " / " + totals.total;
     const pct = Math.round(totals.done/totals.total*100);
@@ -1064,7 +1104,7 @@ function entryCard(child, target, showPath){
   const stat = a.querySelector(".stat");
   stat.textContent = done ? "vollständig" : p.done ? p.done + " / " + p.total : "nicht begonnen";
   if(done) stat.classList.add("done");
-  if(!p.done) a.querySelector(".foot").style.display = "none";
+  if(!p.done || !showProgress) a.querySelector(".foot").style.display = "none";
   return a;
 }
 
@@ -1118,6 +1158,7 @@ function renderResults(){
    jedem Ordner, damit man von überall zurück in die Arbeit kommt. */
 function renderResume(){
   const slot = $("#resumeSlot"); slot.textContent = "";
+  if(!showProgress || !showResume) return;
   const stamps = Sync.meta().stamps || {};
   const open = allQuizzes()
     .map(q => ({ q, p: progressOf(q) }))
@@ -1131,6 +1172,19 @@ function renderResume(){
   el.innerHTML = '<div class="kick">Fortsetzen</div><h2></h2><div class="where"></div>'
     + '<div class="row"><div class="progress"><div class="progress-fill"></div></div>'
     + '<span class="pct"></span><span class="go">Weiterlösen</span></div>';
+
+  /* Wegklicken bleibt weggeklickt — in den Einstellungen holt man sie zurück. */
+  const off = document.createElement("button");
+  off.className = "resume-off";
+  off.type = "button";
+  off.textContent = "✕";
+  off.title = "Fortsetzen-Karte ausblenden";
+  off.setAttribute("aria-label", "Fortsetzen-Karte ausblenden");
+  off.addEventListener("click", ev => {
+    ev.preventDefault(); ev.stopPropagation();
+    setShow(RESUME_KEY, false);
+  });
+  el.appendChild(off);
   el.querySelector("h2").textContent = open.q.title;
   el.querySelector(".where").textContent =
     (open.p.last !== null ? "Zuletzt Frage " + (open.p.last+1) + " · " : "")
@@ -1280,7 +1334,7 @@ function renderStage(){
     const stat = a.querySelector(".stat");
     stat.textContent = done ? "vollständig" : p.done ? p.done + " / " + p.total : "nicht begonnen";
     if(done) stat.classList.add("done");
-    if(!p.done) a.querySelector(".foot").style.display = "none";
+    if(!p.done || !showProgress) a.querySelector(".foot").style.display = "none";
     cards.appendChild(a);
     if(admin){
       const t = (path.length?path:[]).concat(idx);
@@ -1667,6 +1721,8 @@ async function run(what, fn){
   }
 }
 
+/* Kurze Rückmeldung am unteren Rand. Wird auch ausserhalb der Verwaltung
+   gebraucht, deshalb steht sie nicht dort drin. */
 function flash(text){
   const el = document.createElement("div");
   el.className = "note ok";
@@ -1979,6 +2035,8 @@ function gearSheet(){
     { label: "Darstellung · " + { light:"Hell", dark:"Dunkel", auto:"Automatisch" }[themeMode],
       run: settingsSheet },
     { label: "Sortierung · " + SORTS[sortMode].label, run: sortSheet },
+    { label: "Fortschritt · " + (showProgress ? (showResume ? "sichtbar" : "ohne Karte") : "ausgeblendet"),
+      run: progressSheet },
     { label: "Auf anderem Gerät fortsetzen"
              + (Sync.configured() && Sync.meta().lastSync ? " · aktiv" : ""),
       run: deviceSheet }
