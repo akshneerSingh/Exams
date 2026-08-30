@@ -65,6 +65,11 @@
               "type": "folder",
               "title": "Sem 1",
               "children": []
+            },
+            {
+              "type": "folder",
+              "title": "Sem 2",
+              "children": []
             }
           ]
         },
