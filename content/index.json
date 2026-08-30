@@ -117,13 +117,7 @@
                         {
                           "type": "folder",
                           "title": "Anatomie",
-                          "children": [
-                            {
-                              "type": "folder",
-                              "title": "Klinik",
-                              "children": []
-                            }
-                          ]
+                          "children": []
                         }
                       ]
                     },
