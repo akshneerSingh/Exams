@@ -136,7 +136,14 @@
                     {
                       "type": "folder",
                       "title": "Part II Metabolismus",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Biochemie — Kprim-Übungsprüfung",
+                          "file": "content/quizzes/Kprim_Zellulaere_Kommunikation.json",
+                          "meta": "15 Fragen · 9 Blöcke"
+                        }
+                      ]
                     }
                   ]
                 },
