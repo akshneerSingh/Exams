@@ -140,7 +140,23 @@
                     {
                       "type": "folder",
                       "title": "Niere & Hömostasie",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "folder",
+                          "title": "Klinik",
+                          "children": []
+                        },
+                        {
+                          "type": "folder",
+                          "title": "Physiologie",
+                          "children": []
+                        },
+                        {
+                          "type": "folder",
+                          "title": "Anatomie",
+                          "children": []
+                        }
+                      ]
                     }
                   ]
                 },
