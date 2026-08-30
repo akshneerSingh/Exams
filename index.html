@@ -39,6 +39,7 @@
   --hair:rgba(255,255,255,.08);
   --label:#f5f5f7; --label-2:rgba(235,235,245,.6); --label-3:rgba(235,235,245,.32);
   --blue:#0a84ff; --green:#30d158; --red:#ff453a; --orange:#ff9f0a;
+  --mark:#ff9f0a;               /* Markierung beim Auswählen */
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,
          "Helvetica Neue",Helvetica,Arial,sans-serif;
   --rail-w:308px;
@@ -67,6 +68,7 @@ html[data-theme="light"]{
   --hair:rgba(0,0,0,.08);
   --label:#0b0b0c; --label-2:rgba(60,60,67,.62); --label-3:rgba(60,60,67,.34);
   --blue:#007aff; --green:#28a745; --red:#d70015; --orange:#c76b00;
+  --mark:#d97706;
   color-scheme:light;
 }
 html[data-theme="light"] .rail{background:#fbfbfd}
@@ -135,8 +137,9 @@ html[data-theme="light"] .rail{background:var(--glass)}
 .seg button:active{background:rgba(118,118,128,.26)}
 .seg button:hover{background:rgba(118,118,128,.16);color:var(--label)}
 .seg button[aria-selected="true"]{background:rgba(10,132,255,.16);color:var(--blue);font-weight:600}
-.seg button.picked{background:rgba(10,132,255,.26);color:var(--blue)}
-.seg button.picked .cnt{color:var(--blue);opacity:.8}
+.seg button.picked{background:color-mix(in srgb,var(--mark) 22%,transparent);
+  color:var(--mark);font-weight:600}
+.seg button.picked .cnt{color:var(--mark);opacity:.8}
 
 /* Leiste über der Auswahl. Erscheint nur, solange etwas markiert ist. */
 /* Die Leiste in der schmalen Schiene: Zähler in einer eigenen Zeile, darunter
@@ -163,11 +166,44 @@ html[data-theme="light"] .rail{background:var(--glass)}
 /* Auswahlmodus: die Karten bekommen ein Kästchen und reagieren auf den Klick
    mit Markieren statt mit Öffnen. */
 .card.pickable{cursor:pointer}
-.card.chosen{box-shadow:inset 0 0 0 2px var(--blue);background:rgba(10,132,255,.08)}
+.card.chosen{box-shadow:inset 0 0 0 2px var(--mark);
+  background:color-mix(in srgb,var(--mark) 9%,transparent)}
 .card .tick{flex:none;width:20px;height:20px;border-radius:50%;
   border:1.5px solid var(--label-3);display:grid;place-items:center;
   font-size:11px;color:transparent;margin-right:2px}
-.card.chosen .tick{border-color:var(--blue);background:var(--blue);color:#fff}
+.card.chosen .tick{border-color:var(--mark);background:var(--mark);color:#fff}
+
+/* Werkzeuge zur Auswahl: schweben oben rechts über allem, statt in der
+   Schiene zu sitzen. Dort nahmen sie Platz weg und waren am Telefon hinter
+   der Schublade unerreichbar. */
+.pickbar{position:fixed;z-index:60;
+  top:calc(var(--rail-gap) + env(safe-area-inset-top));
+  right:var(--rail-gap);
+  display:flex;align-items:center;gap:2px;
+  padding:6px 6px 6px 14px;border-radius:14px;
+  border:.5px solid color-mix(in srgb,var(--mark) 40%,transparent);
+  background:var(--glass);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:var(--lift-hi);
+  animation:pickIn .3s var(--spring-soft)}
+@keyframes pickIn{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:none}}
+.pickbar .n{margin-right:8px;font-size:13px;font-weight:600;color:var(--mark);
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.pickbar button{flex:none;height:32px;padding:0 11px;border-radius:9px;
+  color:var(--label);font-size:13.5px;font-weight:500;letter-spacing:-.012em;
+  white-space:nowrap;transition:background .15s ease,color .15s ease}
+.pickbar button:hover{background:rgba(118,118,128,.24)}
+.pickbar button:disabled{opacity:.35;cursor:default}
+.pickbar button.danger{color:var(--red)}
+.pickbar button.danger:hover{background:rgba(255,69,58,.16)}
+.pickbar button.done{width:32px;padding:0;display:grid;place-items:center;color:var(--label-2)}
+@media (max-width:860px){
+  .pickbar{top:auto;bottom:calc(var(--rail-gap) + env(safe-area-inset-bottom));
+    left:var(--rail-gap);right:var(--rail-gap);justify-content:center;
+    padding:6px;animation:pickUp .3s var(--spring-soft)}
+  .pickbar .n{margin:0 auto 0 8px}
+}
+@keyframes pickUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 /* Ablegen vom Schreibtisch */
 .dropzone{position:fixed;inset:0;z-index:70;display:none;place-items:center;
@@ -1114,45 +1150,6 @@ function renderRail(){
   const nav = $("#nav"); nav.textContent = "";
   if(!TREE) return;
 
-  if(selectScope === "rail"){
-    const bar = document.createElement("div");
-    bar.className = "selbar";
-    const n = document.createElement("span");
-    n.className = "n";
-    n.textContent = picked.size ? picked.size + " gewählt" : "Ordner antippen";
-
-    const icon = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
-      + 'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" '
-      + 'aria-hidden="true">' + d + '</svg>';
-
-    const move = document.createElement("button");
-    move.type = "button"; move.title = "Verschieben";
-    move.setAttribute("aria-label", "Verschieben");
-    move.innerHTML = icon('<path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h3.6l1.2 1.7H19.5A1.5 1.5 0 0 1 21 9.2v8.3A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="M11 13h5M14 10.6l2.4 2.4-2.4 2.4"/>');
-    move.disabled = !picked.size;
-    move.style.opacity = picked.size ? "" : ".35";
-    move.addEventListener("click", () => moveSheet(topPicks()));
-
-    const del = document.createElement("button");
-    del.type = "button"; del.className = "danger"; del.title = "Löschen";
-    del.setAttribute("aria-label", "Löschen");
-    del.innerHTML = icon('<path d="M4.5 6.5h15M9.5 6.5V4.8h5v1.7M7 6.5l.8 12.2a1.5 1.5 0 0 0 1.5 1.4h5.4a1.5 1.5 0 0 0 1.5-1.4L17 6.5"/>');
-    del.disabled = !picked.size;
-    del.style.opacity = picked.size ? "" : ".35";
-    del.addEventListener("click", () => deleteMany(topPicks()));
-
-    const off = document.createElement("button");
-    off.type = "button"; off.className = "plain"; off.title = "Fertig";
-    off.setAttribute("aria-label", "Auswahl beenden");
-    off.innerHTML = icon('<path d="M6 6l12 12M18 6 6 18"/>');
-    off.addEventListener("click", clearPick);
-
-    const row = document.createElement("div");
-    row.className = "row";
-    row.append(move, del, off);
-    bar.append(n, row);
-    nav.appendChild(bar);
-  }
 
   const add = (label, target, depth, count, isSection, hasKids) => {
     const b = document.createElement("button");
@@ -1193,7 +1190,6 @@ function renderRail(){
          sich nicht verschieben und deshalb auch nicht markieren. */
       if((selectScope === "rail" || ev.metaKey || ev.ctrlKey) && target.length > 1){
         ev.preventDefault();
-        selectScope = "rail";
         togglePick(target);
         return;
       }
@@ -1492,7 +1488,7 @@ function renderStage(){
   const list = $("#listTitle");
   const cards = $("#cards"); cards.textContent = "";
   if(admin && clip) cards.appendChild(clipBar());
-  if(admin && selectScope === "stage") cards.appendChild(stageBar(shown));
+
   if(admin && (kids.length > 1)){
     const tip = document.createElement("p");
     tip.className = "hintline";
@@ -1517,7 +1513,6 @@ function renderStage(){
     card.addEventListener("click", ev => {
       if(admin && (selectScope === "stage" || ev.metaKey || ev.ctrlKey)){
         ev.preventDefault();
-        selectScope = "stage";
         togglePick(here);
         return;
       }
@@ -1621,6 +1616,7 @@ function markEntrance(){
 function render(){
   renderRail();
   renderStage();
+  renderPickbar();
   updateTitle();
   markEntrance();
   /* Der Hochlade-Knopf hängt am Ort, nicht nur an der Anmeldung — also bei
@@ -1934,50 +1930,68 @@ function clipBar(){
   return bar;
 }
 
-function stageBar(shown){
-  const bar = document.createElement("div");
-  bar.className = "stagebar";
+/* Eine Leiste für alles Markierte, unabhängig davon, wie es markiert wurde.
+   Deshalb hängt sie an der Auswahl und nicht am Bearbeiten-Modus: mit Cmd
+   greift man schnell etwas heraus, ohne den Modus einzuschalten, und hat
+   trotzdem die Werkzeuge. */
+function renderPickbar(){
+  const old = document.getElementById("pickbar");
+  if(old) old.remove();
+  if(!admin || (!picked.size && !selectScope)) return;
 
-  const here = shown.map(({ i }) => (path.length ? path : []).concat(i));
-  const allHere = here.length && here.every(t => picked.has(pickId(t)));
+  const bar = document.createElement("div");
+  bar.className = "pickbar";
+  bar.id = "pickbar";
 
   const n = document.createElement("span");
   n.className = "n";
-  n.textContent = picked.size
-    ? picked.size + " ausgewählt · ⌘C kopieren, ⌘X ausschneiden"
-    : "Nichts ausgewählt";
+  n.textContent = picked.size ? picked.size + " markiert"
+    : (selectScope === "rail" ? "Ordner antippen" : "Einträge antippen");
+  bar.appendChild(n);
 
-  const all = document.createElement("button");
-  all.type = "button";
-  all.textContent = allHere ? "Auswahl aufheben" : "Alle";
-  all.addEventListener("click", () => {
-    here.forEach(t => { if(allHere) picked.delete(pickId(t)); else picked.add(pickId(t)); });
-    render();
-  });
-
-  bar.append(n, all);
-
-  if(picked.size){
-    const move = document.createElement("button");
-    move.type = "button"; move.textContent = "Verschieben";
-    move.disabled = !picked.size;
-    move.style.opacity = picked.size ? "" : ".4";
-    move.addEventListener("click", () => moveSheet(topPicks()));
-
-    const del = document.createElement("button");
-    del.type = "button"; del.className = "danger"; del.textContent = "Löschen";
-    del.addEventListener("click", () => deleteMany(topPicks()));
-
-    bar.append(move, del);
+  if(selectScope === "stage"){
+    const kids = path.length ? (nodeAt(path).children || []) : [];
+    const here = ordered(kids).map(({ i }) => (path.length ? path : []).concat(i));
+    const allHere = here.length && here.every(t => picked.has(pickId(t)));
+    if(here.length){
+      const all = document.createElement("button");
+      all.type = "button";
+      all.textContent = allHere ? "Keine" : "Alle";
+      all.addEventListener("click", () => {
+        here.forEach(t => { if(allHere) picked.delete(pickId(t)); else picked.add(pickId(t)); });
+        render();
+      });
+      bar.appendChild(all);
+    }
   }
 
+  const act = (label, cls, fn) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    if(cls) b.className = cls;
+    b.textContent = label;
+    b.disabled = !picked.size;
+    b.addEventListener("click", fn);
+    bar.appendChild(b);
+    return b;
+  };
+
+  act("Verschieben", "", () => moveSheet(topPicks()));
+  act("Kopieren", "", () => clipCopy("copy"));
+  act("Löschen", "danger", () => deleteMany(topPicks()));
+
   const done = document.createElement("button");
-  done.type = "button"; done.className = "plain"; done.textContent = "Fertig";
+  done.type = "button"; done.className = "done"; done.title = "Fertig";
+  done.setAttribute("aria-label", "Auswahl beenden");
+  done.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    + 'stroke-width="1.9" stroke-linecap="round" aria-hidden="true">'
+    + '<path d="M6 6l12 12M18 6 6 18"/></svg>';
   done.addEventListener("click", clearPick);
   bar.appendChild(done);
 
-  return bar;
+  document.body.appendChild(bar);
 }
+
 
 function markPickable(card, target){
   card.classList.add("pickable");
@@ -1993,7 +2007,6 @@ function markPickable(card, target){
     card.addEventListener("click", ev => {
       if(selectScope === "stage" || ev.metaKey || ev.ctrlKey){
         ev.preventDefault(); ev.stopPropagation();
-        selectScope = "stage";
         togglePick(target);
       }
     });
