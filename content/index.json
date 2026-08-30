@@ -73,7 +73,13 @@
                 {
                   "type": "folder",
                   "title": "Organsysteme",
-                  "children": []
+                  "children": [
+                    {
+                      "type": "folder",
+                      "title": "Herzkreislauf",
+                      "children": []
+                    }
+                  ]
                 }
               ]
             }
