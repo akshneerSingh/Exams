@@ -201,6 +201,8 @@
     (after && Array.isArray(after.rounds) ? after.rounds : []).forEach((round, index) => {
       const old = before && Array.isArray(before.rounds) ? before.rounds[index] : null;
       const slot = record.rounds[index] || { answers: {}, flags: {} };
+      slot.answers = slot.answers || {};
+      slot.flags = slot.flags || {};
 
       Object.keys(round.answers || {}).forEach((q) => {
         const a = JSON.stringify((old && old.answers ? old.answers[q] : null) || null);
@@ -220,6 +222,13 @@
 
       record.rounds[index] = slot;
     });
+
+    /* Schrumpft die Zahl der Runden, war es ein Zurücksetzen. Das muss als
+       Ganzes vermerkt werden — sonst brächte der Abgleich die alten
+       Wiederholungsrunden von der Gegenseite zurück. */
+    const beforeRounds = before && Array.isArray(before.rounds) ? before.rounds.length : 0;
+    const afterRounds = after && Array.isArray(after.rounds) ? after.rounds.length : 0;
+    if (beforeRounds > afterRounds) record.resetAt = at;
 
     record.updated = at;
     state.stamps[examId] = record;
@@ -273,6 +282,13 @@
       return (remote.updated || 0) > (local.updated || 0) ? remote : local;
     }
 
+    /* Wurde eine Seite zurückgesetzt, nachdem die andere zuletzt geschrieben
+       hat, gilt die Rücksetzung — und zwar vollständig. */
+    const localReset = (local.stamps && local.stamps.resetAt) || 0;
+    const remoteReset = (remote.stamps && remote.stamps.resetAt) || 0;
+    if (localReset && localReset > (remote.updated || 0)) return local;
+    if (remoteReset && remoteReset > (local.updated || 0)) return remote;
+
     const localNewer = (local.updated || 0) >= (remote.updated || 0);
     const localRounds = Array.isArray(localData.rounds) ? localData.rounds : [];
     const remoteRounds = Array.isArray(remoteData.rounds) ? remoteData.rounds : [];
@@ -287,7 +303,11 @@
     const otherData = baseIsLocal ? remoteData : localData;
     const otherStamps = (baseIsLocal ? remote : local).stamps || { rounds: {} };
 
-    const stamps = { updated: Math.max(local.updated || 0, remote.updated || 0), rounds: {} };
+    const stamps = {
+      updated: Math.max(local.updated || 0, remote.updated || 0),
+      resetAt: Math.max(localReset, remoteReset) || undefined,
+      rounds: {}
+    };
 
     base.rounds.forEach((round, index) => {
       const other = (otherData.rounds || [])[index];
@@ -299,22 +319,46 @@
       round.flags = round.flags || {};
 
       if (other) {
+        /* Der jüngere Zeitstempel gewinnt — auch dann, wenn er für ein
+           Entfernen steht. Vorher wurde eine fehlende Antwort ungeprüft von
+           der Gegenseite ergänzt, wodurch jedes Zurücksetzen rückgängig
+           gemacht wurde. */
         Object.keys(other.answers || {}).forEach((q) => {
           const mineAt = mine.answers[q] || 0;
           const theirsAt = theirs.answers[q] || 0;
-          if (!(q in round.answers) || theirsAt > mineAt) round.answers[q] = other.answers[q];
+          if (theirsAt > mineAt) round.answers[q] = other.answers[q];
+          else if (!mineAt && !(q in round.answers)) round.answers[q] = other.answers[q];
         });
+        /* Was die Gegenseite später entfernt hat, fällt auch hier weg. */
+        Object.keys(round.answers).forEach((q) => {
+          const mineAt = mine.answers[q] || 0;
+          const theirsAt = theirs.answers[q] || 0;
+          if (theirsAt > mineAt && !(q in (other.answers || {}))) delete round.answers[q];
+        });
+
         Object.keys(other.flags || {}).forEach((q) => {
           const mineAt = mine.flags[q] || 0;
           const theirsAt = theirs.flags[q] || 0;
-          if (!(q in round.flags) || theirsAt > mineAt) round.flags[q] = other.flags[q];
+          if (theirsAt > mineAt) round.flags[q] = other.flags[q];
+          else if (!mineAt && !(q in round.flags)) round.flags[q] = other.flags[q];
+        });
+        Object.keys(round.flags).forEach((q) => {
+          const mineAt = mine.flags[q] || 0;
+          const theirsAt = theirs.flags[q] || 0;
+          if (theirsAt > mineAt && !(q in (other.flags || {}))) delete round.flags[q];
         });
       }
 
-      Object.keys(round.answers).forEach((q) => {
+      /* Die Zeitstempel beider Seiten übernehmen, auch für Fragen, die es
+         nicht mehr gibt. Genau diese Marken sind der Beleg dafür, dass eine
+         Antwort entfernt wurde — liessen wir sie weg, spielte das andere
+         Gerät sie beim nächsten Abgleich wieder ein. */
+      new Set([...Object.keys(mine.answers), ...Object.keys(theirs.answers),
+               ...Object.keys(round.answers)]).forEach((q) => {
         slot.answers[q] = Math.max(mine.answers[q] || 0, theirs.answers[q] || 0);
       });
-      Object.keys(round.flags).forEach((q) => {
+      new Set([...Object.keys(mine.flags), ...Object.keys(theirs.flags),
+               ...Object.keys(round.flags)]).forEach((q) => {
         slot.flags[q] = Math.max(mine.flags[q] || 0, theirs.flags[q] || 0);
       });
       stamps.rounds[index] = slot;
