@@ -86,18 +86,19 @@
               "type": "folder",
               "title": "Sem 4",
               "children": []
-            },
-            {
-              "type": "folder",
-              "title": "Sem 5",
-              "children": []
             }
           ]
         },
         {
           "type": "folder",
           "title": "3 Year",
-          "children": []
+          "children": [
+            {
+              "type": "folder",
+              "title": "Sem 5",
+              "children": []
+            }
+          ]
         }
       ]
     }
