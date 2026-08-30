@@ -199,16 +199,23 @@ main > article{max-width:760px;margin:0 auto;min-width:0}
 .crumb{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:10px;
   display:inline-flex;align-items:center;gap:4px}
 h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:0}
-.titlerow{display:flex;align-items:center;gap:8px}
-.titlerow h1{margin-right:4px}
-.addhere{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
-  color:var(--blue);background:rgba(10,132,255,.14);font-size:19px;line-height:1;
+.titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.titlerow h1{margin-right:6px}
+/* Zwei beschriftete Knöpfe statt zweier Kreise: bei Symbolen allein muss man
+   raten, welcher welcher ist. */
+/* Nur Symbole. Gezeichnet statt getippt, weil Textzeichen wie ＋ und ↑ je
+   nach Schrift unterschiedlich gross und schief sitzen. */
+.addpill{flex:none;display:grid;place-items:center;
+  width:36px;height:36px;border-radius:50%;
+  color:var(--blue);background:rgba(10,132,255,.14);
   transition:background .15s ease,transform .18s var(--spring-soft)}
-.addhere:hover{background:rgba(10,132,255,.24)}
-.addhere:active{transform:scale(.92)}
-/* Hochladen ist die seltenere Handlung und tritt deshalb leiser auf. */
-.addhere--file{color:var(--label-2);background:rgba(118,118,128,.18);font-size:16px}
-.addhere--file:hover{background:rgba(118,118,128,.28);color:var(--label)}
+.addpill svg{width:20px;height:20px;display:block}
+.addpill:hover{background:rgba(10,132,255,.24)}
+.addpill:active{transform:scale(.92)}
+/* Andere Form, andere Farbe: die beiden sollen sich nicht ähneln. */
+.addpill--file{color:var(--label-2);background:rgba(118,118,128,.18)}
+.addpill--file:hover{background:rgba(118,118,128,.3);color:var(--label)}
+.tool svg{width:18px;height:18px;display:block}
 .sub{font-size:14px;color:var(--label-3);margin-top:6px;max-width:56ch}
 .sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);margin:34px 0 10px}
@@ -586,8 +593,8 @@ body.scrolled .mobilebar{
       <button class="tool" id="gearBtn" type="button" title="Einstellungen" aria-label="Einstellungen">
         ⚙<span class="lamp" id="lamp"></span>
       </button>
-      <button class="tool" id="folderPlus" type="button" title="Neuer Ordner" aria-label="Neuer Ordner" hidden>＋</button>
-      <button class="tool" id="uploadPlus" type="button" title="Dateien hochladen" aria-label="Dateien hochladen" hidden>↑</button>
+      <button class="tool" id="folderPlus" type="button" title="Neuer Ordner" aria-label="Neuer Ordner" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v7.8A1.6 1.6 0 0 1 19.4 19H4.6A1.6 1.6 0 0 1 3 17.4z"/><path d="M12 11.4v4.2M9.9 13.5h4.2"/></svg></button>
+      <button class="tool" id="uploadPlus" type="button" title="Dateien hochladen" aria-label="Dateien hochladen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.4V4.2"/><path d="M8.1 8.1 12 4.2l3.9 3.9"/><path d="M4.2 14.6v3.6A1.6 1.6 0 0 0 5.8 19.8h12.4a1.6 1.6 0 0 0 1.6-1.6v-3.6"/></svg></button>
     </div>
     <div class="legal">
       <a href="#impressum" id="linkImpressum">Impressum</a>
@@ -601,10 +608,10 @@ body.scrolled .mobilebar{
     <button class="crumb" id="crumb" type="button" hidden></button>
     <div class="titlerow">
       <h1 id="title">…</h1>
-      <button class="addhere" id="addFolderHere" type="button" hidden
-              title="Neuer Ordner" aria-label="Neuer Ordner">＋</button>
-      <button class="addhere addhere--file" id="addFilesHere" type="button" hidden
-              title="Dateien hochladen" aria-label="Dateien hochladen">↑</button>
+      <button class="addpill" id="addFolderHere" type="button" hidden
+              title="Neuer Ordner" aria-label="Neuer Ordner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v7.8A1.6 1.6 0 0 1 19.4 19H4.6A1.6 1.6 0 0 1 3 17.4z"/><path d="M12 11.4v4.2M9.9 13.5h4.2"/></svg></button>
+      <button class="addpill addpill--file" id="addFilesHere" type="button" hidden
+              title="Dateien hochladen" aria-label="Dateien hochladen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.4V4.2"/><path d="M8.1 8.1 12 4.2l3.9 3.9"/><path d="M4.2 14.6v3.6A1.6 1.6 0 0 0 5.8 19.8h12.4a1.6 1.6 0 0 0 1.6-1.6v-3.6"/></svg></button>
     </div>
     <p class="sub" id="sub"></p>
     <div id="resumeSlot"></div>
@@ -1406,13 +1413,11 @@ function menuSheet(title, items){
 
 function refreshAdmin(){
   admin = !!(window.Admin && Admin.enabled());
-  $("#folderPlus").hidden = !admin;
-  $("#addFolderHere").hidden = !admin;
-  /* Hochladen braucht einen Ordner — in der Übersicht bleiben beide
-     Hochlade-Knöpfe weg, statt eine Meldung zu zeigen. */
-  const canUpload = admin && path.length > 0;
-  $("#uploadPlus").hidden = !canUpload;
-  $("#addFilesHere").hidden = !canUpload;
+  /* Beide Knöpfe stehen überall zur Verfügung. Fehlt für Dateien ein Ordner,
+     fragt der Knopf danach — das ist besser, als ihn verschwinden zu lassen
+     und den Benutzer suchen zu lassen, wo er hin ist. */
+  ["#folderPlus", "#addFolderHere", "#uploadPlus", "#addFilesHere"]
+    .forEach(sel => { const el = $(sel); if(el) el.hidden = !admin; });
 }
 
 /* Der Baum wird lokal geändert und danach als ganze Datei committet. */
@@ -1657,8 +1662,18 @@ $("#addFilesHere").addEventListener("click", uploadSheet);
 
 /* -------------------- Hochladen -------------------- */
 function uploadSheet(){
+  /* In der Übersicht selbst können keine Dateien liegen — also erst den
+     Zielordner wählen und dann normal weiter. */
   if(!path.length){
-    alert("Wähle links zuerst einen Ordner. In die Übersicht selbst lässt sich nichts legen.");
+    const choices = folderList().map(f => ({
+      label: f.label, depth: f.depth,
+      run: () => { goTo(f.target); uploadSheet(); }
+    }));
+    if(!choices.length){
+      alert("Lege zuerst einen Ordner an — Dateien brauchen einen Platz.");
+      return;
+    }
+    menuSheet("Wohin hochladen?", choices);
     return;
   }
   $("#sheetHead").textContent = "Hochladen nach «" + nodeAt(path).title + "»";
