@@ -117,7 +117,18 @@
                         {
                           "type": "folder",
                           "title": "Anatomie",
-                          "children": []
+                          "children": [
+                            {
+                              "type": "folder",
+                              "title": "Klinik",
+                              "children": []
+                            },
+                            {
+                              "type": "folder",
+                              "title": "Physiologie",
+                              "children": []
+                            }
+                          ]
                         }
                       ]
                     },
