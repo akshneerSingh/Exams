@@ -478,6 +478,8 @@ body.rail-off .railshow{display:grid}
 .railfoot .legal{display:flex;gap:12px;padding:14px 6px 2px;flex-wrap:wrap}
 .railfoot .legal a{font-size:11.5px;color:var(--label-3);transition:color .15s}
 .railfoot .legal a:hover{color:var(--label-2)}
+.railfoot .legal .ver{margin-left:auto;font-size:11px;color:var(--label-3);
+  font-variant-numeric:tabular-nums}
 .brandlink{display:block;width:100%;text-align:left;padding:0 8px;
   border-radius:8px;transition:background .15s}
 .brandlink:hover{background:rgba(118,118,128,.14)}
@@ -763,6 +765,7 @@ body.scrolled .mobilebar{
     </div>
     <div class="legal">
       <a href="#impressum" id="linkImpressum">Impressum</a>
+      <span class="ver" id="ver"></span>
       <a href="#daten" id="linkDaten">Daten</a>
     </div>
   </div>
@@ -801,6 +804,9 @@ body.scrolled .mobilebar{
 (() => {
 "use strict";
 
+/* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
+   sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
+const APP_VERSION = "37";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -2475,6 +2481,30 @@ function gearSheet(){
   if(admin || new URLSearchParams(location.search).has("admin")){
     items.push({ label: admin ? "Verwaltung · angemeldet" : "Verwaltung", run: adminSheet });
   }
+  items.push({ label: "Fassung " + APP_VERSION + " · Stand prüfen", run: async () => {
+    try{
+      const res = await fetch("index.html?v=" + Date.now(), { cache: "no-store" });
+      const text = await res.text();
+      const m = text.match(/APP_VERSION = "(\d+)"/);
+      const live = m ? m[1] : "?";
+      if(live === APP_VERSION) flash("Fassung " + APP_VERSION + " — aktuell");
+      else {
+        if(confirm("Im Repository liegt Fassung " + live + ", hier läuft "
+                   + APP_VERSION + ".\n\nJetzt neu laden?")){
+          if(navigator.serviceWorker){
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+          }
+          if(window.caches){
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          }
+          location.reload(true);
+        }
+      }
+    }catch(e){ alert("Konnte nicht prüfen: " + e.message); }
+  }});
+
   menuSheet("Einstellungen", items);
 }
 $("#gearBtn").addEventListener("click", gearSheet);
@@ -2732,6 +2762,8 @@ fetch(CFG.contentIndex || "content/index.json", { cache: "no-cache" })
     $("#brandSub").textContent = data.subtitle || "ETH Medizin";
     const hash = location.hash.replace("#", "");
     if(PAGES[hash]) page = hash;
+    const verEl = document.getElementById("ver");
+    if(verEl) verEl.textContent = "v" + APP_VERSION;
     refreshAdmin();
     render();
     if(Sync.configured() && Sync.meta().key) Sync.sync();
@@ -2744,7 +2776,23 @@ fetch(CFG.contentIndex || "content/index.json", { cache: "no-cache" })
 
 window.addEventListener("pageshow", () => { if(TREE) render(); });
 if("serviceWorker" in navigator){
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").then(reg => {
+      /* Wartet eine neue Fassung, sofort durchlassen — sonst sähe man beim
+         Neuladen weiterhin die alte. */
+      if(reg.waiting) reg.waiting.postMessage("skip-waiting");
+      reg.addEventListener("updatefound", () => {
+        const fresh = reg.installing;
+        if(!fresh) return;
+        fresh.addEventListener("statechange", () => {
+          if(fresh.state === "installed" && navigator.serviceWorker.controller){
+            fresh.postMessage("skip-waiting");
+          }
+        });
+      });
+      reg.update();
+    }).catch(() => {});
+  });
 }
 })();
 </script>

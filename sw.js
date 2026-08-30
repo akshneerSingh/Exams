@@ -1,7 +1,17 @@
-/* Offline-Cache für die App-Hülle.
-   Bei jeder Änderung an index.html oder quiz.html die VERSION erhöhen,
-   sonst liefert das iPhone weiter die alte Fassung aus dem Cache. */
-const VERSION = "v36";
+/* ============================================================================
+   Offline-Betrieb.
+
+   Wichtige Änderung gegenüber früher: die App-Dateien werden zuerst aus dem
+   Netz geholt und nur als Rückfallebene aus dem Zwischenspeicher. Vorher war
+   es umgekehrt, und das hatte eine unangenehme Folge — nach dem Hochladen
+   einer neuen Fassung sah man beim Neuladen weiterhin die alte, weil die
+   neue erst im Hintergrund installiert wurde und frühestens beim übernächsten
+   Öffnen zum Zug kam.
+
+   Ohne Netz ändert sich nichts: dann greift der Zwischenspeicher wie bisher.
+   ========================================================================== */
+
+const VERSION = "v37";
 const CACHE = "pruefungen-" + VERSION;
 
 const SHELL = [
@@ -33,7 +43,16 @@ self.addEventListener("activate", (event) => {
         keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))
       ))
       .then(() => self.clients.claim())
+      /* Offene Seiten sofort auf die neue Fassung heben, statt sie bis zum
+         nächsten Öffnen auf dem alten Stand stehen zu lassen. */
+      .then(() => self.clients.matchAll({ type: "window" }))
+      .then((clients) => clients.forEach((client) => client.navigate(client.url)))
+      .catch(() => {})
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data === "skip-waiting") self.skipWaiting();
 });
 
 self.addEventListener("fetch", (event) => {
@@ -43,29 +62,18 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== location.origin) return;
 
-  /* Prüfungslisten und -dateien immer frisch holen, sonst kommt beim
-     Synchronisieren ewig die alte Liste zurück. Ohne Netz aus dem Cache. */
-  if (url.pathname.includes("/exams/") || url.pathname.includes("/content/")) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
+  /* Alles aus dem Netz, mit dem Zwischenspeicher als Netz-Ersatz. Was
+     ankommt, wird für den nächsten Ausfall abgelegt. */
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok && response.type === "basic") {
           const copy = response.clone();
           caches.open(CACHE).then((cache) => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  /* App-Hülle: erst Cache, dann Netz. */
-  event.respondWith(
-    caches.match(request).then((hit) => hit || fetch(request).then((response) => {
-      if (response.ok && response.type === "basic") {
-        const copy = response.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, copy));
-      }
-      return response;
-    }).catch(() => caches.match("./index.html")))
+        }
+        return response;
+      })
+      .catch(() => caches.match(request)
+        .then((hit) => hit || caches.match("./index.html")))
   );
 });
