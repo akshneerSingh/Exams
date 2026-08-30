@@ -41,7 +41,7 @@
   --blue:#0a84ff; --green:#30d158; --red:#ff453a; --orange:#ff9f0a;
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,
          "Helvetica Neue",Helvetica,Arial,sans-serif;
-  --rail-w:236px;
+  --rail-w:274px;
   --rail-gap:12px;              /* Abstand der Platte zum Fensterrand */
 
   /* Federkurven. Nichts läuft gleichförmig: alles schwingt leicht über und
@@ -120,27 +120,56 @@ html[data-theme="light"] .rail{background:var(--glass)}
   margin-top:2px;line-height:1.35}
 .railtitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);padding:0 8px;margin:26px 0 8px}
-.seg{display:flex;flex-direction:column;gap:2px;overflow-y:auto;min-height:0}
-.seg button{display:flex;align-items:center;gap:8px;width:100%;color:var(--label-2);
-  font-size:14px;font-weight:500;letter-spacing:-.011em;padding:9px 10px;
-  border-radius:9px;text-align:left;
-  transition:background .16s ease,color .16s ease,transform .18s var(--spring-soft)}
-.seg button:active{transform:scale(.975);transition-duration:.08s}
+.seg{display:flex;flex-direction:column;gap:1px;overflow-y:auto;min-height:0;
+  padding-right:2px}
+/* Zeile im Baum. Die Einrückung sitzt in einem eigenen Feld links, nicht im
+   Innenabstand — dadurch bleibt die Trefferfläche über die volle Breite und
+   die Namen stehen sauber untereinander. */
+.seg button{
+  position:relative;display:flex;align-items:center;gap:7px;width:100%;
+  min-height:34px;padding:0 10px 0 6px;
+  color:var(--label-2);font-size:14px;font-weight:450;letter-spacing:-.012em;
+  border-radius:8px;text-align:left;
+  transition:background .16s ease,color .16s ease}
+.seg button:active{background:rgba(118,118,128,.26)}
 .seg button:hover{background:rgba(118,118,128,.16);color:var(--label)}
 .seg button[aria-selected="true"]{background:rgba(10,132,255,.16);color:var(--blue);font-weight:600}
+.seg button.picked{background:rgba(10,132,255,.26);color:var(--blue)}
+.seg button.picked .cnt{color:var(--blue);opacity:.8}
+
+/* Leiste über der Auswahl. Erscheint nur, solange etwas markiert ist. */
+.selbar{display:flex;align-items:center;gap:8px;margin:0 0 8px;
+  padding:8px 10px;border-radius:10px;
+  background:rgba(10,132,255,.14);border:.5px solid rgba(10,132,255,.3)}
+.selbar .n{flex:1;font-size:12.5px;font-weight:600;color:var(--blue)}
+.selbar button{font-size:12.5px;font-weight:600;color:var(--blue);
+  padding:4px 8px;border-radius:7px;transition:background .15s}
+.selbar button:hover{background:rgba(10,132,255,.2)}
+.selbar button.plain{color:var(--label-3)}
 .seg .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Klapp-Pfeil links vom Namen. Wo es nichts zu klappen gibt, hält ein
    unsichtbarer Platzhalter die Namen trotzdem auf einer Fluchtlinie. */
-.seg .tw{flex:none;width:16px;margin-left:-4px;display:grid;place-items:center;
-  color:var(--label-3);font-size:9px;border-radius:4px;
-  transition:transform .16s ease,background .15s,color .15s}
-.seg .tw:hover{background:rgba(118,118,128,.3);color:var(--label)}
-.seg .tw.closed{transform:rotate(-90deg)}
+/* Einrückungsfeld: pro Ebene ein fester Streifen mit einer feinen Führungslinie.
+   Ohne sie verliert man bei drei Ebenen die Zuordnung. */
+.seg .pad{flex:none;align-self:stretch;position:relative}
+.seg .pad::before{content:"";position:absolute;top:3px;bottom:3px;right:9px;
+  width:1px;background:var(--hair)}
+.seg .pad.root::before{display:none}
+
+/* Aufklapp-Zeiger: schlanker Winkel statt vollflächigem Dreieck. */
+.seg .tw{flex:none;width:20px;height:20px;display:grid;place-items:center;
+  color:var(--label-3);font-size:11px;border-radius:5px;
+  transform:rotate(90deg);
+  transition:transform .2s var(--spring),background .15s ease,color .15s ease}
+.seg .tw:hover{background:rgba(118,118,128,.28);color:var(--label)}
+.seg .tw.closed{transform:rotate(0deg)}
 .seg .tw.leaf{visibility:hidden}
 .seg .cnt{margin-left:auto;padding-left:10px;font-size:11.5px;font-weight:600;
   color:var(--label-3);font-variant-numeric:tabular-nums}
 .seg button[aria-selected="true"] .cnt{color:var(--blue);opacity:.85}
-.seg .sect{margin-top:14px}
+.seg .sect{margin-top:18px;font-weight:600;font-size:14.5px;color:var(--label)}
+.seg .sect:first-child{margin-top:0}
+.seg .cnt{font-variant-numeric:tabular-nums}
 .railfoot{margin-top:auto;padding-top:18px}
 .mini{padding:0 8px 12px}
 .mini .lab{font-size:11.5px;color:var(--label-3);font-weight:500;display:flex;
@@ -536,6 +565,9 @@ body.scrolled .mobilebar{
       <div class="progress"><div class="progress-fill" id="pfill"></div></div>
     </div>
     <div class="tools">
+      <button class="chip" id="sortBtn" type="button">
+        <span class="lbl">Sortierung</span><span aria-hidden="true">⇅</span>
+      </button>
       <button class="chip" id="settingsBtn" type="button">
         <span class="lbl">Darstellung</span><span aria-hidden="true">◐</span>
       </button>
@@ -713,6 +745,48 @@ function goTo(target){
 }
 
 /* ==================== Zeichnen ==================== */
+/* ==================== Sortierung ====================
+   Eine Einstellung für alle Ordner. Sie ändert nur die Anzeige, nicht die
+   gespeicherte Reihenfolge — so lässt sie sich jederzeit zurückstellen, ohne
+   dass am Inhaltsverzeichnis etwas geschrieben wird.
+
+   Ordner stehen immer vor Einträgen; alles andere wäre beim Durchklicken
+   verwirrend. */
+
+const SORT_KEY = "pruefung:sort";
+const SORTS = {
+  manuell: { label: "Wie angelegt", cmp: null },
+  az:      { label: "Name A → Z", cmp: (a,b) => a.title.localeCompare(b.title, "de") },
+  za:      { label: "Name Z → A", cmp: (a,b) => b.title.localeCompare(a.title, "de") }
+};
+let sortMode = "manuell";
+try { if(SORTS[localStorage.getItem(SORT_KEY)]) sortMode = localStorage.getItem(SORT_KEY); } catch(_) {}
+
+/* Liefert Paare aus Kind und seinem echten Index. Der Index muss der der
+   ungeordneten Liste bleiben, sonst zeigen alle Pfade ins Leere. */
+function ordered(list){
+  const pairs = (list || []).map((child, i) => ({ child, i }));
+  const folder = p => p.child.type === "folder" || !p.child.file;
+  const cmp = SORTS[sortMode].cmp;
+  return pairs.sort((a, b) => {
+    const fa = folder(a) ? 0 : 1, fb = folder(b) ? 0 : 1;
+    if(fa !== fb) return fa - fb;
+    if(!cmp) return a.i - b.i;
+    return cmp(a.child, b.child);
+  });
+}
+
+function sortSheet(){
+  menuSheet("Sortierung", Object.keys(SORTS).map(key => ({
+    label: SORTS[key].label + (sortMode === key ? "   ✓" : ""),
+    run: () => {
+      sortMode = key;
+      try { localStorage.setItem(SORT_KEY, key); } catch(_) {}
+      render();
+    }
+  })));
+}
+
 /* ==================== Auf- und zugeklappte Ordner ====================
    Gemerkt wird, was zugeklappt ist — nicht, was offen ist. So bleiben neu
    hinzugekommene Ordner sichtbar, statt still zuzubleiben. */
@@ -749,21 +823,97 @@ function revealPath(target){
   if(changed) saveFolds();
 }
 
+/* ==================== Mehrfachauswahl ====================
+   Cmd- oder Ctrl-Klick markiert Ordner. Ein markierter Ordner lässt sich mit
+   allen anderen zusammen in einem Zug verschieben. */
+
+let picked = new Set();
+const pickId = t => t.join(".");
+
+function clearPick(){ if(picked.size){ picked.clear(); renderRail(); } }
+
+/* Ist ein Vorfahre ebenfalls markiert, wird der Ordner mitgenommen und darf
+   nicht zusätzlich einzeln verschoben werden. */
+function topPicks(){
+  const all = [...picked].map(id => id.split(".").map(Number));
+  return all.filter(t => !all.some(o =>
+    o.length < t.length && o.every((v, i) => t[i] === v)));
+}
+
+async function moveMany(targets, dest){
+  const destNode = nodeAt(dest);
+  const nodes = targets.map(t => ({ node: nodeAt(t), list: listAt(parentOf(t)) }));
+  if(nodes.some(n => n.node === destNode)) return;
+  nodes.forEach(({ node, list }) => {
+    const i = list.indexOf(node);
+    if(i !== -1) list.splice(i, 1);
+  });
+  const kids = destNode.children || (destNode.children = []);
+  nodes.forEach(({ node }) => kids.push(node));
+  picked.clear();
+  path = pathOf(destNode) || [];
+  revealPath(path);
+  const what = nodes.length === 1 ? "«" + nodes[0].node.title + "»" : nodes.length + " Ordner";
+  await run(what + " nach «" + destNode.title + "»",
+            () => saveTree("Verschoben: " + what));
+}
+
 function renderRail(){
   const nav = $("#nav"); nav.textContent = "";
   if(!TREE) return;
 
+  if(picked.size){
+    const bar = document.createElement("div");
+    bar.className = "selbar";
+    const n = document.createElement("span");
+    n.className = "n";
+    n.textContent = picked.size + (picked.size === 1 ? " ausgewählt" : " ausgewählt");
+    const move = document.createElement("button");
+    move.type = "button"; move.textContent = "Verschieben";
+    move.addEventListener("click", () => {
+      const targets = topPicks();
+      /* Ziele ausschliessen, die selbst markiert sind oder in einem markierten
+         Ordner liegen — sonst zöge man einen Ast in sich selbst. */
+      const blocked = new Set();
+      targets.forEach(t => {
+        blocked.add(JSON.stringify(t));
+        folderList().forEach(f => {
+          if(f.target.length > t.length && t.every((v, i) => f.target[i] === v)){
+            blocked.add(JSON.stringify(f.target));
+          }
+        });
+      });
+      const choices = folderList()
+        .filter(f => !blocked.has(JSON.stringify(f.target)))
+        .map(f => ({ label: f.label, depth: f.depth,
+                     run: () => moveMany(targets, f.target) }));
+      menuSheet("Verschieben nach", choices);
+    });
+    const off = document.createElement("button");
+    off.type = "button"; off.className = "plain"; off.textContent = "Aufheben";
+    off.addEventListener("click", clearPick);
+    bar.append(n, move, off);
+    nav.appendChild(bar);
+  }
+
   const add = (label, target, depth, count, isSection, hasKids) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.className = isSection ? "sect" : "";
+    b.className = (isSection ? "sect" : "") + (picked.has(pickId(target)) ? " picked" : "");
     b.setAttribute("aria-selected", String(JSON.stringify(target) === JSON.stringify(path)));
-    b.style.paddingLeft = (10 + depth*14) + "px";
+
+    if(depth){
+      const pad = document.createElement("span");
+      pad.className = "pad";
+      pad.style.width = (depth * 15) + "px";
+      pad.setAttribute("aria-hidden", "true");
+      b.appendChild(pad);
+    }
 
     const tw = document.createElement("span");
     const closed = folded.has(foldId(target));
     tw.className = "tw" + (hasKids ? (closed ? " closed" : "") : " leaf");
-    tw.textContent = "▼";
+    tw.textContent = "›";
     tw.setAttribute("aria-hidden", "true");
     if(hasKids){
       b.setAttribute("aria-expanded", String(!closed));
@@ -780,7 +930,19 @@ function renderRail(){
       k.addEventListener("click", ev => { ev.stopPropagation(); nodeMenu(target); });
       b.appendChild(k);
     }
-    b.addEventListener("click", () => goTo(target));
+    b.addEventListener("click", ev => {
+      /* Cmd oder Ctrl markiert, statt zu navigieren. Bereiche selbst lassen
+         sich nicht verschieben und deshalb auch nicht markieren. */
+      if((ev.metaKey || ev.ctrlKey) && target.length > 1){
+        ev.preventDefault();
+        const id = pickId(target);
+        if(picked.has(id)) picked.delete(id); else picked.add(id);
+        renderRail();
+        return;
+      }
+      clearPick();
+      goTo(target);
+    });
     if(admin && target.length){
       makeDropTarget(b, target);
       if(target.length > 1) makeDraggable(b, target);
@@ -793,9 +955,9 @@ function renderRail(){
   TREE.sections.forEach((section, si) => {
     add(section.title, [si], 0, countQuiz(section), true, hasFolders(section));
     const walk = (node, base, depth) => {
-      (node.children || []).forEach((child, ci) => {
+      ordered(node.children).forEach(({ child, i }) => {
         if(child.type !== "folder") return;
-        const here = base.concat(ci);
+        const here = base.concat(i);
         if(!hidden(here)) add(child.title, here, depth, countQuiz(child), false, hasFolders(child));
         if(depth < 6) walk(child, here, depth + 1);
       });
@@ -993,8 +1155,9 @@ function renderStage(){
   renderResume();
 
   const kids = node.children || [];
-  const entries = kids.filter(c => c.type === "pdf" || c.type === "quiz");
-  const folders = kids.filter(c => c.type === "folder" || !c.type);
+  const shown = ordered(kids);
+  const entries = shown.filter(p => p.child.type === "pdf" || p.child.type === "quiz");
+  const folders = shown.filter(p => p.child.type === "folder" || !p.child.type);
 
   const list = $("#listTitle");
   const cards = $("#cards"); cards.textContent = "";
@@ -1007,8 +1170,7 @@ function renderStage(){
   list.hidden = !(entries.length || folders.length);
   list.textContent = entries.length ? "Inhalt" : "Bereiche";
 
-  folders.forEach((child, i) => {
-    const idx = kids.indexOf(child);
+  folders.forEach(({ child, i: idx }) => {
     const card = document.createElement("button");
     card.type = "button";
     card.className = "card";
@@ -1025,7 +1187,7 @@ function renderStage(){
     if(admin){ attachMenu(card, here); makeDraggable(card, here); makeDropTarget(card, here); }
   });
 
-  entries.forEach(child => {
+  entries.forEach(({ child, i: idx }) => {
     if(child.type === "pdf"){
       const a = document.createElement("a");
       a.className = "card";
@@ -1040,7 +1202,7 @@ function renderStage(){
       a.querySelector(".meta").textContent = child.meta || "PDF";
       cards.appendChild(a);
       if(admin){
-        const t = (path.length?path:[]).concat(kids.indexOf(child));
+        const t = (path.length?path:[]).concat(idx);
         attachMenu(a, t); makeDraggable(a, t);
       }
       return;
@@ -1071,7 +1233,7 @@ function renderStage(){
     if(!p.done) a.querySelector(".foot").style.display = "none";
     cards.appendChild(a);
     if(admin){
-      const t = (path.length?path:[]).concat(kids.indexOf(child));
+      const t = (path.length?path:[]).concat(idx);
       attachMenu(a, t); makeDraggable(a, t);
     }
   });
@@ -1329,7 +1491,13 @@ function makeDropTarget(el, target){
     if(!ok()) return;
     const src = dragSource;
     dragSource = null;
-    await moveNode(src, target);
+    /* Wurde eine markierte Zeile gezogen, wandert die ganze Auswahl mit. */
+    if(picked.has(pickId(src)) && picked.size > 1){
+      await moveMany(topPicks(), target);
+    } else {
+      clearPick();
+      await moveNode(src, target);
+    }
   });
 }
 
@@ -1733,11 +1901,13 @@ function settingsSheet(){
     run: () => { setTheme(mode); }
   })));
 }
+$("#sortBtn").addEventListener("click", sortSheet);
 $("#settingsBtn").addEventListener("click", settingsSheet);
 
 $("#mbSettings").addEventListener("click", () => {
   menuSheet("Einstellungen", [
     { label: "Darstellung", run: settingsSheet },
+    { label: "Sortierung", run: sortSheet },
     { label: "Auf anderem Gerät fortsetzen", run: () => deviceSheet() },
     { label: "Impressum", run: () => openPage("impressum") },
     { label: "Daten", run: () => openPage("daten") }
@@ -1756,7 +1926,9 @@ const isNarrow = () => window.matchMedia("(max-width: 860px)").matches;
 $("#drawerBtn").addEventListener("click", () => drawer(!document.body.classList.contains("drawer")));
 $("#scrim").addEventListener("click", () => drawer(false));
 document.addEventListener("keydown", e => {
-  if(e.key === "Escape" && document.body.classList.contains("drawer")) drawer(false);
+  if(e.key !== "Escape") return;
+  if(document.body.classList.contains("drawer")) drawer(false);
+  else clearPick();
 });
 window.addEventListener("resize", () => { if(!isNarrow()) drawer(false); });
 
