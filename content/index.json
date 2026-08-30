@@ -78,7 +78,14 @@
                 {
                   "type": "folder",
                   "title": "Chemie",
-                  "children": []
+                  "children": [
+                    {
+                      "type": "quiz",
+                      "title": "hallo",
+                      "file": "content/quizzes/hallo.json",
+                      "meta": "30 Fragen · 7 Blöcke"
+                    }
+                  ]
                 },
                 {
                   "type": "folder",
@@ -142,12 +149,6 @@
                           "type": "quiz",
                           "title": "Metabolismus — Kprim-Übungsprüfung",
                           "file": "content/quizzes/metabolismus-kprim-ubungsprufung.json",
-                          "meta": "15 Fragen · 11 Blöcke"
-                        },
-                        {
-                          "type": "quiz",
-                          "title": "Metabolismus — Kprim-Übungsprüfung",
-                          "file": "content/quizzes/metabolismus-kprim-ubungsprufung-2.json",
                           "meta": "15 Fragen · 11 Blöcke"
                         }
                       ]
