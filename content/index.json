@@ -98,13 +98,7 @@
                     {
                       "type": "folder",
                       "title": "Herzkreislauf",
-                      "children": [
-                        {
-                          "type": "folder",
-                          "title": "Anatomie",
-                          "children": []
-                        }
-                      ]
+                      "children": []
                     },
                     {
                       "type": "folder",
@@ -118,6 +112,11 @@
                         {
                           "type": "folder",
                           "title": "Klinik",
+                          "children": []
+                        },
+                        {
+                          "type": "folder",
+                          "title": "Anatomie",
                           "children": []
                         }
                       ]
