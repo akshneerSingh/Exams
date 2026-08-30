@@ -1293,6 +1293,9 @@ function render(){
   renderStage();
   updateTitle();
   markEntrance();
+  /* Der Hochlade-Knopf hängt am Ort, nicht nur an der Anmeldung — also bei
+     jedem Zeichnen nachziehen und nicht bloss einmal beim Start. */
+  if(window.Admin) refreshAdmin();
 }
 
 /* Der Tab-Titel nennt den Ort — bei zwanzig offenen Tabs der Unterschied
