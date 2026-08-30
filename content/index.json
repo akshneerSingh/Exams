@@ -143,7 +143,26 @@
                     {
                       "type": "folder",
                       "title": "Part II Metabolismus",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Kprim Metabolismus Final",
+                          "file": "content/quizzes/Kprim_Metabolismus_Final.json",
+                          "meta": "15 Fragen · 11 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Kprim Metabolismus VL2 VL3 Peter",
+                          "file": "content/quizzes/Kprim_Metabolismus_VL2_VL3_Peter.json",
+                          "meta": "30 Fragen · 7 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Kprim Metabolismus VL4 VL5 Peter",
+                          "file": "content/quizzes/Kprim_Metabolismus_VL4_VL5_Peter.json",
+                          "meta": "30 Fragen · 11 Blöcke"
+                        }
+                      ]
                     }
                   ]
                 },
