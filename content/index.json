@@ -136,18 +136,6 @@
                     },
                     {
                       "type": "folder",
-                      "title": "Part II Metabolismus",
-                      "children": [
-                        {
-                          "type": "quiz",
-                          "title": "Metabolismus — Kprim-Übungsprüfung",
-                          "file": "content/quizzes/metabolismus-kprim-ubungsprufung-2.json",
-                          "meta": "15 Fragen · 11 Blöcke"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "folder",
                       "title": "Part III Zelluläre Funktionen",
                       "children": [
                         {
