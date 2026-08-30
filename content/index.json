@@ -69,7 +69,13 @@
             {
               "type": "folder",
               "title": "Sem 2",
-              "children": []
+              "children": [
+                {
+                  "type": "folder",
+                  "title": "Organsysteme",
+                  "children": []
+                }
+              ]
             }
           ]
         },
