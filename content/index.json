@@ -138,7 +138,26 @@
                     {
                       "type": "folder",
                       "title": "Part III Zelluläre Funktionen",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Kprim Zellulaere Kommunikation",
+                          "file": "content/quizzes/Kprim_Zellulaere_Kommunikation.json",
+                          "meta": "15 Fragen · 9 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Kprim Biomembranen",
+                          "file": "content/quizzes/Kprim_Biomembranen.json",
+                          "meta": "15 Fragen · 11 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "Kprim Protein-vermittelte-Bewegung",
+                          "file": "content/quizzes/Kprim_Protein-vermittelte-Bewegung.json",
+                          "meta": "15 Fragen · 6 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
