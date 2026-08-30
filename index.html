@@ -2145,9 +2145,22 @@ function uploadSheet(dropped){
   drop.addEventListener("drop", e => take([...(e.dataTransfer.files || [])]));
   picker.addEventListener("change", () => { take([...picker.files]); picker.value = ""; });
 
+  /* Titel und Dateiname kommen aus dem Namen der Datei, die du ablegst —
+     nicht aus dem Titel im Inneren der Prüfung, den der Generator dort
+     hineinschreibt. Das wird hier gesetzt und nicht in admin.js, damit es
+     auch dann gilt, wenn dort noch eine ältere Fassung liegt. */
+  function fromFilename(item, file){
+    const base = String(file.name || "").replace(/\.[^.]+$/, "");
+    if(!base) return item;
+    item.basename = (Admin.safeName ? Admin.safeName(base) : base);
+    item.ext = item.ext || (item.kind === "pdf" ? ".pdf" : ".json");
+    item.title = base.replace(/_+/g, " ").replace(/\s+/g, " ").trim() || base;
+    return item;
+  }
+
   async function take(files){
     for(const file of files){
-      try{ queue.push(await Admin.prepare(file)); }
+      try{ queue.push(fromFilename(await Admin.prepare(file), file)); }
       catch(err){ queue.push({ error: err.message, title: file.name }); }
     }
     draw();
