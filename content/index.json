@@ -69,6 +69,11 @@
                   "type": "folder",
                   "title": "Nervensystem",
                   "children": []
+                },
+                {
+                  "type": "folder",
+                  "title": "Bewegungsapparat",
+                  "children": []
                 }
               ]
             },
