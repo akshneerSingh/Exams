@@ -153,7 +153,14 @@
                     {
                       "type": "folder",
                       "title": "Virologie",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Virologie Mock Exam",
+                          "file": "content/quizzes/virologie-mock-exam.json",
+                          "meta": "80 Fragen · 8 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
