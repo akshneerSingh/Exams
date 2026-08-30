@@ -265,6 +265,10 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
 .stagebar button.danger{color:var(--red)}
 .stagebar button.danger:hover{background:rgba(255,69,58,.16)}
 .stagebar button.plain{color:var(--label-2)}
+.clipbar{background:rgba(118,118,128,.14);border-color:var(--hair)}
+.clipbar .n{color:var(--label-2)}
+.clipbar button{color:var(--blue)}
+.clipbar button:hover{background:rgba(10,132,255,.16)}
 .tool svg{width:18px;height:18px;display:block}
 .sub{font-size:14px;color:var(--label-3);margin-top:6px;max-width:56ch}
 .sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
@@ -1487,6 +1491,7 @@ function renderStage(){
 
   const list = $("#listTitle");
   const cards = $("#cards"); cards.textContent = "";
+  if(admin && clip) cards.appendChild(clipBar());
   if(admin && selectScope === "stage") cards.appendChild(stageBar(shown));
   if(admin && (kids.length > 1)){
     const tip = document.createElement("p");
@@ -1902,6 +1907,33 @@ function moveSheet(targets){
   menuSheet("Verschieben nach", choices);
 }
 
+/* Was in der Ablage liegt, muss sichtbar sein — sonst tippt man Cmd+V ins
+   Leere oder vergisst, dass noch etwas wartet. */
+function clipBar(){
+  const bar = document.createElement("div");
+  bar.className = "stagebar clipbar";
+
+  const n = document.createElement("span");
+  n.className = "n";
+  const what = clip.labels.length === 1 ? "«" + clip.labels[0] + "»"
+                                        : clip.labels.length + " Einträge";
+  n.textContent = what + (clip.mode === "cut" ? " ausgeschnitten" : " kopiert");
+
+  const paste = document.createElement("button");
+  paste.type = "button";
+  paste.textContent = path.length ? "Hier einfügen" : "Ordner wählen";
+  paste.disabled = !path.length;
+  paste.style.opacity = path.length ? "" : ".45";
+  paste.addEventListener("click", clipPaste);
+
+  const off = document.createElement("button");
+  off.type = "button"; off.className = "plain"; off.textContent = "Verwerfen";
+  off.addEventListener("click", () => { clip = null; render(); });
+
+  bar.append(n, paste, off);
+  return bar;
+}
+
 function stageBar(shown){
   const bar = document.createElement("div");
   bar.className = "stagebar";
@@ -1911,7 +1943,9 @@ function stageBar(shown){
 
   const n = document.createElement("span");
   n.className = "n";
-  n.textContent = picked.size ? picked.size + " ausgewählt" : "Nichts ausgewählt";
+  n.textContent = picked.size
+    ? picked.size + " ausgewählt · ⌘C kopieren, ⌘X ausschneiden"
+    : "Nichts ausgewählt";
 
   const all = document.createElement("button");
   all.type = "button";
@@ -2519,6 +2553,105 @@ document.addEventListener("keydown", e => {
      && !sheet.open){
     e.preventDefault(); qInput.focus();
   }
+});
+
+/* ==================== Ablage: kopieren, ausschneiden, einfügen ==========
+   Cmd/Ctrl + C, X und V wie im Finder. Ausschneiden verschiebt, Kopieren
+   dupliziert — beim Duplizieren werden auch die Dateien im Repository
+   vervielfältigt, sonst zeigten zwei Einträge auf dieselbe Datei und der
+   Fortschritt liefe zusammen.
+   ==================================================================== */
+
+let clip = null;   /* { mode: "copy" | "cut", nodes: [...], labels: [...] } */
+
+function clipCopy(mode){
+  const targets = topPicks();
+  if(!targets.length) return;
+  clip = {
+    mode,
+    nodes: targets.map(t => nodeAt(t)).filter(Boolean),
+    labels: targets.map(t => (nodeAt(t) || {}).title).filter(Boolean)
+  };
+  picked.clear();
+  render();
+  flash(clip.labels.length + (clip.labels.length === 1 ? " Eintrag" : " Einträge")
+        + (mode === "cut" ? " ausgeschnitten" : " kopiert"));
+}
+
+/* Zielordner für neue Dateien: derselbe Zweig wie beim Hochladen. */
+function baseFor(target){
+  const section = nodeAt([target[0]]);
+  return "content/" + (section && section.id === "quizzes" ? "quizzes" : "unterlagen") + "/";
+}
+
+/* Einen Knoten samt Inhalt vervielfältigen. Dateien werden aus dem
+   Repository geholt und unter einem freien Namen neu abgelegt. */
+async function cloneNode(node, base, pending){
+  const copy = { ...node };
+  delete copy.children;
+  if(node.file){
+    const response = await fetch(encodeURI(node.file), { cache: "no-store" });
+    if(!response.ok) throw new Error("«" + node.title + "» ist noch nicht abrufbar.");
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const dot = node.file.lastIndexOf(".");
+    const ext = dot === -1 ? "" : node.file.slice(dot);
+    const stem = node.file.slice(node.file.lastIndexOf("/") + 1, dot === -1 ? undefined : dot);
+    const file = freeFile(base, stem, ext, pending);
+    pending.push({ path: file, content: bytes });
+    copy.file = file;
+  }
+  if(node.children){
+    copy.children = [];
+    for(const child of node.children){
+      copy.children.push(await cloneNode(child, base, pending));
+    }
+  }
+  return copy;
+}
+
+async function clipPaste(){
+  if(!clip || !clip.nodes.length) return;
+  if(!path.length){
+    alert("Öffne zuerst einen Ordner.");
+    return;
+  }
+  const dest = nodeAt(path);
+  if(clip.mode === "cut"){
+    const targets = clip.nodes.map(n => pathOf(n)).filter(Boolean);
+    clip = null;
+    await moveMany(targets, path);
+    return;
+  }
+
+  const pending = [];
+  const base = baseFor(path);
+  const kids = dest.children || (dest.children = []);
+  try{
+    document.body.classList.add("busy");
+    for(const node of clip.nodes) kids.push(await cloneNode(node, base, pending));
+  }catch(error){
+    document.body.classList.remove("busy");
+    alert("Kopieren fehlgeschlagen: " + error.message
+          + "\n\nFrisch hochgeladene Dateien sind erst nach etwa einer Minute abrufbar.");
+    location.reload();
+    return;
+  }finally{
+    document.body.classList.remove("busy");
+  }
+  const what = clip.labels.length === 1 ? "«" + clip.labels[0] + "»"
+                                        : clip.labels.length + " Einträge";
+  clip = null;
+  await run(what + " kopiert nach «" + dest.title + "»",
+            () => saveTree("Kopiert: " + what, pending));
+}
+
+document.addEventListener("keydown", ev => {
+  if(!admin || !(ev.metaKey || ev.ctrlKey)) return;
+  if(/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
+  const key = ev.key.toLowerCase();
+  if(key === "c" && picked.size){ ev.preventDefault(); clipCopy("copy"); }
+  else if(key === "x" && picked.size){ ev.preventDefault(); clipCopy("cut"); }
+  else if(key === "v" && clip){ ev.preventDefault(); clipPaste(); }
 });
 
 /* ==================== Ablegen vom Schreibtisch ====================
