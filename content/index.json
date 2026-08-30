@@ -125,6 +125,11 @@
                       "type": "folder",
                       "title": "Part II Metabolismus",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Part III Zelluläre Funktionen",
+                      "children": []
                     }
                   ]
                 },
