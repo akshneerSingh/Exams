@@ -199,12 +199,16 @@ main > article{max-width:760px;margin:0 auto;min-width:0}
 .crumb{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:10px;
   display:inline-flex;align-items:center;gap:4px}
 h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:0}
-.titlerow{display:flex;align-items:center;gap:12px}
+.titlerow{display:flex;align-items:center;gap:8px}
+.titlerow h1{margin-right:4px}
 .addhere{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
   color:var(--blue);background:rgba(10,132,255,.14);font-size:19px;line-height:1;
   transition:background .15s ease,transform .18s var(--spring-soft)}
 .addhere:hover{background:rgba(10,132,255,.24)}
 .addhere:active{transform:scale(.92)}
+/* Hochladen ist die seltenere Handlung und tritt deshalb leiser auf. */
+.addhere--file{color:var(--label-2);background:rgba(118,118,128,.18);font-size:16px}
+.addhere--file:hover{background:rgba(118,118,128,.28);color:var(--label)}
 .sub{font-size:14px;color:var(--label-3);margin-top:6px;max-width:56ch}
 .sectitle{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--label-3);margin:34px 0 10px}
@@ -582,7 +586,8 @@ body.scrolled .mobilebar{
       <button class="tool" id="gearBtn" type="button" title="Einstellungen" aria-label="Einstellungen">
         ⚙<span class="lamp" id="lamp"></span>
       </button>
-      <button class="tool" id="plusBtn" type="button" title="Hinzufügen" aria-label="Hinzufügen" hidden>＋</button>
+      <button class="tool" id="folderPlus" type="button" title="Neuer Ordner" aria-label="Neuer Ordner" hidden>＋</button>
+      <button class="tool" id="uploadPlus" type="button" title="Dateien hochladen" aria-label="Dateien hochladen" hidden>↑</button>
     </div>
     <div class="legal">
       <a href="#impressum" id="linkImpressum">Impressum</a>
@@ -596,7 +601,10 @@ body.scrolled .mobilebar{
     <button class="crumb" id="crumb" type="button" hidden></button>
     <div class="titlerow">
       <h1 id="title">…</h1>
-      <button class="addhere" id="addHere" type="button" hidden aria-label="Hier hinzufügen">＋</button>
+      <button class="addhere" id="addFolderHere" type="button" hidden
+              title="Neuer Ordner" aria-label="Neuer Ordner">＋</button>
+      <button class="addhere addhere--file" id="addFilesHere" type="button" hidden
+              title="Dateien hochladen" aria-label="Dateien hochladen">↑</button>
     </div>
     <p class="sub" id="sub"></p>
     <div id="resumeSlot"></div>
@@ -1395,8 +1403,13 @@ function menuSheet(title, items){
 
 function refreshAdmin(){
   admin = !!(window.Admin && Admin.enabled());
-  $("#plusBtn").hidden = !admin;
-  $("#addHere").hidden = !admin;
+  $("#folderPlus").hidden = !admin;
+  $("#addFolderHere").hidden = !admin;
+  /* Hochladen braucht einen Ordner — in der Übersicht bleiben beide
+     Hochlade-Knöpfe weg, statt eine Meldung zu zeigen. */
+  const canUpload = admin && path.length > 0;
+  $("#uploadPlus").hidden = !canUpload;
+  $("#addFilesHere").hidden = !canUpload;
 }
 
 /* Der Baum wird lokal geändert und danach als ganze Datei committet. */
@@ -1632,16 +1645,12 @@ async function newFolder(){
   await run("Ordner «" + folder.title + "»", () => saveTree("Ordner angelegt: " + folder.title));
 }
 
-/* Der Ort bestimmt, was möglich ist: Dateien brauchen einen Ordner, ein
-   Ordner lässt sich überall anlegen. */
-function addSheet(){
-  const here = path.length ? nodeAt(path).title : "Übersicht";
-  const items = [{ label: "Neuer Ordner in «" + here + "»", run: newFolder }];
-  if(path.length) items.push({ label: "Dateien hochladen", run: uploadSheet });
-  menuSheet("Hinzufügen", items);
-}
-$("#plusBtn").addEventListener("click", addSheet);
-$("#addHere").addEventListener("click", addSheet);
+/* In der Fusszeile jeweils direkt; das Plus neben dem Titel bleibt der
+   gebündelte Weg, weil dort beides in Reichweite liegen soll. */
+$("#folderPlus").addEventListener("click", newFolder);
+$("#uploadPlus").addEventListener("click", uploadSheet);
+$("#addFolderHere").addEventListener("click", newFolder);
+$("#addFilesHere").addEventListener("click", uploadSheet);
 
 /* -------------------- Hochladen -------------------- */
 function uploadSheet(){
