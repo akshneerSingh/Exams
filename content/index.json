@@ -105,6 +105,11 @@
                   "type": "folder",
                   "title": "Infektion",
                   "children": []
+                },
+                {
+                  "type": "folder",
+                  "title": "Pharmakologie",
+                  "children": []
                 }
               ]
             }
