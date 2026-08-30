@@ -135,6 +135,11 @@
                       "type": "folder",
                       "title": "Myokologie",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Parasitologie",
+                      "children": []
                     }
                   ]
                 },
