@@ -141,7 +141,14 @@
                     {
                       "type": "folder",
                       "title": "Myokologie",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "Myokologie Mock Exam",
+                          "file": "content/quizzes/myokologie-mock-exam.json",
+                          "meta": "70 Fragen · 7 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
