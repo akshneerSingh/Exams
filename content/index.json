@@ -142,6 +142,11 @@
                       "type": "folder",
                       "title": "Myokologie",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Virologie",
+                      "children": []
                     }
                   ]
                 },
