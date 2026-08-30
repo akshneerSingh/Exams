@@ -90,6 +90,11 @@
                       "children": []
                     }
                   ]
+                },
+                {
+                  "type": "folder",
+                  "title": "Biochemie",
+                  "children": []
                 }
               ]
             }
