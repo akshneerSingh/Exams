@@ -113,6 +113,11 @@
                           "type": "folder",
                           "title": "Physiologie",
                           "children": []
+                        },
+                        {
+                          "type": "folder",
+                          "title": "Klinik",
+                          "children": []
                         }
                       ]
                     },
