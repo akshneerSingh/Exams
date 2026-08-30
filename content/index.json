@@ -125,7 +125,13 @@
                 {
                   "type": "folder",
                   "title": "Infektion",
-                  "children": []
+                  "children": [
+                    {
+                      "type": "folder",
+                      "title": "Bakteriologie",
+                      "children": []
+                    }
+                  ]
                 },
                 {
                   "type": "folder",
