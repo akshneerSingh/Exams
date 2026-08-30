@@ -43,6 +43,7 @@
          "Helvetica Neue",Helvetica,Arial,sans-serif;
   --rail-w:308px;
   --rail-gap:16px;              /* Abstand der Platte zum Fensterrand */
+  --bar-h:54px;                 /* Höhe der Leiste auf dem Telefon */
 
   /* Federkurven. Nichts läuft gleichförmig: alles schwingt leicht über und
      pendelt sich ein, damit Bewegungen Gewicht haben statt zu rutschen. */
@@ -527,22 +528,43 @@ body.scrolled .mobilebar{
 
 /* ============ schmal ============ */
 @media (max-width:860px){
-  /* Die Schiene bleibt aufgebaut wie am Schreibtisch, liegt aber neben dem
-     Bild und fährt bei Bedarf herein — statt oben zu einer Zeile Reiter zu
-     schrumpfen, in der Ordnerbaum und Fortschritt keinen Platz hatten. */
+  /* Auf dem Telefon fährt die Schiene von oben herunter, aus der Leiste
+     heraus — wie das Auswahlfeld auf Apples Seite. Das passt zum Daumen:
+     die Hand liegt unten, der Blick geht nach oben, und der Inhalt bleibt
+     an seinem Platz statt seitlich wegzurutschen. */
   .mobilebar{display:flex}
   .railtoggle,.railshow{display:none!important}
-  .rail{width:min(300px,84vw);max-width:none;
-    top:var(--rail-gap);left:var(--rail-gap);bottom:var(--rail-gap);
-    padding-top:calc(18px + env(safe-area-inset-top));
-    transform:translateX(calc(-100% - var(--rail-gap)*2));opacity:0;
-    box-shadow:var(--lift-hi)}
+  .brand{display:none}          /* der Titel steht schon in der Leiste */
+
+  .rail{
+    top:calc(env(safe-area-inset-top) + var(--bar-h));
+    left:var(--rail-gap); right:var(--rail-gap);
+    bottom:auto; width:auto; max-width:none;
+    max-height:min(72dvh,620px);
+    padding:14px 12px 12px;
+    border-radius:18px;
+    transform:translateY(calc(-100% - var(--bar-h) - var(--rail-gap)));
+    opacity:0;
+    overflow-y:auto;
+    box-shadow:var(--lift-hi);
+    transition:transform .46s var(--spring),opacity .24s ease}
   body.drawer .rail{transform:none;opacity:1}
   body.drawer .scrim{opacity:1;pointer-events:auto}
   body.drawer{overflow:hidden}
-  body.rail-off .rail{transform:translateX(calc(-100% - var(--rail-gap)*2))}
+  body.rail-off .rail{transform:translateY(calc(-100% - var(--bar-h) - var(--rail-gap)))}
+
+  /* Der Verdunkelungsschleier beginnt unter der Leiste, damit sie bedienbar
+     bleibt und man das Schliesskreuz noch trifft. */
+  .scrim{top:calc(env(safe-area-inset-top) + var(--bar-h))}
+
+  /* Das Hamburger-Zeichen wird beim Öffnen zum Kreuz. */
+  #drawerBtn{font-size:19px;transition:transform .3s var(--spring)}
+  body.drawer #drawerBtn{transform:rotate(90deg)}
+
+  .seg{overflow:visible}
   main{margin-left:0;padding:20px 16px 60px;width:100%;min-width:0}
   h1{font-size:26px}
+  .titlerow{flex-wrap:wrap}
   .card{padding:14px}
   .card .chev{display:none}
   .card .foot .progress{max-width:none}
@@ -1966,7 +1988,10 @@ $("#mbSettings").addEventListener("click", gearSheet);
 
 function drawer(open){
   document.body.classList.toggle("drawer", open);
-  $("#drawerBtn").setAttribute("aria-expanded", String(open));
+  const b = $("#drawerBtn");
+  b.setAttribute("aria-expanded", String(open));
+  b.textContent = open ? "✕" : "☰";
+  b.setAttribute("aria-label", open ? "Menü schliessen" : "Menü");
 }
 const isNarrow = () => window.matchMedia("(max-width: 860px)").matches;
 $("#drawerBtn").addEventListener("click", () => drawer(!document.body.classList.contains("drawer")));
