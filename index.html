@@ -220,23 +220,39 @@ body.dropping .dropzone{display:grid}
    unsichtbarer Platzhalter die Namen trotzdem auf einer Fluchtlinie. */
 /* Einrückungsfeld: pro Ebene ein fester Streifen mit einer feinen Führungslinie.
    Ohne sie verliert man bei drei Ebenen die Zuordnung. */
-.seg .pad{flex:none;align-self:stretch;position:relative}
-.seg .pad::before{content:"";position:absolute;top:3px;bottom:3px;right:9px;
-  width:1px;background:var(--hair)}
-.seg .pad.root::before{display:none}
+.seg .pad{flex:none;align-self:stretch}
 
-/* Aufklapp-Zeiger: schlanker Winkel statt vollflächigem Dreieck. */
-.seg .tw{flex:none;width:20px;height:20px;display:grid;place-items:center;
-  color:var(--label-3);font-size:11px;border-radius:5px;
-  transform:rotate(90deg);
-  transition:transform .2s var(--spring),background .15s ease,color .15s ease}
+/* Statt eines abstrakten Strichs ein Ordnersymbol, das sich öffnet. Man
+   sieht damit auf einen Blick, was Inhalt hat und was gerade offen ist. */
+.seg .tw{flex:none;width:22px;height:22px;display:grid;place-items:center;
+  color:var(--label-3);border-radius:6px;
+  transition:background .15s ease,color .15s ease}
+.seg .tw svg{width:16px;height:16px;display:block}
+.seg .tw .shut{display:block}
+.seg .tw .open{display:none}
+.seg .tw.isopen .shut{display:none}
+.seg .tw.isopen .open{display:block}
 .seg .tw:hover{background:rgba(118,118,128,.28);color:var(--label)}
-.seg .tw.closed{transform:rotate(0deg)}
 .seg .tw.leaf{visibility:hidden}
+.seg button[aria-selected="true"] .tw{color:var(--blue)}
+.seg button.picked .tw{color:var(--mark)}
+
+/* Die Ebenen unterscheiden sich durch Schrift, nicht durch Linien: oben
+   kräftig, weiter unten leichter und kleiner. */
+.seg button.lv1{font-size:14px;font-weight:600;color:var(--label)}
+.seg button.lv2{font-size:13.5px;font-weight:500}
+.seg button.lv3{font-size:13px;font-weight:450;color:var(--label-3)}
+.seg button.lv3 .cnt{opacity:.7}
+
+/* Zustand schlägt Ebene: die Regeln stehen bewusst nach den Ebenenregeln,
+   sonst gewännen die bei gleicher Spezifität. */
+.seg button[aria-selected="true"]{color:var(--blue);font-weight:600}
+.seg button.picked{color:var(--mark);font-weight:600}
 .seg .cnt{margin-left:auto;padding-left:10px;font-size:11.5px;font-weight:600;
   color:var(--label-3);font-variant-numeric:tabular-nums}
 .seg button[aria-selected="true"] .cnt{color:var(--blue);opacity:.85}
-.seg .sect{margin-top:18px;font-weight:600;font-size:14.5px;color:var(--label)}
+.seg .sect{margin-top:20px;font-weight:700;font-size:15px;color:var(--label);
+  letter-spacing:-.02em}
 .seg .sect:first-child{margin-top:0}
 .seg .cnt{font-variant-numeric:tabular-nums}
 .railfoot{margin-top:auto;padding-top:18px}
@@ -876,7 +892,7 @@ body.scrolled .mobilebar{
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "42";
+const APP_VERSION = "43";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -1096,6 +1112,14 @@ function saveFolds(){
 }
 function toggleFold(target){
   if(treeMode === "focus"){
+    /* Steht man im Ordner selbst, ist «zuklappen» dasselbe wie eine Ebene
+       hochgehen — sonst liesse er sich gar nicht schliessen, weil der Weg
+       ihn offen hält. */
+    if(onPath(target, path)){
+      opened.delete(foldId(target));
+      goTo(target.slice(0, -1));
+      return;
+    }
     const id = foldId(target);
     if(opened.has(id)) opened.delete(id); else opened.add(id);
     renderRail();
@@ -1287,14 +1311,22 @@ function renderRail(){
     const closed = treeMode === "focus"
       ? !(onPath(target, path) || opened.has(foldId(target)))
       : folded.has(foldId(target));
-    tw.className = "tw" + (hasKids ? (closed ? " closed" : "") : " leaf");
-    tw.textContent = "›";
+    tw.className = "tw" + (hasKids ? (closed ? "" : " isopen") : " leaf");
     tw.setAttribute("aria-hidden", "true");
+    tw.innerHTML =
+      '<svg class="shut" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+      + 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M3 7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v7.8A1.6 1.6 0 0 1 19.4 19H4.6A1.6 1.6 0 0 1 3 17.4z"/></svg>'
+      + '<svg class="open" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+      + 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M3 17.4V7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v1.3"/>'
+      + '<path d="M3.2 17.9 5.6 12a1.6 1.6 0 0 1 1.5-1h14a1.1 1.1 0 0 1 1 1.5l-2.2 5.5a1.6 1.6 0 0 1-1.5 1H4.6a1.4 1.4 0 0 1-1.4-1.1z"/></svg>';
     if(hasKids){
       b.setAttribute("aria-expanded", String(!closed));
       tw.addEventListener("click", ev => { ev.stopPropagation(); toggleFold(target); });
     }
     b.appendChild(tw);
+    b.classList.add("lv" + Math.min(3, Math.max(1, depth)));
 
     const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = label;
     const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = count || "";
