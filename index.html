@@ -98,7 +98,10 @@ button,input{font:inherit;color:inherit}
 button{border:0;background:transparent;cursor:pointer;padding:0}
 a{color:inherit;text-decoration:none}
 [hidden]{display:none!important}
-:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+/* Dezenter Fokushinweis. Kräftiges Blau sprang bei jedem Klick ins Auge,
+   obwohl es nur für den Tastaturweg gedacht ist. */
+:focus-visible{outline:1.5px solid color-mix(in srgb,var(--label) 26%,transparent);
+  outline-offset:2px}
 
 /* ============ Schiene ============ */
 .rail{
@@ -230,19 +233,41 @@ body.dropping .dropzone{display:grid}
 .seg .tw svg{width:16px;height:16px;display:block}
 .seg .tw .shut{display:block}
 .seg .tw .open{display:none}
+.seg .tw .wedge{display:none}
 .seg .tw.isopen .shut{display:none}
 .seg .tw.isopen .open{display:block}
 .seg .tw:hover{background:rgba(118,118,128,.28);color:var(--label)}
 .seg .tw.leaf{visibility:hidden}
+.seg button.lv3 .tw.leaf{visibility:hidden}
 .seg button[aria-selected="true"] .tw{color:var(--blue)}
 .seg button.picked .tw{color:var(--mark)}
 
 /* Die Ebenen unterscheiden sich durch Schrift, nicht durch Linien: oben
    kräftig, weiter unten leichter und kleiner. */
-.seg button.lv1{font-size:14px;font-weight:600;color:var(--label)}
-.seg button.lv2{font-size:13.5px;font-weight:500}
-.seg button.lv3{font-size:13px;font-weight:450;color:var(--label-3)}
-.seg button.lv3 .cnt{opacity:.7}
+.seg button.lv1{font-size:14.5px;font-weight:600;color:var(--label);
+  letter-spacing:-.016em}
+.seg button.lv1 .tw svg{width:16px;height:16px}
+
+.seg button.lv2{font-size:13.5px;font-weight:500;color:var(--label-2);
+  letter-spacing:-.008em}
+.seg button.lv2 .tw svg{width:15px;height:15px}
+.seg button.lv2 .tw{color:var(--label-3)}
+
+.seg button.lv3{font-size:12.5px;font-weight:400;color:var(--label-3)}
+.seg button.lv3 .tw svg{width:14px;height:14px}
+.seg button.lv3 .cnt{opacity:.65}
+.seg button.lv3 .nm{opacity:.9}
+
+.seg button.sect{font-weight:700;font-size:15.5px;color:var(--label);
+  letter-spacing:-.022em}
+/* Ein Bereich ist kein Ordner — er bekommt einen Winkel statt eines
+   Ordnersymbols, bleibt damit aber klappbar. */
+.seg button.sect .tw .shut,
+.seg button.sect .tw .open{display:none}
+.seg button.sect .tw .wedge{display:block;
+  transition:transform .2s var(--spring)}
+.seg button.sect .tw.isopen .wedge{transform:rotate(90deg)}
+.seg button.sect .tw svg{width:14px;height:14px}
 
 /* Zustand schlägt Ebene: die Regeln stehen bewusst nach den Ebenenregeln,
    sonst gewännen die bei gleicher Spezifität. */
@@ -251,8 +276,10 @@ body.dropping .dropzone{display:grid}
 .seg .cnt{margin-left:auto;padding-left:10px;font-size:11.5px;font-weight:600;
   color:var(--label-3);font-variant-numeric:tabular-nums}
 .seg button[aria-selected="true"] .cnt{color:var(--blue);opacity:.85}
-.seg .sect{margin-top:20px;font-weight:700;font-size:15px;color:var(--label);
-  letter-spacing:-.02em}
+/* Vier Stufen, die man auseinanderhält: Bereich, Hauptordner, Unterordner,
+   alles darunter. Unterschieden über Gewicht, Grösse, Farbe und
+   Symbolgrösse — nicht nur über die Einrückung. */
+.seg .sect{margin-top:22px}
 .seg .sect:first-child{margin-top:0}
 .seg .cnt{font-variant-numeric:tabular-nums}
 .railfoot{margin-top:auto;padding-top:18px}
@@ -397,7 +424,14 @@ h1{font-size:32px;font-weight:700;letter-spacing:-.028em;line-height:1.1;margin:
   box-shadow:var(--lift);border-color:var(--hair)}
 .card:active{transform:translateY(0) scale(.994);box-shadow:none;
   transition-duration:.09s}
-.card .ico{flex:none;width:26px;text-align:center;color:var(--label-3);font-size:15px}
+.card .ico{flex:none;width:24px;height:24px;display:grid;place-items:center;
+  color:var(--label-3)}
+.card .ico svg{width:20px;height:20px;display:block}
+/* Ordner tragen kräftiger auf als einzelne Dateien — man sucht meist den
+   Ordner und liest die Datei erst danach. */
+.card[data-kind="folder"] h3{font-weight:600}
+.card[data-kind="folder"] .ico{color:var(--label-2)}
+.card[data-kind="pdf"] h3,.card[data-kind="quiz"] h3{font-weight:450}
 .card .body{flex:1 1 0;min-width:0;max-width:100%;text-align:left}
 .card h3{font-size:16.5px;font-weight:600;letter-spacing:-.016em;margin:0;line-height:1.3;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -737,6 +771,23 @@ body.scrolled .mobilebar{
 .mb-btn:active{background:rgba(118,118,128,.24)}
 .mb-title{flex:1;min-width:0;text-align:center;font-size:16px;font-weight:600;
   letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mb-btn svg{width:19px;height:19px;display:block}
+
+/* Suchen am Telefon: die Lupe klappt die Leiste zu einem Feld auf. In der
+   Schublade wäre die Suche zwei Tipps entfernt und beim Tippen verdeckt. */
+.mb-search{display:none;flex:1;min-width:0;align-items:center;gap:8px}
+body.searching .mb-search{display:flex}
+body.searching .mb-title,
+body.searching #mbSearch,
+body.searching #mbSettings,
+body.searching #drawerBtn{display:none}
+.mb-search input{flex:1;min-width:0;height:34px;padding:0 12px;
+  border:0;border-radius:999px;background:rgba(118,118,128,.2);
+  color:var(--label);font-family:var(--sans);font-size:15px;letter-spacing:-.012em}
+.mb-search input::-webkit-search-decoration,
+.mb-search input::-webkit-search-cancel-button{-webkit-appearance:none}
+.mb-search button{flex:none;padding:0 4px;color:var(--blue);
+  font-size:15px;font-weight:500}
 .scrim{position:fixed;inset:0;z-index:44;background:rgba(0,0,0,.42);
   opacity:0;pointer-events:none;
   -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
@@ -751,6 +802,7 @@ body.scrolled .mobilebar{
   .mobilebar{display:flex}
   .railtoggle,.railshow{display:none!important}
   .brand{display:none}          /* der Titel steht schon in der Leiste */
+  .search{display:none}         /* die Suche sitzt in der Leiste */
 
   .rail{
     top:calc(env(safe-area-inset-top) + var(--bar-h));
@@ -818,6 +870,16 @@ body.scrolled .mobilebar{
 <header class="mobilebar">
   <button class="mb-btn" id="drawerBtn" type="button" aria-label="Menü" aria-expanded="false">☰</button>
   <div class="mb-title" id="mbTitle">Übungsprüfungen</div>
+  <div class="mb-search" id="mbSearchBox">
+    <input type="search" id="qm" placeholder="Suchen" spellcheck="false"
+           autocapitalize="off" autocorrect="off" aria-label="Suchen">
+    <button type="button" id="qmCancel">Abbrechen</button>
+  </div>
+  <button class="mb-btn" id="mbSearch" type="button" aria-label="Suchen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+         stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.4"/><path d="m16 16 4.4 4.4"/></svg>
+  </button>
   <button class="mb-btn" id="mbSettings" type="button" aria-label="Einstellungen">⚙</button>
 </header>
 <div class="scrim" id="scrim"></div>
@@ -896,7 +958,7 @@ body.scrolled .mobilebar{
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "45";
+const APP_VERSION = "46";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -1022,6 +1084,7 @@ function search(term){
    blieb und renderStage es zuerst abfragt. */
 function goTo(target){
   page = null;
+  document.body.classList.remove("searching");
   path = target;
   revealPath(target);
   if(location.hash) history.replaceState(null, "", location.pathname + location.search);
@@ -1324,13 +1387,16 @@ function renderRail(){
       + '<svg class="open" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
       + 'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'
       + '<path d="M3 17.4V7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v1.3"/>'
-      + '<path d="M3.2 17.9 5.6 12a1.6 1.6 0 0 1 1.5-1h14a1.1 1.1 0 0 1 1 1.5l-2.2 5.5a1.6 1.6 0 0 1-1.5 1H4.6a1.4 1.4 0 0 1-1.4-1.1z"/></svg>';
+      + '<path d="M3.2 17.9 5.6 12a1.6 1.6 0 0 1 1.5-1h14a1.1 1.1 0 0 1 1 1.5l-2.2 5.5a1.6 1.6 0 0 1-1.5 1H4.6a1.4 1.4 0 0 1-1.4-1.1z"/></svg>'
+      + '<svg class="wedge" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+      + 'stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M9 6l6 6-6 6"/></svg>';
     if(hasKids){
       b.setAttribute("aria-expanded", String(!closed));
       tw.addEventListener("click", ev => { ev.stopPropagation(); toggleFold(target); });
     }
     b.appendChild(tw);
-    b.classList.add("lv" + Math.min(3, Math.max(1, depth)));
+    if(depth) b.classList.add("lv" + Math.min(3, depth));
 
     const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = label;
     const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = count || "";
@@ -1397,7 +1463,7 @@ function entryCard(child, target, showPath){
     /* Leerzeichen und Umlaute im Dateinamen müssen in der Adresse kodiert
        werden, sonst bricht der Link. */
     a.href = encodeURI(child.file); a.target = "_blank"; a.rel = "noopener";
-    a.innerHTML = '<span class="ico" aria-hidden="true">▤</span>'
+    a.innerHTML = '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.8h7.2L19 9.4v10.8A1.4 1.4 0 0 1 17.6 21.6H6a1.4 1.4 0 0 1-1.4-1.4V5.2A1.4 1.4 0 0 1 6 3.8z"/><path d="M13 3.9v5.4h5.4"/><path d="M8 13.5h7M8 16.6h5"/></svg></span>'
       + '<span class="body"><h3></h3><span class="meta"></span></span>'
       + '<span class="chev" aria-hidden="true">↗</span>';
     a.querySelector("h3").textContent = child.title;
@@ -1411,7 +1477,7 @@ function entryCard(child, target, showPath){
   const a = document.createElement("a");
   a.className = "card"; a.dataset.kind = "quiz";
   a.href = "quiz.html?file=" + encodeURIComponent(child.file);
-  a.innerHTML = '<span class="ico" aria-hidden="true">◉</span>'
+  a.innerHTML = '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.4 6.6l1.5 1.5 2.6-2.8M4.4 12.6l1.5 1.5 2.6-2.8M4.4 18.6l1.5 1.5 2.6-2.8"/><path d="M12.4 7h7.2M12.4 13h7.2M12.4 19h7.2"/></svg></span>'
     + '<span class="body"><h3></h3><span class="meta"></span>'
     + '<span class="foot"><span class="progress"><span class="progress-fill"></span></span>'
     + '<span class="stat"></span></span></span>'
@@ -1452,7 +1518,7 @@ function renderResults(){
       if(!hit.node.file){
         const card = document.createElement("button");
         card.type = "button"; card.className = "card"; card.dataset.kind = "folder";
-        card.innerHTML = '<span class="ico" aria-hidden="true">▸</span>'
+        card.innerHTML = '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v7.8A1.6 1.6 0 0 1 19.4 19H4.6A1.6 1.6 0 0 1 3 17.4z"/></svg></span>'
           + '<span class="body"><h3></h3><span class="meta"></span></span>'
           + '<span class="chev" aria-hidden="true">›</span>';
         card.querySelector("h3").textContent = hit.node.title;
@@ -1754,7 +1820,7 @@ function renderStage(){
     card.type = "button";
     card.className = "card";
     card.dataset.kind = "folder";
-    card.innerHTML = '<span class="ico" aria-hidden="true">▸</span>'
+    card.innerHTML = '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.6A1.6 1.6 0 0 1 4.6 6h3.9c.53 0 1.03.26 1.33.7l.87 1.3h8.7A1.6 1.6 0 0 1 21 9.6v7.8A1.6 1.6 0 0 1 19.4 19H4.6A1.6 1.6 0 0 1 3 17.4z"/></svg></span>'
       + '<span class="body"><h3></h3><span class="meta"></span></span>'
       + '<span class="chev" aria-hidden="true">›</span>';
     card.querySelector("h3").textContent = child.title;
@@ -1782,7 +1848,7 @@ function renderStage(){
       a.href = encodeURI(child.file);
       a.target = "_blank";
       a.rel = "noopener";
-      a.innerHTML = '<span class="ico" aria-hidden="true">▤</span>'
+      a.innerHTML = '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.8h7.2L19 9.4v10.8A1.4 1.4 0 0 1 17.6 21.6H6a1.4 1.4 0 0 1-1.4-1.4V5.2A1.4 1.4 0 0 1 6 3.8z"/><path d="M13 3.9v5.4h5.4"/><path d="M8 13.5h7M8 16.6h5"/></svg></span>'
         + '<span class="body"><h3></h3><span class="meta"></span></span>'
         + '<span class="chev" aria-hidden="true">↗</span>';
       a.querySelector("h3").textContent = child.title;
@@ -1802,7 +1868,7 @@ function renderStage(){
     a.className = "card";
     a.dataset.kind = "quiz";
     a.href = "quiz.html?file=" + encodeURIComponent(child.file);
-    a.innerHTML = '<span class="ico" aria-hidden="true">◉</span>'
+    a.innerHTML = '<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.4 6.6l1.5 1.5 2.6-2.8M4.4 12.6l1.5 1.5 2.6-2.8M4.4 18.6l1.5 1.5 2.6-2.8"/><path d="M12.4 7h7.2M12.4 13h7.2M12.4 19h7.2"/></svg></span>'
       + '<span class="body"><h3></h3><span class="meta"></span>'
       + '<span class="foot"><span class="progress"><span class="progress-fill"></span></span>'
       + '<span class="stat"></span></span></span>'
@@ -3028,6 +3094,36 @@ qInput.addEventListener("keydown", e => {
   if(e.key === "Escape"){ clearQuery(); renderStage(); updateTitle(); qInput.blur(); }
 });
 $("#qx").addEventListener("click", () => { clearQuery(); renderStage(); updateTitle(); qInput.focus(); });
+
+/* Am Telefon spiegelt das Feld in der Leiste dieselbe Suche. */
+const qMobile = $("#qm");
+function openMobileSearch(){
+  document.body.classList.add("searching");
+  qMobile.value = query;
+  qMobile.focus();
+}
+function closeMobileSearch(){
+  document.body.classList.remove("searching");
+  clearQuery(); qMobile.value = "";
+  renderStage(); updateTitle();
+}
+$("#mbSearch").addEventListener("click", openMobileSearch);
+$("#qmCancel").addEventListener("click", closeMobileSearch);
+qMobile.addEventListener("input", () => {
+  clearTimeout(qTimer);
+  qTimer = setTimeout(() => {
+    query = qMobile.value;
+    qInput.value = query;
+    $("#searchBox").classList.toggle("has", query.length > 0);
+    if(page && query.trim().length >= 2){
+      page = null;
+      if(location.hash) history.replaceState(null, "", location.pathname + location.search);
+      renderRail();
+    }
+    renderStage(); updateTitle();
+  }, 90);
+});
+qMobile.addEventListener("keydown", e => { if(e.key === "Escape") closeMobileSearch(); });
 
 /* Schrägstrich springt ins Suchfeld, wie in vielen Nachschlagewerken. */
 document.addEventListener("keydown", e => {
