@@ -1530,6 +1530,68 @@
       .menu__item { min-height: 48px; }
     }
 
+
+    /* ====================================================================
+       Übersicht auf dem Telefon
+
+       Die Seitenleiste steht unter der Frage und ist nach zwei, drei Fragen
+       ausser Sicht — man scrollt zum Navigator und wieder zurück. Auf
+       schmalen Geräten fährt sie deshalb wie auf der Startseite von oben aus
+       der Kopfleiste herunter. Ihr Inhalt bleibt unverändert; nur wo sie
+       liegt, ändert sich.
+       ==================================================================== */
+
+    #panelButton { display: none; }
+    .panel-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 44;
+      background: rgba(0, 0, 0, .42);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s cubic-bezier(.32,.72,0,1);
+    }
+
+    @media (max-width: 920px) {
+      #panelButton { display: inline-grid; }
+
+      .layout > .sidebar {
+        position: fixed;
+        z-index: 45;
+        top: calc(env(safe-area-inset-top) + 56px);
+        left: 12px;
+        right: 12px;
+        max-height: min(74dvh, 640px);
+        margin: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        transform: translateY(calc(-100% - 80px));
+        opacity: 0;
+        pointer-events: none;
+        transition: transform .46s cubic-bezier(.32,.72,0,1), opacity .24s ease;
+      }
+      .layout > .sidebar .panel {
+        border-radius: 18px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.14), 0 24px 60px rgba(0,0,0,.28);
+      }
+      body.panel-open > .layout > .sidebar {
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+      }
+      body.panel-open .panel-scrim { opacity: 1; pointer-events: auto; }
+      body.panel-open { overflow: hidden; }
+
+      /* Der Fortschritt oben ist am Telefon der eigentliche Grund, die
+         Übersicht zu öffnen — deshalb hier sichtbar lassen. */
+      .layout > .sidebar .sidebar-summary { display: block; }
+      .layout > .sidebar .sidebar-outcomes { display: grid; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .layout > .sidebar, .panel-scrim { transition: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -1547,6 +1609,8 @@
         <span class="stat">Items korrekt <b id="itemStat">0</b></span>
         <span class="stat">Aussagen korrekt <b id="statementStat">0 / 0</b></span>
       </div>
+      <button class="top-action top-action--icon" id="panelButton" type="button"
+              aria-expanded="false" aria-label="Übersicht" title="Übersicht">☰</button>
       <div class="menu" id="examMenu">
         <button class="top-action top-action--primary" id="examMenuButton" type="button" aria-haspopup="menu" aria-expanded="false">Prüfung<span class="menu__caret" aria-hidden="true">▾</span></button>
         <div class="menu__list menu__list--down" id="examMenuList" role="menu" hidden>
@@ -1585,6 +1649,8 @@
     </div>
     <div class="progress" aria-hidden="true"><div class="progress__bar" id="progressBar"></div></div>
   </header>
+
+  <div class="panel-scrim" id="panelScrim"></div>
 
   <main class="layout">
     <div class="quiz sidebar">
@@ -3383,15 +3449,38 @@ ${buildApkg.toString()}
           renderAll();
         });
 
+        /* ============ Übersicht als Blatt von oben ============
+           Nur auf schmalen Geräten aktiv; am Schreibtisch bleibt die Leiste
+           stehen, wo sie ist. */
+        const narrow = () => window.matchMedia("(max-width: 920px)").matches;
+        const panelButton = $("#panelButton");
+        function setPanel(open) {
+          document.body.classList.toggle("panel-open", open);
+          panelButton.setAttribute("aria-expanded", String(open));
+          panelButton.textContent = open ? "✕" : "☰";
+        }
+        panelButton.addEventListener("click", () => {
+          setPanel(!document.body.classList.contains("panel-open"));
+        });
+        $("#panelScrim").addEventListener("click", () => setPanel(false));
+        window.addEventListener("resize", () => { if (!narrow()) setPanel(false); });
+
+        /* Eine Frage anzutippen schliesst die Übersicht — sonst verdeckt sie
+           genau das, was man sehen wollte. */
         document.addEventListener("click", (event) => {
           const inside = event.target.closest && event.target.closest(".menu");
           closeMenus(inside || undefined);
+          if (!narrow() || !document.body.classList.contains("panel-open")) return;
+          const target = event.target.closest && event.target.closest(
+            "[data-position], [data-filter], [data-round], #clearFlags");
+          if (target) setPanel(false);
         });
 
         document.addEventListener("keydown", (event) => {
           if (event.key === "Escape") {
             const open = [...document.querySelectorAll(".menu__list")].some((list) => !list.hidden);
             if (open) { closeMenus(); return; }
+            if (document.body.classList.contains("panel-open")) { setPanel(false); return; }
           }
           if (state.view !== "quiz") return;
           if (event.metaKey || event.ctrlKey || event.altKey) return;
