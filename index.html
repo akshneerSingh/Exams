@@ -133,7 +133,7 @@ html[data-theme="light"] .rail{background:var(--glass)}
    die Namen stehen sauber untereinander. */
 .seg button{
   position:relative;display:flex;align-items:center;gap:7px;width:100%;
-  min-height:34px;padding:0 12px 0 6px;
+  min-height:34px;padding:0 12px 0 4px;
   color:var(--label-2);font-size:14px;font-weight:450;letter-spacing:-.012em;
   border-radius:8px;text-align:left;
   transition:background .16s ease,color .16s ease}
@@ -223,7 +223,13 @@ body.dropping .dropzone{display:grid}
    unsichtbarer Platzhalter die Namen trotzdem auf einer Fluchtlinie. */
 /* Einrückungsfeld: pro Ebene ein fester Streifen mit einer feinen Führungslinie.
    Ohne sie verliert man bei drei Ebenen die Zuordnung. */
-.seg .pad{flex:none;align-self:stretch}
+/* Die Greiffläche links: Einrückung plus Symbol. Alles rechts davon öffnet
+   den Ordner. */
+.seg .grip{flex:none;align-self:stretch;display:flex;align-items:center;
+  border-radius:7px;margin:2px 0;transition:background .14s ease}
+.seg .grip:not(.leaf){cursor:pointer}
+.seg .grip:not(.leaf):hover{background:rgba(118,118,128,.24)}
+.seg .grip:not(.leaf):active{background:rgba(118,118,128,.34)}
 
 /* Statt eines abstrakten Strichs ein Ordnersymbol, das sich öffnet. Man
    sieht damit auf einen Blick, was Inhalt hat und was gerade offen ist. */
@@ -236,38 +242,23 @@ body.dropping .dropzone{display:grid}
 .seg .tw .wedge{display:none}
 .seg .tw.isopen .shut{display:none}
 .seg .tw.isopen .open{display:block}
-.seg .tw:hover{background:rgba(118,118,128,.28);color:var(--label)}
-.seg .tw.leaf{visibility:hidden}
+.seg .tw.leaf{opacity:.45}            /* zeigt: hier geht es nicht weiter */
 .seg button.lv3 .tw.leaf{visibility:hidden}
 .seg button[aria-selected="true"] .tw{color:var(--blue)}
 .seg button.picked .tw{color:var(--mark)}
 
 /* Die Ebenen unterscheiden sich durch Schrift, nicht durch Linien: oben
    kräftig, weiter unten leichter und kleiner. */
-.seg button.lv1{font-size:14.5px;font-weight:600;color:var(--label);
-  letter-spacing:-.016em}
-.seg button.lv1 .tw svg{width:16px;height:16px}
+/* Alle Ordner gleich: dasselbe Symbol, dieselbe Stärke, dieselbe Grösse.
+   Die Tiefe liest man an der Einrückung ab, nicht an der Schrift. */
+.seg button.lv1,.seg button.lv2,.seg button.lv3{
+  font-size:14px;font-weight:500;color:var(--label-2)}
 
-.seg button.lv2{font-size:13.5px;font-weight:500;color:var(--label-2);
-  letter-spacing:-.008em}
-.seg button.lv2 .tw svg{width:15px;height:15px}
-.seg button.lv2 .tw{color:var(--label-3)}
 
-.seg button.lv3{font-size:12.5px;font-weight:400;color:var(--label-3)}
-.seg button.lv3 .tw svg{width:14px;height:14px}
-.seg button.lv3 .cnt{opacity:.65}
-.seg button.lv3 .nm{opacity:.9}
 
-.seg button.sect{font-weight:700;font-size:15.5px;color:var(--label);
-  letter-spacing:-.022em}
-/* Ein Bereich ist kein Ordner — er bekommt einen Winkel statt eines
-   Ordnersymbols, bleibt damit aber klappbar. */
-.seg button.sect .tw .shut,
-.seg button.sect .tw .open{display:none}
-.seg button.sect .tw .wedge{display:block;
-  transition:transform .2s var(--spring)}
-.seg button.sect .tw.isopen .wedge{transform:rotate(90deg)}
-.seg button.sect .tw svg{width:14px;height:14px}
+.seg button.sect{font-weight:600;font-size:14px;color:var(--label)}
+/* Auch Bereiche tragen das Ordnersymbol — ein Winkel oben und ein Ordner
+   darunter sahen nach zwei verschiedenen Dingen aus. */
 
 /* Zustand schlägt Ebene: die Regeln stehen bewusst nach den Ebenenregeln,
    sonst gewännen die bei gleicher Spezifität. */
@@ -958,7 +949,7 @@ body.searching #drawerBtn{display:none}
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "46";
+const APP_VERSION = "47";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -1366,13 +1357,6 @@ function renderRail(){
     b.className = (isSection ? "sect" : "") + (picked.has(pickId(target)) ? " picked" : "");
     b.setAttribute("aria-selected", String(JSON.stringify(target) === JSON.stringify(path)));
 
-    if(depth){
-      const pad = document.createElement("span");
-      pad.className = "pad";
-      pad.style.width = (depth * 16) + "px";
-      pad.setAttribute("aria-hidden", "true");
-      b.appendChild(pad);
-    }
 
     const tw = document.createElement("span");
     const closed = treeMode === "focus"
@@ -1391,11 +1375,19 @@ function renderRail(){
       + '<svg class="wedge" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
       + 'stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">'
       + '<path d="M9 6l6 6-6 6"/></svg>';
+    /* Einrückung und Symbol bilden zusammen die Fläche zum Auf- und
+       Zuklappen. Vorher war nur das Symbol empfindlich, und wer knapp daneben
+       traf, sprang in den Ordner statt ihn zu entfalten. */
+    const grip = document.createElement("span");
+    grip.className = "grip" + (hasKids ? "" : " leaf");
+    grip.style.paddingLeft = (depth * 16) + "px";
+    grip.appendChild(tw);
     if(hasKids){
       b.setAttribute("aria-expanded", String(!closed));
-      tw.addEventListener("click", ev => { ev.stopPropagation(); toggleFold(target); });
+      grip.title = closed ? "Aufklappen" : "Zuklappen";
+      grip.addEventListener("click", ev => { ev.stopPropagation(); toggleFold(target); });
     }
-    b.appendChild(tw);
+    b.appendChild(grip);
     if(depth) b.classList.add("lv" + Math.min(3, depth));
 
     const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = label;
