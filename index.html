@@ -598,6 +598,11 @@ dialog::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);bac
 .rows .r + .r::before{content:"";position:absolute;top:0;left:14px;right:0;
   height:.5px;background:var(--hair)}
 .rows .r:active{background:rgba(118,118,128,.22)}
+/* Beim Tastaturweg soll der Ring sichtbar sein, aber innen liegen — sonst
+   schneidet ihn die Liste an. */
+.rows .r:focus{outline:none}
+.rows .r:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;
+  border-radius:8px}
 .rows .r .lab{flex:1;min-width:0}
 .rows .r .val{flex:none;color:var(--label-2);font-size:14.5px;
   max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -877,7 +882,7 @@ body.scrolled .mobilebar{
   <div class="inner" id="dropinner">Hier ablegen<span></span></div>
 </div>
 
-<dialog id="sheet">
+<dialog id="sheet" tabindex="-1">
   <div class="sheet-head" id="sheetHead">
     <button class="sheet-back" id="sheetBack" type="button" aria-label="Zurück">‹</button>
     <span id="sheetTitle"></span>
@@ -892,7 +897,7 @@ body.scrolled .mobilebar{
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "43";
+const APP_VERSION = "44";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -2035,7 +2040,13 @@ function drawSheet(){
     body.appendChild(wrap);
   });
 
-  if(!sheet.open) sheet.showModal();
+  if(!sheet.open){
+    sheet.showModal();
+    /* Ohne das setzt der Browser den Fokus auf die erste Zeile. Deren
+       Fokusring wird von der Liste beschnitten und sieht dann aus wie ein
+       blauer Strich, der wahllos etwas markiert. */
+    sheet.focus();
+  }
 }
 
 /* Nach einer Änderung dieselbe Ebene neu aufbauen, damit Häkchen und Werte
@@ -2846,10 +2857,10 @@ function buildSettings(){
         () => treeMode, setTreeMode) },
 
     { cap: "Fortschritt" },
+    /* Nur der grosse Schalter. Ob die Fortsetzen-Kacheln zu sehen sind,
+       entscheidet man dort, wo sie stehen — auf der Startseite. */
     { label: "Fortschritt anzeigen", value: showProgress ? "Ein" : "Aus",
       keepOpen: true, run: () => setShow(SHOW_KEY, !showProgress) },
-    { label: "Fortsetzen-Kacheln", value: showResume ? "Ein" : "Aus",
-      keepOpen: true, run: () => setShow(RESUME_KEY, !showResume) },
     { label: "Auf anderem Gerät fortsetzen",
       value: Sync.configured() && Sync.meta().lastSync ? "aktiv" : "",
       chevron: true, run: deviceSheet }

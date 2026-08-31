@@ -11,7 +11,7 @@
    Ohne Netz ändert sich nichts: dann greift der Zwischenspeicher wie bisher.
    ========================================================================== */
 
-const VERSION = "v43";
+const VERSION = "v44";
 const CACHE = "pruefungen-" + VERSION;
 
 const SHELL = [
