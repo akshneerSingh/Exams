@@ -1559,20 +1559,21 @@
       .layout > .sidebar {
         position: fixed;
         z-index: 45;
-        top: calc(env(safe-area-inset-top) + 56px);
+        /* Die Karte sitzt mit ihrer Mitte auf der Bildmitte und ist etwas
+           höher als ihr Inhalt — sie soll nicht wie abgeschnitten wirken. */
+        top: 50%;
         left: 12px;
         right: 12px;
-        /* Unterkante etwa auf halber Höhe — darunter bleibt die Frage
-           sichtbar, sodass man beim Springen sieht, wohin man springt. */
-        max-height: calc(52dvh - env(safe-area-inset-top));
+        height: auto;
+        max-height: 76dvh;
         margin: 0;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        transform: translateY(calc(-100% - 80px));
+        transform: translateY(calc(-50% - 105dvh));
         opacity: 0;
         pointer-events: none;
-        transition: transform .46s cubic-bezier(.32,.72,0,1), opacity .24s ease;
+        transition: transform .48s cubic-bezier(.32,.72,0,1), opacity .24s ease;
       }
       .layout > .sidebar .panel {
         display: flex;
@@ -1596,14 +1597,14 @@
         flex: 0 0 auto;
         display: flex;
         justify-content: flex-end;
-        padding: 11px 0 4px;
-        margin-top: 2px;
+        padding: 16px 0 4px;
+        margin-top: 6px;
         border-top: 1px solid rgba(0,0,0,.08);
-        background: var(--paper);
+        background: transparent;
       }
       .panel-foot .button { min-height: 40px; padding: 8px 20px; }
       body.panel-open > .layout > .sidebar {
-        transform: none;
+        transform: translateY(-50%);
         opacity: 1;
         pointer-events: auto;
       }
@@ -1615,6 +1616,25 @@
       .layout > .sidebar .sidebar-summary { display: block; }
       .layout > .sidebar .sidebar-outcomes { display: grid; }
       .panel-foot { display: flex; }
+
+      /* Enger stellen, damit Fortschritt, Themenblock und Navigator ohne
+         Scrollen in die halbe Höhe passen. Die Legende erklärt Farben, die
+         man nach der zweiten Frage kennt — sie bleibt dem Schreibtisch
+         vorbehalten. */
+      .layout > .sidebar .panel { padding: 20px 18px 16px; }
+      .layout > .sidebar .legend { display: none; }
+      .layout > .sidebar .sidebar-summary { margin-bottom: 14px; padding: 13px; }
+      .layout > .sidebar .sidebar-summary__value { font-size: 22px; }
+      .layout > .sidebar .sidebar-outcomes { margin-top: 10px; padding-top: 10px; }
+      .layout > .sidebar .panel__label { margin-bottom: 7px; }
+      .layout > .sidebar .filters { margin-bottom: 14px; }
+      .layout > .sidebar .rounds { margin-bottom: 12px; }
+      /* Mehr Spalten: 90 Fragen brauchen sonst dreizehn Reihen. */
+      .layout > .sidebar .question-grid {
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+        gap: 7px;
+      }
+      .layout > .sidebar .question-cell { font-size: 11px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
