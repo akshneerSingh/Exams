@@ -794,12 +794,17 @@ body.searching #drawerBtn{display:none}
   .railtoggle,.railshow{display:none!important}
   .brand{display:none}          /* der Titel steht schon in der Leiste */
   .search{display:none}         /* die Suche sitzt in der Leiste */
+  .rail .railfoot{margin-top:auto}   /* Rechtliches an den unteren Rand */
 
   .rail{
     top:calc(env(safe-area-inset-top) + var(--bar-h));
     left:var(--rail-gap); right:var(--rail-gap);
     bottom:auto; width:auto; max-width:none;
-    max-height:min(72dvh,620px);
+    /* Untergrenze, damit das Blatt bei wenigen Ordnern nicht als schmaler
+       Streifen erscheint, und Obergrenze, damit darunter noch etwas zu
+       sehen bleibt. */
+    min-height:min(62dvh,560px);
+    max-height:min(84dvh,740px);
     padding:14px 12px 12px;
     border-radius:18px;
     transform:translateY(calc(-100% - var(--bar-h) - var(--rail-gap)));
@@ -949,7 +954,7 @@ body.searching #drawerBtn{display:none}
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "52";
+const APP_VERSION = "53";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -1174,8 +1179,13 @@ function toggleFold(target){
        hochgehen — sonst liesse er sich gar nicht schliessen, weil der Weg
        ihn offen hält. */
     if(onPath(target, path)){
+      /* Zuklappen von innen geht eine Ebene hoch — die Schublade bleibt dabei
+         offen, sonst fiele sie bei jedem Klapp-Klick zu. Geschlossen wird
+         nur beim Antippen eines Ordners oder daneben. */
+      const wasOpen = document.body.classList.contains("drawer");
       opened.delete(foldId(target));
       goTo(target.slice(0, -1));
+      if(wasOpen) drawer(true);
       return;
     }
     const id = foldId(target);
