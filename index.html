@@ -806,7 +806,7 @@ body.scrolled .mobilebar{
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "37";
+const APP_VERSION = "38";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -1014,6 +1014,8 @@ function sortSheet(){
    Gemerkt wird, was zugeklappt ist — nicht, was offen ist. So bleiben neu
    hinzugekommene Ordner sichtbar, statt still zuzubleiben. */
 
+const opened = new Set();   /* im schrittweisen Modus von Hand aufgeklappt */
+
 const FOLD_KEY = "pruefung:folded";
 let folded = new Set();
 try { folded = new Set(JSON.parse(localStorage.getItem(FOLD_KEY) || "[]")); } catch(_) {}
@@ -1023,13 +1025,53 @@ function saveFolds(){
   try { localStorage.setItem(FOLD_KEY, JSON.stringify([...folded])); } catch(_) {}
 }
 function toggleFold(target){
+  if(treeMode === "focus"){
+    const id = foldId(target);
+    if(opened.has(id)) opened.delete(id); else opened.add(id);
+    renderRail();
+    return;
+  }
   const id = foldId(target);
   if(folded.has(id)) folded.delete(id); else folded.add(id);
   saveFolds();
   renderRail();
 }
 /* Ein Ordner ist verborgen, wenn irgendein Vorfahre zugeklappt ist. */
+/* Zwei Arten, den Baum zu zeigen.
+
+   «Schrittweise» (Voreinstellung) blendet nur ein, was auf dem Weg liegt:
+   die Bereiche, die Kinder des Bereichs, in dem du stehst, und so weiter
+   eine Ebene nach unten. Bei Mock Exams heisst das erst das Jahr, dann das
+   Semester, dann die Fächer — statt fünf Ebenen gleichzeitig, was in einer
+   schmalen Spalte unlesbar wird.
+
+   «Ganzer Baum» ist das alte Verhalten mit den Klapp-Pfeilen. */
+
+const TREE_KEY = "pruefung:tree";
+let treeMode = "focus";
+try { if(localStorage.getItem(TREE_KEY) === "full") treeMode = "full"; } catch(_) {}
+
+function setTreeMode(mode){
+  treeMode = mode;
+  try { localStorage.setItem(TREE_KEY, mode); } catch(_) {}
+  render();
+}
+
+/* Liegt `a` auf dem Weg zu `b` (oder ist es dasselbe)? */
+function onPath(a, b){
+  return a.length <= b.length && a.every((v, i) => b[i] === v);
+}
+
 function hidden(target){
+  if(treeMode === "focus"){
+    /* Bereiche immer. Sonst nur, wenn der Elternordner auf dem aktuellen
+       Weg liegt — dadurch steht immer genau eine Ebene zur Wahl. */
+    if(target.length <= 1) return false;
+    const parent = target.slice(0, -1);
+    if(onPath(parent, path)) return false;
+    /* Von Hand aufgeklappte Äste bleiben sichtbar. */
+    return !opened.has(target.slice(0, -1).join("."));
+  }
   for(let i = 1; i < target.length; i += 1){
     if(folded.has(target.slice(0, i).join("."))) return true;
   }
@@ -1172,7 +1214,9 @@ function renderRail(){
     }
 
     const tw = document.createElement("span");
-    const closed = folded.has(foldId(target));
+    const closed = treeMode === "focus"
+      ? !(onPath(target, path) || opened.has(foldId(target)))
+      : folded.has(foldId(target));
     tw.className = "tw" + (hasKids ? (closed ? " closed" : "") : " leaf");
     tw.textContent = "›";
     tw.setAttribute("aria-hidden", "true");
@@ -2472,6 +2516,13 @@ function gearSheet(){
     { label: "Darstellung · " + { light:"Hell", dark:"Dunkel", auto:"Automatisch" }[themeMode],
       run: settingsSheet },
     { label: "Sortierung · " + SORTS[sortMode].label, run: sortSheet },
+    { label: "Ordnerbaum · " + (treeMode === "focus" ? "Schrittweise" : "Ganzer Baum"),
+      run: () => menuSheet("Ordnerbaum", [
+        { label: "Schrittweise" + (treeMode === "focus" ? "   ✓" : ""),
+          run: () => setTreeMode("focus") },
+        { label: "Ganzer Baum" + (treeMode === "full" ? "   ✓" : ""),
+          run: () => setTreeMode("full") }
+      ]) },
     { label: "Fortschritt · " + (showProgress ? (showResume ? "sichtbar" : "ohne Kacheln") : "ausgeblendet"),
       run: progressSheet },
     { label: "Auf anderem Gerät fortsetzen"
