@@ -545,7 +545,6 @@
       .brand__eyebrow, .brand__subtitle { display: none; }
       .brand__title { max-width: 48vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .top-action { min-height: 38px; padding: 7px 10px; font-size: 12px; }
-      #resetButton { display: none; }
       .sidebar .panel { padding: 14px; }
       .question-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
       .question-card { padding: 24px 15px 18px; border-radius: 12px; }
@@ -1409,6 +1408,7 @@
     }
     .menu__list--right { left: auto; right: 0; }
     html[data-theme="dark"] .menu__sep { background: rgba(255,255,255,.12); }
+    html[data-theme="dark"] .panel-foot { border-color: rgba(255,255,255,.12); }
 
     @media (max-width: 650px) {
       .menu__list--down { right: 0; left: auto; }
@@ -1542,6 +1542,7 @@
        ==================================================================== */
 
     #panelButton { display: none; }
+    .panel-foot { display: none; }
     .panel-scrim {
       position: fixed;
       inset: 0;
@@ -1561,20 +1562,46 @@
         top: calc(env(safe-area-inset-top) + 56px);
         left: 12px;
         right: 12px;
-        max-height: min(74dvh, 640px);
+        /* Unterkante etwa auf halber Höhe — darunter bleibt die Frage
+           sichtbar, sodass man beim Springen sieht, wohin man springt. */
+        max-height: calc(52dvh - env(safe-area-inset-top));
         margin: 0;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
         transform: translateY(calc(-100% - 80px));
         opacity: 0;
         pointer-events: none;
         transition: transform .46s cubic-bezier(.32,.72,0,1), opacity .24s ease;
       }
       .layout > .sidebar .panel {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        max-height: 100%;
+        padding-bottom: 0;
         border-radius: 18px;
         box-shadow: 0 2px 6px rgba(0,0,0,.14), 0 24px 60px rgba(0,0,0,.28);
       }
+      .layout > .sidebar .panel > .panel-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+      /* Fussleiste im Blatt: der Knopf zum Schliessen sitzt unten rechts,
+         damit der Daumen ihn ohne Umgreifen erreicht. */
+      .panel-foot {
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: flex-end;
+        padding: 11px 0 4px;
+        margin-top: 2px;
+        border-top: 1px solid rgba(0,0,0,.08);
+        background: var(--paper);
+      }
+      .panel-foot .button { min-height: 40px; padding: 8px 20px; }
       body.panel-open > .layout > .sidebar {
         transform: none;
         opacity: 1;
@@ -1587,6 +1614,7 @@
          Übersicht zu öffnen — deshalb hier sichtbar lassen. */
       .layout > .sidebar .sidebar-summary { display: block; }
       .layout > .sidebar .sidebar-outcomes { display: grid; }
+      .panel-foot { display: flex; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1655,6 +1683,7 @@
   <main class="layout">
     <div class="quiz sidebar">
       <aside class="panel" aria-label="Fragennavigation">
+        <div class="panel-scroll">
         <div class="sidebar-summary" aria-label="Fortschritt">
           <div class="sidebar-summary__top">
             <div>
@@ -1683,6 +1712,10 @@
           <span class="legend__item"><i class="legend__dot legend__dot--ok"></i>vollständig korrekt</span>
           <span class="legend__item"><i class="legend__dot legend__dot--bad"></i>noch mit Fehlern</span>
           <span class="legend__item"><i class="legend__flag" aria-hidden="true">★</i>zum Wiederholen markiert</span>
+        </div>
+        </div>
+        <div class="panel-foot">
+          <button class="button" id="panelDone" type="button">Weiter</button>
         </div>
       </aside>
     </div>
@@ -3465,15 +3498,15 @@ ${buildApkg.toString()}
         $("#panelScrim").addEventListener("click", () => setPanel(false));
         window.addEventListener("resize", () => { if (!narrow()) setPanel(false); });
 
-        /* Eine Frage anzutippen schliesst die Übersicht — sonst verdeckt sie
-           genau das, was man sehen wollte. */
+        /* Geschlossen wird nur daneben oder über «Weiter» — so lassen sich
+           mehrere Fragen nacheinander anspringen, ohne jedes Mal neu zu
+           öffnen. Die Unterkante liegt auf halber Höhe, man sieht also
+           gleich, wohin man gesprungen ist. */
+        $("#panelDone").addEventListener("click", () => setPanel(false));
+
         document.addEventListener("click", (event) => {
           const inside = event.target.closest && event.target.closest(".menu");
           closeMenus(inside || undefined);
-          if (!narrow() || !document.body.classList.contains("panel-open")) return;
-          const target = event.target.closest && event.target.closest(
-            "[data-position], [data-filter], [data-round], #clearFlags");
-          if (target) setPanel(false);
         });
 
         document.addEventListener("keydown", (event) => {
