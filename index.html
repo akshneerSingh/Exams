@@ -547,7 +547,7 @@ body.rail-off .railshow{display:grid}
 .pick.danger{color:var(--red)}
 
 /* ============ Blatt ============ */
-dialog{width:min(460px,calc(100vw - 28px));padding:0;border:.5px solid var(--hair);
+dialog{width:min(440px,calc(100vw - 28px));padding:0;border:.5px solid var(--hair);
   border-radius:20px;background:var(--card);color:var(--label);
   box-shadow:0 40px 100px rgba(0,0,0,.7)}
 dialog[open]{animation:sheetIn .34s var(--spring-soft)}
@@ -556,9 +556,53 @@ dialog[open]{animation:sheetIn .34s var(--spring-soft)}
   to{opacity:1;transform:none}
 }
 dialog::backdrop{background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-.sheet-head{padding:20px 20px 0;font-size:18px;font-weight:700;letter-spacing:-.02em}
-.sheet-body{padding:16px 20px;display:grid;gap:12px;max-height:66vh;overflow-y:auto}
-.sheet-foot{padding:0 20px 20px}
+
+/* Kopfzeile mit Zurück, damit Untermenüs im Blatt bleiben statt es zu
+   ersetzen. */
+.sheet-head{position:relative;display:flex;align-items:center;
+  min-height:52px;padding:0 52px;
+  font-size:16.5px;font-weight:600;letter-spacing:-.02em;
+  justify-content:center;text-align:center;
+  border-bottom:.5px solid var(--separator,var(--hair))}
+.sheet-back{position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  width:36px;height:36px;border-radius:50%;display:none;place-items:center;
+  color:var(--blue);font-size:19px}
+.sheet-back.on{display:grid}
+.sheet-back:active{background:rgba(118,118,128,.2)}
+.sheet-body{padding:14px;display:grid;gap:14px;max-height:64vh;overflow-y:auto}
+.sheet-foot{padding:0 14px 14px}
+
+/* Zeilenliste im Blatt: eine Fläche, Zeilen durch Haarlinien getrennt —
+   keine einzeln schwebenden Knöpfe. */
+.rows{border-radius:12px;background:var(--card-2);overflow:hidden}
+.rows .r{position:relative;display:flex;align-items:center;gap:10px;
+  width:100%;min-height:48px;padding:11px 14px;
+  color:var(--label);text-align:left;font-size:15.5px;letter-spacing:-.015em;
+  transition:background .12s ease}
+.rows .r + .r::before{content:"";position:absolute;top:0;left:14px;right:0;
+  height:.5px;background:var(--hair)}
+.rows .r:active{background:rgba(118,118,128,.22)}
+.rows .r .lab{flex:1;min-width:0}
+.rows .r .val{flex:none;color:var(--label-2);font-size:14.5px;
+  max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows .r .chev{flex:none;color:var(--label-3);font-size:16px}
+.rows .r .tickmark{flex:none;color:var(--blue);font-size:15px;width:16px;text-align:center}
+.rows .r.on .lab{color:var(--blue)}
+.rows .r.danger .lab{color:var(--red)}
+.rowgroup{display:grid;gap:7px}
+.rowgroup > .cap{padding:0 14px;font-size:11.5px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--label-3)}
+
+/* Auf dem Telefon von unten, wo der Daumen ist. */
+@media (max-width:860px){
+  dialog{width:100vw!important;max-width:none!important;margin:0;position:fixed;
+    left:0;right:0;bottom:0;top:auto;
+    border-radius:20px 20px 0 0;border-left:0;border-right:0;border-bottom:0;
+    padding-bottom:env(safe-area-inset-bottom)}
+  dialog[open]{animation:sheetUp .34s var(--spring-soft)}
+  @keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+  .sheet-body{max-height:60vh}
+}
 .btn{display:block;width:100%;background:var(--blue);color:#fff;border-radius:100px;
   padding:12px 24px;font-size:15.5px;font-weight:600;letter-spacing:-.012em;
   text-align:center;
@@ -818,7 +862,10 @@ body.scrolled .mobilebar{
 </div>
 
 <dialog id="sheet">
-  <div class="sheet-head" id="sheetHead"></div>
+  <div class="sheet-head" id="sheetHead">
+    <button class="sheet-back" id="sheetBack" type="button" aria-label="Zurück">‹</button>
+    <span id="sheetTitle"></span>
+  </div>
   <div class="sheet-body" id="sheetBody"></div>
   <div class="sheet-foot"><button class="btn ghost" id="sheetClose" type="button">Schliessen</button></div>
 </dialog>
@@ -829,7 +876,7 @@ body.scrolled .mobilebar{
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "40";
+const APP_VERSION = "42";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -1827,7 +1874,7 @@ function note(host, text, ok){
 }
 
 function deviceSheet(){
-  $("#sheetHead").textContent = "Auf anderem Gerät fortsetzen";
+  $("#sheetTitle").textContent = "Auf anderem Gerät fortsetzen";
   const body = $("#sheetBody"); body.textContent = "";
 
   if(!CFG.syncEndpoint){
@@ -1883,19 +1930,104 @@ let admin = false;
 
 /* Ein Blatt mit Auswahlknöpfen. Die öffentliche Fassung hat sonst nur das
    Gerätewechsel-Blatt, das seinen Inhalt selbst schreibt. */
-function menuSheet(title, items){
-  $("#sheetHead").textContent = title;
-  const body = $("#sheetBody"); body.textContent = "";
-  items.forEach(item => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "pick" + (item.danger ? " danger" : "");
-    if(item.depth) b.style.paddingLeft = (14 + item.depth*16) + "px";
-    b.textContent = item.label;
-    b.addEventListener("click", () => { sheet.close(); item.run(); });
-    body.appendChild(b);
+/* ==================== Blätter ====================
+   Eine Liste von Zeilen statt einzelner Knöpfe. Untermenüs ersetzen das
+   Blatt nicht, sondern schieben sich hinein — mit Zurück oben links. Und
+   eine Einstellung zu ändern schliesst nichts mehr: man probiert selten
+   genau eine Sache aus.
+
+   item: { label, value, chevron, checked, danger, depth, keepOpen, run }
+   ==================================================================== */
+
+let sheetStack = [];
+
+function drawSheet(){
+  const level = sheetStack[sheetStack.length - 1];
+  if(!level) return;
+  $("#sheetTitle").textContent = level.title;
+  $("#sheetBack").classList.toggle("on", sheetStack.length > 1);
+
+  const body = $("#sheetBody");
+  body.textContent = "";
+
+  const groups = [];
+  level.items.forEach(item => {
+    if(item.cap !== undefined || !groups.length) groups.push({ cap: item.cap, items: [] });
+    if(item.label !== undefined) groups[groups.length - 1].items.push(item);
   });
-  sheet.showModal();
+
+  groups.forEach(group => {
+    const wrap = document.createElement("div");
+    wrap.className = "rowgroup";
+    if(group.cap){
+      const cap = document.createElement("div");
+      cap.className = "cap"; cap.textContent = group.cap;
+      wrap.appendChild(cap);
+    }
+    const rows = document.createElement("div");
+    rows.className = "rows";
+    group.items.forEach(item => {
+      const r = document.createElement("button");
+      r.type = "button";
+      r.className = "r" + (item.danger ? " danger" : "") + (item.checked ? " on" : "");
+      if(item.depth) r.style.paddingLeft = (14 + item.depth * 16) + "px";
+
+      const lab = document.createElement("span");
+      lab.className = "lab"; lab.textContent = item.label;
+      r.appendChild(lab);
+
+      if(item.value){
+        const v = document.createElement("span");
+        v.className = "val"; v.textContent = item.value;
+        r.appendChild(v);
+      }
+      if(item.checked){
+        const t = document.createElement("span");
+        t.className = "tickmark"; t.textContent = "✓";
+        r.appendChild(t);
+      } else if(item.chevron){
+        const c = document.createElement("span");
+        c.className = "chev"; c.textContent = "›";
+        r.appendChild(c);
+      }
+
+      r.addEventListener("click", () => {
+        if(item.submenu){ pushSheet(item.submenu()); return; }
+        if(item.keepOpen){ item.run(); redrawSheet(); return; }
+        closeSheet();
+        item.run();
+      });
+      rows.appendChild(r);
+    });
+    wrap.appendChild(rows);
+    body.appendChild(wrap);
+  });
+
+  if(!sheet.open) sheet.showModal();
+}
+
+/* Nach einer Änderung dieselbe Ebene neu aufbauen, damit Häkchen und Werte
+   stimmen, ohne dass das Blatt zugeht. */
+function redrawSheet(){
+  const level = sheetStack[sheetStack.length - 1];
+  if(level && level.rebuild) sheetStack[sheetStack.length - 1] = level.rebuild();
+  drawSheet();
+}
+
+function pushSheet(level){ sheetStack.push(level); drawSheet(); }
+
+function closeSheet(){ sheetStack = []; sheet.close(); }
+
+$("#sheetBack").addEventListener("click", () => {
+  sheetStack.pop();
+  if(!sheetStack.length){ sheet.close(); return; }
+  redrawSheet();
+});
+sheet.addEventListener("close", () => { sheetStack = []; });
+
+function menuSheet(title, items){
+  sheetStack = [{ title, items }];
+  drawSheet();
 }
 
 function refreshAdmin(){
@@ -2362,7 +2494,7 @@ function uploadSheet(dropped){
     menuSheet("Wohin hochladen?", choices);
     return;
   }
-  $("#sheetHead").textContent = "Hochladen nach «" + nodeAt(path).title + "»";
+  $("#sheetTitle").textContent = "Hochladen nach «" + nodeAt(path).title + "»";
   const body = $("#sheetBody"); body.textContent = "";
   body.innerHTML = '<div class="drop" id="drop">PDF, HTML oder JSON hierher ziehen<br>oder klicken zum Auswählen'
     + '<input type="file" id="picker" multiple accept=".pdf,.html,.htm,.json" hidden></div>'
@@ -2474,7 +2606,7 @@ function uploadSheet(dropped){
 
 /* -------------------- Anmeldung -------------------- */
 function adminSheet(){
-  $("#sheetHead").textContent = "Verwaltung";
+  $("#sheetTitle").textContent = "Verwaltung";
   const body = $("#sheetBody"); body.textContent = "";
 
   if(Admin.enabled()){
@@ -2655,52 +2787,124 @@ function settingsSheet(){
 /* Ein Menü für alles, was Einstellung ist. Der Zustand steht als Beiwert in
    der Zeile, damit man ihn sieht, ohne hineinzugehen. */
 function gearSheet(){
-  const items = [
-    { label: "Darstellung · " + { light:"Hell", dark:"Dunkel", auto:"Automatisch" }[themeMode],
-      run: settingsSheet },
-    { label: "Sortierung · " + SORTS[sortMode].label, run: sortSheet },
-    { label: "Ordnerbaum · " + (treeMode === "focus" ? "Schrittweise" : "Ganzer Baum"),
-      run: () => menuSheet("Ordnerbaum", [
-        { label: "Schrittweise" + (treeMode === "focus" ? "   ✓" : ""),
-          run: () => setTreeMode("focus") },
-        { label: "Ganzer Baum" + (treeMode === "full" ? "   ✓" : ""),
-          run: () => setTreeMode("full") }
-      ]) },
-    { label: "Fortschritt · " + (showProgress ? (showResume ? "sichtbar" : "ohne Kacheln") : "ausgeblendet"),
-      run: progressSheet },
-    { label: "Auf anderem Gerät fortsetzen"
-             + (Sync.configured() && Sync.meta().lastSync ? " · aktiv" : ""),
-      run: deviceSheet }
-  ];
-  if(admin || new URLSearchParams(location.search).has("admin")){
-    items.push({ label: admin ? "Verwaltung · angemeldet" : "Verwaltung", run: adminSheet });
-  }
-  items.push({ label: "Fassung " + APP_VERSION + " · Stand prüfen", run: async () => {
-    try{
-      const res = await fetch("index.html?v=" + Date.now(), { cache: "no-store" });
-      const text = await res.text();
-      const m = text.match(/APP_VERSION = "(\d+)"/);
-      const live = m ? m[1] : "?";
-      if(live === APP_VERSION) flash("Fassung " + APP_VERSION + " — aktuell");
-      else {
-        if(confirm("Im Repository liegt Fassung " + live + ", hier läuft "
-                   + APP_VERSION + ".\n\nJetzt neu laden?")){
-          if(navigator.serviceWorker){
-            const regs = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(regs.map(r => r.unregister()));
-          }
-          if(window.caches){
-            const keys = await caches.keys();
-            await Promise.all(keys.map(k => caches.delete(k)));
-          }
-          location.reload(true);
-        }
-      }
-    }catch(e){ alert("Konnte nicht prüfen: " + e.message); }
-  }});
-
-  menuSheet("Einstellungen", items);
+  pushSheet(buildSettings());
 }
+
+/* Wird nach jeder Änderung neu gebaut, damit die Werte rechts stimmen. */
+function buildSettings(){
+  const theme = { light: "Hell", dark: "Dunkel", auto: "Automatisch" }[themeMode];
+  const items = [
+    { cap: "Darstellung" },
+    { label: "Erscheinungsbild", value: theme, chevron: true,
+      submenu: () => choiceLevel("Erscheinungsbild",
+        [["light","Hell"],["dark","Dunkel"],["auto","Automatisch · folgt dem System"]],
+        () => themeMode, setTheme) },
+    { label: "Sortierung", value: SORTS[sortMode].label, chevron: true,
+      submenu: () => choiceLevel("Sortierung",
+        Object.keys(SORTS).map(k => [k, SORTS[k].label]),
+        () => sortMode, (k) => {
+          sortMode = k;
+          try { localStorage.setItem(SORT_KEY, k); } catch(_) {}
+          render();
+        }) },
+    { label: "Ordnerbaum", value: treeMode === "focus" ? "Schrittweise" : "Ganzer Baum",
+      chevron: true,
+      submenu: () => choiceLevel("Ordnerbaum",
+        [["focus","Schrittweise"],["full","Ganzer Baum"]],
+        () => treeMode, setTreeMode) },
+
+    { cap: "Fortschritt" },
+    { label: "Fortschritt anzeigen", value: showProgress ? "Ein" : "Aus",
+      keepOpen: true, run: () => setShow(SHOW_KEY, !showProgress) },
+    { label: "Fortsetzen-Kacheln", value: showResume ? "Ein" : "Aus",
+      keepOpen: true, run: () => setShow(RESUME_KEY, !showResume) },
+    { label: "Auf anderem Gerät fortsetzen",
+      value: Sync.configured() && Sync.meta().lastSync ? "aktiv" : "",
+      chevron: true, run: deviceSheet }
+  ];
+
+  if(admin){
+    items.push({ cap: "Ansicht" });
+    items.push({ label: "Auswahlmenüs", chevron: true,
+      value: TREE.sections.filter(x => x.picker).length
+        ? TREE.sections.filter(x => x.picker).map(x => x.title).join(", ")
+        : "keine",
+      submenu: () => pickerLevel() });
+  }
+
+  if(admin || new URLSearchParams(location.search).has("admin")){
+    items.push({ cap: "Verwaltung" });
+    items.push({ label: "Verwaltung", value: admin ? "angemeldet" : "",
+                 chevron: true, run: adminSheet });
+  }
+
+  items.push({ cap: "Über" });
+  items.push({ label: "Fassung", value: APP_VERSION });
+  items.push({ label: "Stand prüfen", chevron: true, run: checkVersion });
+
+  return { title: "Einstellungen", items, rebuild: buildSettings };
+}
+
+/* Pro Hauptordner ein Schalter. Die Einstellung liegt im Inhaltsverzeichnis,
+   gilt also für alle und bleibt erhalten — sie ist keine Vorliebe dieses
+   Geräts, sondern gehört zum Aufbau der Seite. */
+function pickerLevel(){
+  const build = () => ({
+    title: "Auswahlmenüs",
+    items: [
+      { cap: "Statt Ordnerkarten zwei Menüs — erst Jahrgang, dann Semester" }
+    ].concat(TREE.sections.map((section, index) => ({
+      label: section.title,
+      value: section.picker ? "Ein" : "Aus",
+      keepOpen: true,
+      run: () => {
+        const node = TREE.sections[index];
+        if(node.picker) delete node.picker; else node.picker = true;
+        render();
+        /* Der Commit läuft nach; die Anzeige stimmt sofort. */
+        saveTree("Auswahlmenüs " + (node.picker ? "an" : "aus") + ": " + node.title)
+          .catch(() => { alert("Konnte nicht speichern."); location.reload(); });
+      }
+    }))),
+    rebuild: build
+  });
+  return build();
+}
+
+/* Eine Ebene mit Auswahlmöglichkeiten. Antippen setzt und bleibt offen. */
+function choiceLevel(title, options, current, apply){
+  const build = () => ({
+    title,
+    items: options.map(([key, label]) => ({
+      label, checked: current() === key, keepOpen: true,
+      run: () => apply(key)
+    })),
+    rebuild: build
+  });
+  return build();
+}
+
+async function checkVersion(){
+  try{
+    const res = await fetch("index.html?v=" + Date.now(), { cache: "no-store" });
+    const text = await res.text();
+    const m = text.match(/APP_VERSION = "(\d+)"/);
+    const live = m ? m[1] : "?";
+    if(live === APP_VERSION){ flash("Fassung " + APP_VERSION + " — aktuell"); return; }
+    if(!confirm("Im Repository liegt Fassung " + live + ", hier läuft "
+                + APP_VERSION + ".\n\nJetzt neu laden?")) return;
+    if(navigator.serviceWorker){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if(window.caches){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    location.reload(true);
+  }catch(e){ alert("Konnte nicht prüfen: " + e.message); }
+}
+
 $("#gearBtn").addEventListener("click", gearSheet);
 
 $("#mbSettings").addEventListener("click", gearSheet);
