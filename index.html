@@ -493,6 +493,25 @@ body.rail-off .railshow{display:grid}
 .prose li{margin-bottom:5px}
 .prose .small{font-size:13.5px;color:var(--label-3)}
 
+/* ============ Auswahlmenüs statt Ordnerkarten ============ */
+.picker{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 22px}
+.pickfield{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1 1 190px}
+.pickfield span{font-size:11px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--label-3)}
+.pickfield select{
+  appearance:none;-webkit-appearance:none;
+  width:100%;min-height:42px;padding:0 34px 0 14px;
+  border:.5px solid var(--hair);border-radius:12px;
+  background:var(--card);color:var(--label);
+  font-family:var(--sans);font-size:15.5px;font-weight:500;letter-spacing:-.015em;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8a8f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 11px center;background-size:17px;
+  transition:border-color .15s ease,background-color .15s ease}
+.pickfield select:hover{background-color:var(--card-2)}
+.pickfield select:focus{outline:none;border-color:var(--blue);
+  box-shadow:0 0 0 3.5px color-mix(in srgb,var(--blue) 22%,transparent)}
+.pickfield select:disabled{opacity:.45}
+
 /* ============ Verwaltung ============ */
 .rowbtn{flex:none;width:34px;height:34px;border-radius:50%;color:var(--label-3);
   font-size:13px;letter-spacing:.04em;transition:.15s}
@@ -806,7 +825,7 @@ body.scrolled .mobilebar{
 
 /* Sichtbare Fassung. Steht in den Einstellungen, damit man auf einen Blick
    sieht, ob die hochgeladene Datei wirklich die ausgelieferte ist. */
-const APP_VERSION = "38";
+const APP_VERSION = "39";
 const CFG = window.APP_CONFIG || {};
 const PROG = "pruefung:progress:";
 const $ = s => document.querySelector(s);
@@ -1511,6 +1530,89 @@ function renderHomeStage(){
   cards.appendChild(tiles);
 }
 
+/* ==================== Auswahlmenüs ====================
+   Für Ordner, die als Menü markiert sind: statt sich durch Ordnerkarten zu
+   klicken, wählt man oben in Aufklappmenüs — bei den Mock Exams also erst
+   das Jahr, dann das Semester — und darunter erscheint der Inhalt.
+
+   Die Wahl bleibt pro Ordner gespeichert, damit man beim Zurückkommen dort
+   weitermacht, wo man war.
+   ==================================================================== */
+
+/* Wo der Inhalt gerade herkommt — bei Auswahlmenüs der gewählte Unterordner,
+   sonst schlicht der aktuelle Ordner. Hochladen und neue Ordner landen dort. */
+let activePath = [];
+
+const PICK_KEY = "pruefung:picks";
+function readPicks(){
+  try { return JSON.parse(localStorage.getItem(PICK_KEY) || "{}"); } catch(_) { return {}; }
+}
+function savePick(key, value){
+  const all = readPicks();
+  if(value === null) delete all[key]; else all[key] = value;
+  try { localStorage.setItem(PICK_KEY, JSON.stringify(all)); } catch(_) {}
+}
+
+const folderKids = node => (node.children || []).filter(c => c.type === "folder" || !c.type);
+
+/* Liefert den Knoten, dessen Inhalt gezeigt werden soll, und die Menüs
+   darüber. Zwei Ebenen, wie besprochen; hat die zweite keine Unterordner,
+   bleibt es bei einer. */
+function pickerFor(node, base){
+  const picks = readPicks();
+  const fields = [];
+  let current = node;
+  let currentPath = base.slice();
+
+  for(let level = 0; level < 2; level += 1){
+    const kids = current.children || [];
+    const options = kids.filter(c => c.type === "folder" || !c.type);
+    if(!options.length) break;
+
+    const key = currentPath.join(".");
+    let index = options.findIndex(o => o.title === picks[key]);
+    if(index === -1) index = 0;
+
+    fields.push({ key, options, index, label: level === 0 ? "Jahrgang" : "Semester" });
+    const chosen = options[index];
+    currentPath = currentPath.concat(kids.indexOf(chosen));
+    current = chosen;
+  }
+  return { fields, node: current, path: currentPath };
+}
+
+function renderPicker(node, base, cards){
+  const { fields, node: target, path: targetPath } = pickerFor(node, base);
+  if(!fields.length) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "picker";
+  fields.forEach((field, level) => {
+    const box = document.createElement("label");
+    box.className = "pickfield";
+    const cap = document.createElement("span");
+    cap.textContent = field.label;
+    const sel = document.createElement("select");
+    field.options.forEach((option, i) => {
+      const el = document.createElement("option");
+      el.value = option.title;
+      el.textContent = option.title;
+      if(i === field.index) el.selected = true;
+      sel.appendChild(el);
+    });
+    sel.addEventListener("change", () => {
+      savePick(field.key, sel.value);
+      /* Tiefere Wahl verwerfen, sie gehört zum alten Zweig. */
+      fields.slice(level + 1).forEach(f => savePick(f.key, null));
+      render();
+    });
+    box.append(cap, sel);
+    wrap.appendChild(box);
+  });
+  cards.appendChild(wrap);
+  return { node: target, path: targetPath };
+}
+
 function renderStage(){
   if(!TREE) return;
   const old = document.getElementById("lead");
@@ -1530,14 +1632,26 @@ function renderStage(){
 
   renderResume();
 
-  const kids = node.children || [];
-  const shown = ordered(kids);
-  const entries = shown.filter(p => p.child.type === "pdf" || p.child.type === "quiz");
-  const folders = shown.filter(p => p.child.type === "folder" || !p.child.type);
-
+  /* Ist der Ordner als Menü markiert, tritt an die Stelle der Ordnerkarten
+     eine Auswahl — und gezeigt wird der Inhalt der getroffenen Wahl. */
   const list = $("#listTitle");
   const cards = $("#cards"); cards.textContent = "";
   if(admin && clip) cards.appendChild(clipBar());
+
+  /* Ist der Ordner als Auswahl markiert, treten Aufklappmenüs an die Stelle
+     der Ordnerkarten, und gezeigt wird der Inhalt der getroffenen Wahl. */
+  let source = node;
+  let sourcePath = path;
+  if(node.picker){
+    const picked = renderPicker(node, path, cards);
+    if(picked){ source = picked.node; sourcePath = picked.path; }
+  }
+
+  activePath = sourcePath;
+  const kids = source.children || [];
+  const shown = ordered(kids);
+  const entries = shown.filter(p => p.child.type === "pdf" || p.child.type === "quiz");
+  const folders = shown.filter(p => p.child.type === "folder" || !p.child.type);
 
   if(admin && (kids.length > 1)){
     const tip = document.createElement("p");
@@ -1559,7 +1673,7 @@ function renderStage(){
     card.querySelector("h3").textContent = child.title;
     const n = countQuiz(child);
     card.querySelector(".meta").textContent = child.blurb || (n ? n + (n===1?" Eintrag":" Einträge") : "leer");
-    const here = (path.length?path:[]).concat(idx);
+    const here = sourcePath.concat(idx);
     card.addEventListener("click", ev => {
       if(admin && (selectScope === "stage" || ev.metaKey || ev.ctrlKey)){
         ev.preventDefault();
@@ -1588,7 +1702,7 @@ function renderStage(){
       a.querySelector(".meta").textContent = child.meta || "PDF";
       cards.appendChild(a);
       if(admin){
-        const t = (path.length?path:[]).concat(idx);
+        const t = sourcePath.concat(idx);
         attachMenu(a, t); makeDraggable(a, t); markPickable(a, t);
       }
       return;
@@ -1619,7 +1733,7 @@ function renderStage(){
     if(!p.done || !showProgress) a.querySelector(".foot").style.display = "none";
     cards.appendChild(a);
     if(admin){
-      const t = (path.length?path:[]).concat(idx);
+      const t = sourcePath.concat(idx);
       attachMenu(a, t); makeDraggable(a, t); markPickable(a, t);
     }
   });
@@ -2103,6 +2217,15 @@ function nodeMenu(target){
       } }
   ];
 
+  if((node.children || []).some(c => c.type === "folder" || !c.type)){
+    items.push({ label: node.picker ? "Auswahlmenüs ausschalten" : "Als Auswahlmenüs zeigen",
+      run: async () => {
+        if(node.picker) delete node.picker; else node.picker = true;
+        await run(node.picker ? "Auswahlmenüs an" : "Auswahlmenüs aus",
+                  () => saveTree("Ansicht geändert: " + node.title));
+      } });
+  }
+
   if(!isSection){
     items.push({ label: "Verschieben", run: () => {
       const choices = folderList()
@@ -2160,7 +2283,7 @@ async function newFolder(){
   const name = prompt("Name des Ordners");
   if(!name || !name.trim()) return;
   const folder = { type: "folder", title: name.trim(), children: [] };
-  listAt(path).push(folder);
+  listAt(activePath.length ? activePath : path).push(folder);
   await run("Ordner «" + folder.title + "»", () => saveTree("Ordner angelegt: " + folder.title));
 }
 
@@ -2305,7 +2428,7 @@ function uploadSheet(dropped){
       const file = freeFile(base, item.basename || Admin.safeName(item.title),
                             item.ext || (item.kind === "pdf" ? ".pdf" : ".json"), extra);
       extra.push({ path: file, content: item.content });
-      listAt(path).push({
+      listAt(activePath.length ? activePath : path).push({
         type: item.kind, title: item.title, file,
         meta: item.meta
       });
