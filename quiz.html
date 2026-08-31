@@ -1565,7 +1565,7 @@
         left: 12px;
         right: 12px;
         height: auto;
-        max-height: 76dvh;
+        max-height: 88dvh;
         margin: 0;
         display: flex;
         flex-direction: column;
@@ -1621,20 +1621,29 @@
          Scrollen in die halbe Höhe passen. Die Legende erklärt Farben, die
          man nach der zweiten Frage kennt — sie bleibt dem Schreibtisch
          vorbehalten. */
-      .layout > .sidebar .panel { padding: 20px 18px 16px; }
+      .layout > .sidebar .panel { padding: 22px 20px 18px; }
       .layout > .sidebar .legend { display: none; }
-      .layout > .sidebar .sidebar-summary { margin-bottom: 14px; padding: 13px; }
-      .layout > .sidebar .sidebar-summary__value { font-size: 22px; }
-      .layout > .sidebar .sidebar-outcomes { margin-top: 10px; padding-top: 10px; }
-      .layout > .sidebar .panel__label { margin-bottom: 7px; }
-      .layout > .sidebar .filters { margin-bottom: 14px; }
-      .layout > .sidebar .rounds { margin-bottom: 12px; }
-      /* Mehr Spalten: 90 Fragen brauchen sonst dreizehn Reihen. */
+      .layout > .sidebar .sidebar-summary { margin-bottom: 18px; padding: 15px; }
+      .layout > .sidebar .sidebar-outcomes { margin-top: 12px; padding-top: 12px; }
+      .layout > .sidebar .panel__label { margin-bottom: 9px; }
+      .layout > .sidebar .filters { margin-bottom: 18px; }
+      .layout > .sidebar .rounds { margin-bottom: 14px; }
+
+      /* Der Navigator bestimmt die Höhe. Bei einem Themenblock sind es zehn
+         Felder und sie dürfen gross sein; bei «Alle» sind es neunzig, dann
+         rücken sie enger zusammen — sonst passte die Liste nicht ohne
+         Scrollen auf den Schirm. */
       .layout > .sidebar .question-grid {
-        grid-template-columns: repeat(9, minmax(0, 1fr));
-        gap: 7px;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        gap: 8px;
       }
-      .layout > .sidebar .question-cell { font-size: 11px; }
+      .layout > .sidebar .question-grid.is-dense {
+        grid-template-columns: repeat(10, minmax(0, 1fr));
+        gap: 5px;
+      }
+      .layout > .sidebar .question-cell { font-size: 12px; }
+      .layout > .sidebar .question-grid.is-dense .question-cell { font-size: 10px; }
+      .layout > .sidebar .question-grid.is-dense .question-cell__block { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2165,6 +2174,9 @@
                     ${flagMark}${statusMark}
                   </button>`;
         }).join("");
+
+        /* Ab etwa drei Dutzend sichtbaren Feldern enger stellen. */
+        $("#questionGrid").classList.toggle("is-dense", visible.size > 36);
 
         $("#questionGrid").querySelectorAll("[data-position]").forEach((button) => {
           button.addEventListener("click", () => {
