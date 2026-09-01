@@ -269,7 +269,14 @@
             {
               "type": "folder",
               "title": "Sem 3",
-              "children": []
+              "children": [
+                {
+                  "type": "quiz",
+                  "title": "blut immunsystem kprim modusA",
+                  "file": "content/quizzes/blut_immunsystem_kprim_modusA.json",
+                  "meta": "80 Fragen · 8 Blöcke"
+                }
+              ]
             },
             {
               "type": "folder",
