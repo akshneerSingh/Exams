@@ -275,6 +275,11 @@
                   "title": "blut immunsystem kprim modusA",
                   "file": "content/quizzes/blut_immunsystem_kprim_modusA.json",
                   "meta": "80 Fragen · 8 Blöcke"
+                },
+                {
+                  "type": "folder",
+                  "title": "Blut/Immunsystem",
+                  "children": []
                 }
               ]
             },
