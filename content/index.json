@@ -275,15 +275,16 @@
                   "title": "Blut/Immunsystem",
                   "children": [
                     {
-                      "type": "quiz",
-                      "title": "blut immunsystem kprim",
-                      "file": "content/quizzes/blut_immunsystem_kprim_modusA.json",
-                      "meta": "80 Fragen · 8 Blöcke"
-                    },
-                    {
                       "type": "folder",
                       "title": "Alles",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "blut immunsystem kprim",
+                          "file": "content/quizzes/blut_immunsystem_kprim_modusA.json",
+                          "meta": "80 Fragen · 8 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
