@@ -294,6 +294,11 @@
                       "type": "folder",
                       "title": "2 Erythrozyt, Hämoglobin, Eisen &\nBlutgruppen",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "3 Hämostase, Gerinnung, Präanalytik &\nPharmakologie",
+                      "children": []
                     }
                   ]
                 }
