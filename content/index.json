@@ -319,6 +319,11 @@
                       "type": "folder",
                       "title": "8 Klinik — Blut und Immunsystem",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Alles",
+                      "children": []
                     }
                   ]
                 }
