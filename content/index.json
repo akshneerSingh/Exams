@@ -279,6 +279,11 @@
                       "title": "blut immunsystem kprim",
                       "file": "content/quizzes/blut_immunsystem_kprim_modusA.json",
                       "meta": "80 Fragen · 8 Blöcke"
+                    },
+                    {
+                      "type": "folder",
+                      "title": "1 Hämatopoiese, Wachstumsfaktoren &\nLeukozyten",
+                      "children": []
                     }
                   ]
                 }
