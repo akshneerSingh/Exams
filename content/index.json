@@ -309,6 +309,11 @@
                       "type": "folder",
                       "title": "6 Anatomie der lymphatischen Organe",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "7 Toleranz, Transplantation, Diagnostik,\nImpfung & Krebs",
+                      "children": []
                     }
                   ]
                 }
