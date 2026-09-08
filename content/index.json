@@ -314,6 +314,11 @@
                       "type": "folder",
                       "title": "7 Toleranz, Transplantation, Diagnostik,\nImpfung & Krebs",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "8 Klinik — Blut und Immunsystem",
+                      "children": []
                     }
                   ]
                 }
