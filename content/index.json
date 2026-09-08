@@ -275,58 +275,17 @@
                   "title": "Blut/Immunsystem",
                   "children": [
                     {
-                      "type": "folder",
-                      "title": "Alles",
-                      "children": [
-                        {
-                          "type": "quiz",
-                          "title": "blut immunsystem kprim",
-                          "file": "content/quizzes/blut_immunsystem_kprim_modusA.json",
-                          "meta": "80 Fragen · 8 Blöcke"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "folder",
-                      "title": "1 Hämatopoiese, Wachstumsfaktoren &\nLeukozyten",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "2 Erythrozyt, Hämoglobin, Eisen &\nBlutgruppen",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "3 Hämostase, Gerinnung, Präanalytik &\nPharmakologie",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "4 Angeborene Immunität",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "5 Adaptive Immunität",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "6 Anatomie der lymphatischen Organe",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "7 Toleranz, Transplantation, Diagnostik,\nImpfung & Krebs",
-                      "children": []
-                    },
-                    {
-                      "type": "folder",
-                      "title": "8 Klinik — Blut und Immunsystem",
-                      "children": []
+                      "type": "quiz",
+                      "title": "blut immunsystem kprim",
+                      "file": "content/quizzes/blut_immunsystem_kprim_modusA.json",
+                      "meta": "80 Fragen · 8 Blöcke"
                     }
                   ]
+                },
+                {
+                  "type": "folder",
+                  "title": "hi",
+                  "children": []
                 }
               ]
             },
