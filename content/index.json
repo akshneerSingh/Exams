@@ -289,6 +289,11 @@
                       "type": "folder",
                       "title": "Hämatopoiese, Wachstumsfaktoren &\nLeukozyten",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "2 Erythrozyt, Hämoglobin, Eisen &\nBlutgruppen",
+                      "children": []
                     }
                   ]
                 }
