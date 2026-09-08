@@ -304,6 +304,11 @@
                       "type": "folder",
                       "title": "4 Angeborene Immunität",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "5 Adaptive Immunität",
+                      "children": []
                     }
                   ]
                 }
