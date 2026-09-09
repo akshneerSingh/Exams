@@ -277,7 +277,14 @@
                     {
                       "type": "folder",
                       "title": "1 Hämatopoiese, Wachstumsfaktoren &\nLeukozyten",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "blut teil1 kprim modusA",
+                          "file": "content/quizzes/blut_teil1_kprim_modusA.json",
+                          "meta": "40 Fragen · 4 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
