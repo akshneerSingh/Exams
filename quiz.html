@@ -84,6 +84,8 @@
       --bad: #b42318;
       --bad-soft: #fff0ee;
       --focus: #2d70c9;
+      --mark: #d2691e;          /* Markierung einer einzelnen Aussage */
+      --mark-soft: #fdf1e8;
       --shadow: 0 10px 30px rgba(16, 41, 79, 0.08);
       --radius: 14px;
     }
@@ -251,6 +253,8 @@
     }
     .statement.is-correct { border-color: #85c5a2; background: var(--ok-soft); }
     .statement.is-wrong { border-color: #e3a19a; background: var(--bad-soft); }
+    /* Die Nummer ist zugleich der Schalter, um genau diese Aussage zu
+       markieren — dort, wo man beim Lesen ohnehin hinschaut. */
     .statement__number {
       width: 27px;
       height: 27px;
@@ -262,7 +266,17 @@
       background: var(--blue-soft);
       font-size: 12px;
       font-weight: 800;
+      cursor: pointer;
+      padding: 0;
+      transition: background .14s ease, color .14s ease, border-color .14s ease;
     }
+    .statement__number:hover { border-color: var(--focus); }
+    .statement__number.is-marked {
+      border-color: var(--mark);
+      background: var(--mark);
+      color: white;
+    }
+    .statement.is-marked { border-color: var(--mark); box-shadow: inset 3px 0 0 var(--mark); }
     .statement__text { min-width: 0; }
     .choice-group { display: flex; gap: 7px; }
     .choice {
@@ -277,7 +291,11 @@
       font-size: 13px;
       font-weight: 750;
     }
-    .choice:hover:not(:disabled) { border-color: var(--focus); background: #f6f9fd; }
+    /* Nur schweben, solange nichts gewählt ist. Sonst überdeckte der graue
+       Schwebezustand die eben getroffene Wahl, weil der Zeiger noch auf dem
+       Knopf steht — man klickt, und es sieht aus, als sei nichts passiert. */
+    .choice:hover:not(:disabled):not(.is-selected) { border-color: var(--focus); background: #f6f9fd; }
+    @media (hover: none) { .choice:hover:not(:disabled) { border-color: var(--line); background: white; } }
     .choice.is-selected { border-color: var(--navy); color: white; background: var(--navy); }
     .choice.is-solution { border-color: var(--ok); color: white; background: var(--ok); }
     .choice.is-wrong-choice { border-color: var(--bad); color: white; background: var(--bad); }
@@ -875,10 +893,22 @@
     html[data-theme="dark"] .statement.is-correct { background: var(--ok-soft); box-shadow: inset 0 0 0 1px rgba(48,209,88,.18); }
     html[data-theme="dark"] .statement.is-wrong { background: var(--bad-soft); box-shadow: inset 0 0 0 1px rgba(255,105,97,.18); }
     html[data-theme="dark"] .statement__number { color: #d1d1d6; background: #48484a; }
+    html[data-theme="dark"] .statement__number.is-marked {
+      color: #1a1a1c; background: var(--mark); border-color: var(--mark);
+    }
+    /* Die Kante der Markierung muss jede Zeilenregel schlagen. Die
+       Schweberegel `.statement:has(.choice:not(:disabled)):hover` zählt vier
+       Klassen und gewinnt sonst — sie setzt box-shadow auf none, und die
+       Markierung verschwände, sobald der Zeiger auf der Zeile liegt. */
+    .statement.is-marked {
+      box-shadow: inset 3px 0 0 var(--mark) !important;
+      border-color: var(--mark);
+    }
+    html[data-theme="dark"] { --mark: #ff8f3f; --mark-soft: rgba(255,143,63,.12); }
     html[data-theme="dark"] .statement__text { color: #f2f2f7; }
     html[data-theme="dark"] .choice-group { background: #3a3a3c; }
     html[data-theme="dark"] .choice { color: #d1d1d6; }
-    html[data-theme="dark"] .choice:hover:not(:disabled) { color: white; background: rgba(255,255,255,.1); }
+    html[data-theme="dark"] .choice:hover:not(:disabled):not(.is-selected) { color: white; background: rgba(255,255,255,.1); }
     html[data-theme="dark"] .choice.is-selected { color: white; background: var(--focus); }
     html[data-theme="dark"] .choice.is-solution { color: #06240e; background: var(--ok); }
     html[data-theme="dark"] .choice.is-wrong-choice { color: #260403; background: var(--bad); }
@@ -1901,7 +1931,7 @@
       /* ===================== Runden-Logik ===================== */
 
       function makeRound(label, items) {
-        return { label, items, answers: {}, flags: {} };
+        return { label, items, answers: {}, flags: {}, marks: {} };
       }
 
       /* Markierungen gehören zur Runde: Jede Wiederholung startet unmarkiert,
@@ -1952,14 +1982,23 @@
 
       const REVISION_SCOPES = {
         wrong: { label: "Nur falsch beantwortete", short: "nur falsche" },
-        flagged: { label: "Nur markierte", short: "nur markierte" },
-        both: { label: "Markierte & falsch beantwortete", short: "markierte & falsche" }
+        flagged: { label: "Nur markierte Fragen", short: "nur markierte Fragen" },
+        marked: { label: "Nur markierte Aussagen", short: "nur markierte Aussagen" },
+        both: { label: "Markiertes & Falsches", short: "markiertes & falsches" }
       };
 
       /* Was in die nächste Runde kommt. Markierte Fragen kommen immer vollständig
          mit allen vier Aussagen, falsch beurteilte nur mit den verfehlten Aussagen. */
       function followUpItems(round, scope) {
         const list = [];
+        if (scope === "marked") {
+          round.items.forEach((item) => {
+            const picked = ALL_STATEMENTS.filter((si) =>
+              Boolean(round.marks && round.marks[item.q + ":" + si]));
+            if (picked.length) list.push({ q: item.q, s: picked, flagged: true });
+          });
+          return list;
+        }
         round.items.forEach((item) => {
           const answer = answerIn(round, item.q);
           if (!answer) return;
@@ -1970,7 +2009,14 @@
           if (scope === "flagged") return;
           const statements = questions[item.q].statements;
           const wrong = item.s.filter((si) => answer[si] !== statements[si].correct);
-          if (wrong.length) list.push({ q: item.q, s: wrong });
+          /* Wie beim Export: markierte Aussagen kommen im kombinierten Umfang
+             mit, auch wenn sie richtig beurteilt wurden. */
+          const picked = scope === "both"
+            ? item.s.filter((si) =>
+                Boolean(round.marks && round.marks[item.q + ":" + si]) && !wrong.includes(si))
+            : [];
+          const union = wrong.concat(picked).sort((a, b) => a - b);
+          if (union.length) list.push({ q: item.q, s: union });
         });
         return list;
       }
@@ -2039,6 +2085,7 @@
             ).map((item) => ({ q: Number(item.q), s: item.s.map(Number) })),
             answers: round && round.answers && typeof round.answers === "object" ? round.answers : {},
             flags: round && round.flags && typeof round.flags === "object" ? round.flags : {},
+            marks: round && round.marks && typeof round.marks === "object" ? round.marks : {},
             lastQ: round && Number.isInteger(round.lastQ) ? round.lastQ : undefined,
             /* Format v3 kannte nur eine Folgerunde; sie entspricht dem Umfang "both". */
             next: round && Number.isInteger(round.next)
@@ -2096,6 +2143,26 @@
           if (state.filter === "Markiert") return Boolean(flags()[item.q]);
           return (questions[item.q].block || "–") === state.filter;
         });
+      }
+
+      /* Markierungen einzelner Aussagen. Sie liegen neben den Fragen-
+         markierungen in derselben Runde, als "q:si" — so wandern sie mit dem
+         Abgleich mit und überstehen einen Rundenwechsel. */
+      function marks() {
+        const round = activeRound();
+        if (!round.marks || typeof round.marks !== "object") round.marks = {};
+        return round.marks;
+      }
+      const markKey = (qIndex, si) => qIndex + ":" + si;
+      function isMarked(qIndex, si) { return Boolean(marks()[markKey(qIndex, si)]); }
+      function markedCount() { return Object.keys(marks()).length; }
+
+      function toggleMark(qIndex, si) {
+        const current = marks();
+        const key = markKey(qIndex, si);
+        if (current[key]) delete current[key]; else current[key] = true;
+        saveProgress();
+        renderAll();
       }
 
       function toggleFlag(qIndex) {
@@ -2243,8 +2310,12 @@
               <div class="feedback__copy"><strong>Die Aussage ist: ${statement.correct ? "Richtig" : "Falsch"}.</strong>
               ${escapeHtml(statement.explanation || "")}${distractor}</div>${source}
             </div>` : "";
-          return `<div class="statement${rowClass}">
-            <span class="statement__number">${si + 1}</span>
+          const marked = isMarked(item.q, si);
+          return `<div class="statement${rowClass}${marked ? " is-marked" : ""}">
+            <button class="statement__number${marked ? " is-marked" : ""}" type="button"
+                    data-mark="${item.q}:${si}"
+                    aria-pressed="${marked}"
+                    title="${marked ? "Markierung dieser Aussage entfernen" : "Diese Aussage markieren"}">${si + 1}</button>
             <span class="statement__text">${escapeHtml(statement.text)}</span>
             <span class="choice-group" role="group" aria-label="Aussage ${si + 1}">
               ${choiceButton(si, true, draft, answer, statement)}
@@ -2305,6 +2376,13 @@
             if (!state.draft[item.q]) state.draft[item.q] = [null, null, null, null];
             state.draft[item.q][Number(button.dataset.statement)] = button.dataset.value === "true";
             renderQuestion();
+          });
+        });
+
+        card.querySelectorAll("[data-mark]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const [qi, si] = button.dataset.mark.split(":").map(Number);
+            toggleMark(qi, si);
           });
         });
 
@@ -2376,8 +2454,9 @@
       const EXPORT_SCOPES = {
         all: { label: "Alle Fragen", file: "Alle", title: "Alle Fragen" },
         wrong: { label: "Nur falsch beantwortete", file: "Falsch", title: "Falsch beantwortete Fragen" },
-        flagged: { label: "Nur markierte", file: "Markiert", title: "Markierte Fragen" },
-        both: { label: "Markierte & falsch beantwortete", file: "Markiert-und-falsch", title: "Markierte und falsch beantwortete Fragen" }
+        flagged: { label: "Nur markierte Fragen", file: "Markiert", title: "Markierte Fragen" },
+        marked: { label: "Nur markierte Aussagen", file: "Markierte-Aussagen", title: "Markierte Aussagen" },
+        both: { label: "Markiertes & Falsches", file: "Markiert-und-falsch", title: "Markierte und falsch beantwortete Aussagen" }
       };
 
       /* Jüngste Beurteilung einer Aussage über alle Runden hinweg. */
@@ -2407,6 +2486,12 @@
             list.push({ q: index, s: ALL_STATEMENTS.slice() });
             return;
           }
+          /* Einzeln markierte Aussagen: nur diese, nicht die ganze Frage. */
+          if (scope === "marked") {
+            const picked = ALL_STATEMENTS.filter((si) => isMarked(index, si));
+            if (picked.length) list.push({ q: index, s: picked });
+            return;
+          }
           if (scope !== "wrong" && flags()[index]) {
             list.push({ q: index, s: ALL_STATEMENTS.slice() });
             return;
@@ -2416,12 +2501,19 @@
             const judgement = latestJudgement(index, si);
             return judgement.value !== null && judgement.value !== q.statements[si].correct;
           });
-          if (wrong.length) list.push({ q: index, s: wrong });
+          /* Im kombinierten Umfang zählen auch einzeln markierte Aussagen als
+             «markiert» — sonst müsste man zweimal durchgehen, um die eigenen
+             Merkzeichen und die eigenen Fehler zusammen zu wiederholen. */
+          const picked = scope === "both"
+            ? ALL_STATEMENTS.filter((si) => isMarked(index, si) && !wrong.includes(si))
+            : [];
+          const union = wrong.concat(picked).sort((a, b) => a - b);
+          if (union.length) list.push({ q: index, s: union });
         });
         return list;
       }
 
-      const ANKI_HINT = "R/F — und warum?";
+      const ANKI_HINT = "R oder F?";
 
       /* Feldtext für Anki: keine Tabs, keine Zeilenumbrüche, keine geschweiften
          Klammern und kein doppelter Doppelpunkt, damit die Cloze-Syntax hält. */
@@ -2438,7 +2530,6 @@
          anderen Aussage derselben Frage steht. Der Stamm wird mit der
          Aussagennummer vorangestellt: "3) <Stamm>". */
       function ankiNotes(scope) {
-        const heading = exam.title || "Kprim-Übungsprüfung";
         const notes = [];
         exportSelection(scope).forEach((item) => {
           const q = questions[item.q];
@@ -2446,21 +2537,19 @@
             const statement = q.statements[si] || {};
             const meta = [statement.distractor, statement.source]
               .filter(Boolean).map(ankiText).join(" · ");
-            const answer = `<b>${statement.correct ? "Richtig" : "Falsch"}</b>`
-              + (statement.explanation ? `<br>${ankiText(statement.explanation)}` : "")
-              + (meta ? `<br><i>${meta}</i>` : "");
-            notes.push({
-              text: [
-                `<span style="color:#888888">${ankiText(heading)} · Frage ${item.q + 1} · Aussage ${si + 1}</span>`,
-                "",
-                `<b>${si + 1}) ${ankiText(q.stem || "")}</b>`,
-                "",
-                ankiText(statement.text || ""),
-                "",
-                `{{c1::${answer}::${ANKI_HINT}}}`
-              ].join("<br>"),
-              extra: exam.subtitle ? ankiText(exam.subtitle) : ""
-            });
+            /* Vorderseite: Stamm gedämpft, Aussage im Vordergrund, darunter
+               die verdeckte Antwort. Alles Erklärende gehört auf die
+               Rückseite — auf der Vorderseite lenkt es nur ab. */
+            const front = [
+              `<div class="stem">${ankiText(q.stem || "")}</div>`,
+              `<div class="claim">${ankiText(statement.text || "")}</div>`,
+              `<div class="verdict">{{c1::${statement.correct ? "Richtig" : "Falsch"}::${ANKI_HINT}}}</div>`
+            ].join("");
+            const back = [
+              statement.explanation ? ankiText(statement.explanation) : "",
+              meta ? `<div class="meta">${meta}</div>` : ""
+            ].filter(Boolean).join("");
+            notes.push({ text: front, extra: back });
           });
         });
         return notes;
@@ -2754,16 +2843,25 @@
         var modelId = stableId("kprim-cloze-model-v1");
         var crt = Math.floor(new Date(new Date().getFullYear(), 0, 1).getTime() / 1000);
 
+        /* Drei Ebenen, sonst nichts: Frage klein und grau, Aussage gross,
+           Urteil hervorgehoben. Die Rückseite trägt die Begründung. */
         var css = "\n.card {\n  font-family: -apple-system, \"Helvetica Neue\", Arial, sans-serif;\n"
-          + "  font-size: 19px;\n  line-height: 1.5;\n  color: #1d1d1f;\n  background: #ffffff;\n"
-          + "  text-align: left;\n  padding: 14px 18px;\n}\n"
-          + ".cloze { font-weight: 700; color: #0071e3; }\n"
-          + ".extra { margin-top: 18px; padding-top: 12px; border-top: 1px solid #e5e5e7;\n"
-          + "         color: #6e6e73; font-size: 13px; }\n"
-          + "i { color: #6e6e73; font-size: 0.85em; }\n"
+          + "  font-size: 17px;\n  line-height: 1.55;\n  color: #1d1d1f;\n  background: #ffffff;\n"
+          + "  text-align: left;\n  padding: 20px 22px;\n}\n"
+          + ".stem { color: #1d1d1f; font-size: 16px; line-height: 1.5;\n"
+          + "         padding-bottom: 13px; margin-bottom: 15px;\n"
+          + "         border-bottom: 1px solid #e5e5e7; }\n"
+          + ".claim { font-size: 20px; line-height: 1.45; font-weight: 500; }\n"
+          + ".verdict { margin-top: 18px; }\n"
+          + ".cloze { font-weight: 600; color: #0071e3; }\n"
+          + ".extra { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e5e5e7;\n"
+          + "         color: #3c3c43; font-size: 15px; line-height: 1.5; }\n"
+          + ".meta { margin-top: 10px; color: #8e8e93; font-size: 12.5px; }\n"
           + ".nightMode.card { color: #f2f2f7; background: #1c1c1e; }\n"
+          + ".nightMode .stem { color: #f2f2f7; border-color: #38383a; }\n"
           + ".nightMode .cloze { color: #64a9f3; }\n"
-          + ".nightMode .extra { border-color: #38383a; color: #98989d; }\n";
+          + ".nightMode .extra { border-color: #38383a; color: #e5e5ea; }\n"
+          + ".nightMode .meta { color: #8e8e93; }\n";
 
         var models = {};
         models[modelId] = {
@@ -3209,9 +3307,10 @@ ${buildApkg.toString()}
       function revisionMenuHtml(round, revision) {
         const lineage = round.next && typeof round.next === "object" ? round.next : {};
         const hasWrong = revision.wrong.length > 0;
-        const hasFlagged = revision.flagged.length > 0;
-        /* "Markierte & falsch beantwortete" lohnt sich nur, wenn es beides gibt.
-           Fehlt eine Seite, wäre die Auswahl deckungsgleich mit einer der anderen Optionen. */
+        const hasFlagged = revision.flagged.length > 0 || revision.marked.length > 0;
+        /* Der kombinierte Umfang lohnt sich nur, wenn es beide Seiten gibt —
+           sonst deckt er sich mit einer der anderen Optionen. «Markiert» meint
+           hier Fragen und einzelne Aussagen. */
         const usable = (scope) => (scope === "both" ? hasWrong && hasFlagged : revision[scope].length > 0);
         const entries = Object.keys(REVISION_SCOPES).map((scope) => {
           const list = revision[scope];
@@ -3220,8 +3319,9 @@ ${buildApkg.toString()}
           let meta;
           if (!usable(scope)) {
             if (scope === "both" && hasWrong) meta = "entspricht «Nur falsch beantwortete»";
-            else if (scope === "both" && hasFlagged) meta = "entspricht «Nur markierte»";
+            else if (scope === "both" && hasFlagged) meta = "entspricht der Markierten-Auswahl";
             else if (scope === "flagged") meta = "keine Frage markiert";
+            else if (scope === "marked") meta = "keine Aussage markiert";
             else meta = "nichts offen";
           } else if (done) {
             meta = `bereits angelegt · ${escapeHtml(state.rounds[lineage[scope]].label)}`;
@@ -3247,7 +3347,7 @@ ${buildApkg.toString()}
         const selections = {};
         Object.keys(EXPORT_SCOPES).forEach((scope) => { selections[scope] = exportSelection(scope); });
         const hasWrong = selections.wrong.length > 0;
-        const hasFlagged = selections.flagged.length > 0;
+        const hasFlagged = selections.flagged.length > 0 || selections.marked.length > 0;
         /* Wie bei der Revision: der kombinierte Umfang ist nur sinnvoll, wenn es
            beides gibt, sonst deckt er sich mit einer der beiden anderen Optionen. */
         const usable = (scope) => (scope === "both" ? hasWrong && hasFlagged : selections[scope].length > 0);
@@ -3257,8 +3357,9 @@ ${buildApkg.toString()}
           let meta;
           if (!usable(scope)) {
             if (scope === "both" && hasWrong) meta = "entspricht «Nur falsch beantwortete»";
-            else if (scope === "both" && hasFlagged) meta = "entspricht «Nur markierte»";
+            else if (scope === "both" && hasFlagged) meta = "entspricht der Markierten-Auswahl";
             else if (scope === "flagged") meta = "keine Frage markiert";
+            else if (scope === "marked") meta = "keine Aussage markiert";
             else meta = "nichts offen";
           } else {
             meta = `${selection.length} ${selection.length === 1 ? "Frage" : "Fragen"} · ${statements} ${statements === 1 ? "Aussage" : "Aussagen"}`;
