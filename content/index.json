@@ -288,6 +288,11 @@
                       "type": "folder",
                       "title": "Week 2",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Week 4",
+                      "children": []
                     }
                   ]
                 }
