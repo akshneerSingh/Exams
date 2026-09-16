@@ -283,6 +283,11 @@
                       "type": "folder",
                       "title": "Week 3",
                       "children": []
+                    },
+                    {
+                      "type": "folder",
+                      "title": "Week 2",
+                      "children": []
                     }
                   ]
                 }
