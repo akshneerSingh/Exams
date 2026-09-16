@@ -273,7 +273,13 @@
                 {
                   "type": "folder",
                   "title": "Blut/Immunsystem",
-                  "children": []
+                  "children": [
+                    {
+                      "type": "folder",
+                      "title": "Week 1",
+                      "children": []
+                    }
+                  ]
                 }
               ]
             },
