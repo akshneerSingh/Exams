@@ -289,6 +289,18 @@
                           "title": "V2 Regulation der Haematopoiese",
                           "file": "content/quizzes/V2_Regulation_der_Haematopoiese_Modus_A.json",
                           "meta": "50 Fragen · 5 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "V3 Alterung Malignome Kprim Mod A",
+                          "file": "content/quizzes/V3_Alterung_Malignome_Kprim_Mod_A.json",
+                          "meta": "40 Fragen · 4 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "V4 Einfuehrung Immunologie 1 Kprim",
+                          "file": "content/quizzes/V4_Einfuehrung_Immunologie_1_Kprim.json",
+                          "meta": "30 Fragen · 3 Blöcke"
                         }
                       ]
                     },
