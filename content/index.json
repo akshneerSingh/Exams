@@ -283,6 +283,12 @@
                           "title": "V1 Haematopoiese I",
                           "file": "content/quizzes/V1_Haematopoiese_I_kprim_modusA.json",
                           "meta": "40 Fragen · 4 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "V2 Regulation der Haematopoiese",
+                          "file": "content/quizzes/V2_Regulation_der_Haematopoiese_Modus_A.json",
+                          "meta": "50 Fragen · 5 Blöcke"
                         }
                       ]
                     },
