@@ -442,6 +442,7 @@
     }
     .top-action:hover { border-color: #9eb2cb; background: var(--blue-soft); }
     .top-action--primary { border-color: var(--navy); color: white; background: var(--navy); }
+    .top-action__glyph { display: none; }
     .top-action--primary:hover { border-color: var(--navy-dark); color: white; background: var(--navy-dark); }
     .progress { height: 3px; background: #edf1f6; }
     .progress__bar { background: linear-gradient(90deg, var(--focus), var(--navy)); }
@@ -562,7 +563,38 @@
       .brand { min-width: 0; }
       .brand__eyebrow, .brand__subtitle { display: none; }
       .brand__title { max-width: 48vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .top-action { min-height: 38px; padding: 7px 10px; font-size: 12px; }
+      /* ==================== Kopfleiste auf dem Telefon ====================
+         Vier Knöpfe in derselben Grösse und Form, nur Symbole. Vorher stand
+         eine grosse blaue Kapsel neben Textzeichen in drei verschiedenen
+         Grössen — daher der unruhige Eindruck. */
+      .topbar__inner { gap: 4px; padding-left: 6px; padding-right: 6px; }
+      .top-action {
+        width: 38px; height: 38px; min-height: 38px;
+        padding: 0; display: grid; place-items: center;
+        border-radius: 11px; font-size: 12px;
+      }
+      .top-action svg { width: 20px; height: 20px; display: block; }
+      .top-action--back { width: 38px; }
+      /* Die Prüfungsschaltfläche tritt hier zurück: sie ist eines von vier
+         Werkzeugen, nicht der Hauptknopf. Die Regel muss die Nachtfarben
+         überstimmen, die weiter unten stehen. */
+      .top-action--primary,
+      html[data-theme="dark"] .top-action--primary,
+      html[data-theme="light"] .top-action--primary {
+        border-color: transparent;
+        color: var(--ink);
+        background: rgba(118,118,128,.16);
+        box-shadow: none;
+      }
+      html[data-theme="dark"] .top-action--primary { color: #f2f2f7; background: rgba(118,118,128,.28); }
+      .top-action--primary .top-action__label,
+      .top-action--primary .menu__caret { display: none; }
+      .top-action__glyph { display: grid; place-items: center; }
+      .brand { min-width: 0; flex: 1; }
+      .brand__title {
+        font-size: 15px; font-weight: 600; letter-spacing: -.015em;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
       .sidebar .panel { padding: 14px; }
       .question-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
       .question-card { padding: 24px 15px 18px; border-radius: 12px; }
@@ -1536,7 +1568,7 @@
       .topbar__spacer, .stats { display: none; }
       .top-action { flex: 0 0 auto; min-height: 40px; padding: 0 9px; }
       .top-action--back { display: inline-grid; place-items: center; width: 38px; padding: 0; }
-      .top-action--icon { width: 38px; }
+
 
       /* Statisch, damit die Liste nicht mehr am Knopf klebt. */
       .menu { position: static; }
@@ -1679,12 +1711,103 @@
     @media (prefers-reduced-motion: reduce) {
       .layout > .sidebar, .panel-scrim { transition: none !important; }
     }
+
+    /* ==================== Kopfleiste auf dem Telefon ====================
+       Zum Schluss, damit die Farbregeln der hellen und dunklen Fassung weiter
+       oben nicht wieder eine blaue Kapsel daraus machen. Vier gleich grosse
+       Symbolknöpfe statt eines Hauptknopfs neben drei Textzeichen. */
+    @media (max-width: 920px) {
+      /* Diese Datei trägt mehrere Themenschichten übereinander, die die
+         Schaltfläche jeweils neu einfärben. Hier hilft nur Vorrang erzwingen —
+         sonst bleibt die blaue Kapsel. */
+      .top-action {
+        width: 38px !important; height: 38px !important;
+        min-height: 38px !important; padding: 0 !important;
+        border-radius: 11px !important;
+        display: grid !important; place-items: center;
+      }
+      .top-action--primary {
+        color: var(--ink) !important;
+        background: rgba(118,118,128,.16) !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+      }
+      html[data-theme="dark"] .top-action--primary {
+        color: #f2f2f7 !important;
+        background: rgba(118,118,128,.26) !important;
+      }
+      .top-action--primary .top-action__label,
+      .top-action--primary .menu__caret { display: none; }
+      .top-action__glyph { display: grid; place-items: center; }
+      .top-action--primary[aria-expanded="true"] {
+        color: white !important;
+        background: var(--focus) !important;
+      }
+    }
+
+    /* ==================== Kopfleiste am Schreibtisch ====================
+       Ganz am Ende, weil die Themenblöcke darüber die Knöpfe mehrfach neu
+       einfärben. Ziel: eine Reihe, eine Höhe, eine Rundung — die Prüfung
+       behält ihre Beschriftung, tritt aber farblich zurück. */
+    @media (min-width: 921px) {
+      .topbar__inner { gap: 8px; }
+      .top-action {
+        height: 38px;
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 14px;
+        border-radius: 11px;
+        border: 1px solid transparent;
+        font-size: 13.5px;
+        font-weight: 500;
+        letter-spacing: -.012em;
+      }
+      .top-action svg { width: 19px; height: 19px; display: block; }
+      .top-action--back,
+      .top-action--icon { width: 38px; padding: 0; }
+
+      .top-action,
+      html[data-theme="light"] .top-action,
+      html[data-theme="dark"] .top-action {
+        color: var(--ink);
+        background: rgba(118,118,128,.14);
+      }
+      .top-action:hover,
+      html[data-theme="light"] .top-action:hover,
+      html[data-theme="dark"] .top-action:hover {
+        background: rgba(118,118,128,.24);
+      }
+      html[data-theme="dark"] .top-action,
+      html[data-theme="dark"] .top-action--primary { color: #f2f2f7; }
+
+      /* Die Prüfung ist der einzige Knopf mit Wort — das genügt als
+         Hervorhebung, eine gefüllte Fläche braucht es nicht. */
+      .top-action--primary,
+      .top-action--primary:hover,
+      html[data-theme="light"] .top-action--primary,
+      html[data-theme="dark"] .top-action--primary {
+        border-color: transparent;
+        background: rgba(118,118,128,.14);
+        box-shadow: none;
+      }
+      .top-action--primary:hover { background: rgba(118,118,128,.24); }
+      .top-action--primary[aria-expanded="true"],
+      html[data-theme="dark"] .top-action--primary[aria-expanded="true"] {
+        color: white;
+        background: var(--focus);
+      }
+      .menu__caret { opacity: .55; font-size: 10px; }
+      .top-action__glyph { display: none; }
+    }
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="topbar__inner">
-      <a class="top-action top-action--back" href="./" aria-label="Zurück zur Bibliothek" title="Zurück zur Bibliothek">&#8592;</a>
+      <a class="top-action top-action--back" href="./" aria-label="Zurück zur Bibliothek" title="Zurück zur Bibliothek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></a>
       <div class="brand">
         <div class="brand__eyebrow">Interaktive Kprim-Prüfung</div>
         <div class="brand__title" id="brandTitle">Kprim-Übungsprüfung</div>
@@ -1697,9 +1820,9 @@
         <span class="stat">Aussagen korrekt <b id="statementStat">0 / 0</b></span>
       </div>
       <button class="top-action top-action--icon" id="panelButton" type="button"
-              aria-expanded="false" aria-label="Übersicht" title="Übersicht">☰</button>
+              aria-expanded="false" aria-label="Übersicht" title="Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <div class="menu" id="examMenu">
-        <button class="top-action top-action--primary" id="examMenuButton" type="button" aria-haspopup="menu" aria-expanded="false">Prüfung<span class="menu__caret" aria-hidden="true">▾</span></button>
+        <button class="top-action top-action--primary" id="examMenuButton" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Prüfung"><span class="top-action__label">Prüfung</span><span class="menu__caret" aria-hidden="true">▾</span><span class="top-action__glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></span></button>
         <div class="menu__list menu__list--down" id="examMenuList" role="menu" hidden>
           <div class="menu__label">Ansicht</div>
           <button class="menu__item" id="resultsButton" type="button" role="menuitem">
@@ -1718,7 +1841,7 @@
         </div>
       </div>
       <div class="menu" id="settingsMenu">
-        <button class="top-action top-action--icon" id="settingsMenuButton" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Einstellungen" title="Einstellungen">⚙</button>
+        <button class="top-action top-action--icon" id="settingsMenuButton" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Einstellungen" title="Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 14.6a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.84 2.84l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.12a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06A2 2 0 1 1 4.1 16.9l.06-.06a1.7 1.7 0 0 0 .34-1.88 1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.12A1.7 1.7 0 0 0 4.68 8.8a1.7 1.7 0 0 0-.34-1.88l-.06-.06A2 2 0 1 1 7.12 4.02l.06.06a1.7 1.7 0 0 0 1.88.34h.08A1.7 1.7 0 0 0 10.2 2.86V3a2 2 0 1 1 4 0v.12a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.84 2.84l-.06.06a1.7 1.7 0 0 0-.34 1.88v.08a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 1 1 0 4h-.12a1.7 1.7 0 0 0-1.48 1.04z"/></svg></button>
         <div class="menu__list menu__list--down" id="settingsMenuList" role="menu" hidden>
           <div class="menu__label">Darstellung</div>
           <button class="menu__item" type="button" role="menuitemradio" data-theme-mode="light">
@@ -2163,6 +2286,24 @@
         if (current[key]) delete current[key]; else current[key] = true;
         saveProgress();
         renderAll();
+      }
+
+      /* Beim Öffnen dort weitermachen, wo noch etwas offen ist: die erste
+         unbeantwortete Frage der laufenden Runde. Vorher landete man immer
+         wieder auf der ersten Frage und musste sich selbst durchtippen. */
+      function resumeAtOpenQuestion() {
+        const round = activeRound();
+        if (!round || !round.items || !round.items.length) return;
+        const open = round.items.findIndex((item) => !answerIn(round, item.q));
+        if (open <= 0) return;                 /* alles offen oder alles gelöst */
+
+        state.current = open;
+        /* Liegt die Frage ausserhalb des aktiven Themenblocks, den Filter
+           mitziehen — sonst zeigte der Navigator sie gar nicht an. */
+        if (!visiblePositions().includes(open)) {
+          state.filter = questions[round.items[open].q].block || "Alle";
+          if (!visiblePositions().includes(open)) state.filter = "Alle";
+        }
       }
 
       function toggleFlag(qIndex) {
@@ -3588,6 +3729,7 @@ ${buildApkg.toString()}
         $("#brandSubtitle").textContent = exam.subtitle || "Interaktive Prüfung";
         restoreProgress();
         state.filter = defaultFilter();
+        resumeAtOpenQuestion();
         renderAll();
 
         bindMenu("examMenu");
