@@ -318,7 +318,26 @@
                     {
                       "type": "folder",
                       "title": "Week 2",
-                      "children": []
+                      "children": [
+                        {
+                          "type": "quiz",
+                          "title": "V5 Myelopoese Erythropoese KPRIM Modus A Standard",
+                          "file": "content/quizzes/V5_Myelopoese_Erythropoese_KPRIM_Modus_A_Standard.json",
+                          "meta": "40 Fragen · 4 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "V6 Leukozyten KPRIM Modus A Standard",
+                          "file": "content/quizzes/V6_Leukozyten_KPRIM_Modus_A_Standard.json",
+                          "meta": "50 Fragen · 5 Blöcke"
+                        },
+                        {
+                          "type": "quiz",
+                          "title": "V7 Lymphatisches System KPRIM Modus A Anatomie",
+                          "file": "content/quizzes/V7_Lymphatisches_System_KPRIM_Modus_A_Anatomie.json",
+                          "meta": "30 Fragen · 3 Blöcke"
+                        }
+                      ]
                     },
                     {
                       "type": "folder",
