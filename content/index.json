@@ -279,12 +279,6 @@
                       "title": "Week 1",
                       "children": [
                         {
-                          "type": "quiz",
-                          "title": "V2 Regulation der Haematopoiese Kprim ModA",
-                          "file": "content/quizzes/V2_Regulation_der_Haematopoiese_Kprim_ModA.json",
-                          "meta": "30 Fragen · 3 Blöcke"
-                        },
-                        {
                           "type": "folder",
                           "title": "Mock 1",
                           "children": [
@@ -310,6 +304,12 @@
                               "type": "quiz",
                               "title": "V5 Immunologie 2 KPRIM Modus A Standard",
                               "file": "content/quizzes/V5_Immunologie_2_KPRIM_Modus_A_Standard.json",
+                              "meta": "30 Fragen · 3 Blöcke"
+                            },
+                            {
+                              "type": "quiz",
+                              "title": "V2 Regulation der Haematopoiese Kprim ModA",
+                              "file": "content/quizzes/V2_Regulation_der_Haematopoiese_Kprim_ModA.json",
                               "meta": "30 Fragen · 3 Blöcke"
                             }
                           ]
