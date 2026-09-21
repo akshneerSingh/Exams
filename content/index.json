@@ -307,6 +307,11 @@
                           "title": "V5 Immunologie 2 KPRIM Modus A Standard",
                           "file": "content/quizzes/V5_Immunologie_2_KPRIM_Modus_A_Standard.json",
                           "meta": "30 Fragen · 3 Blöcke"
+                        },
+                        {
+                          "type": "folder",
+                          "title": "Mock 1",
+                          "children": []
                         }
                       ]
                     },
