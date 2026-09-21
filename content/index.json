@@ -280,38 +280,39 @@
                       "children": [
                         {
                           "type": "quiz",
-                          "title": "V1 Haematopoiese I kprim modusA",
-                          "file": "content/quizzes/V1_Haematopoiese_I_kprim_modusA.json",
-                          "meta": "40 Fragen · 4 Blöcke"
-                        },
-                        {
-                          "type": "quiz",
                           "title": "V2 Regulation der Haematopoiese Kprim ModA",
                           "file": "content/quizzes/V2_Regulation_der_Haematopoiese_Kprim_ModA.json",
                           "meta": "30 Fragen · 3 Blöcke"
                         },
                         {
-                          "type": "quiz",
-                          "title": "V3 Alterung Malignome Kprim Modus A",
-                          "file": "content/quizzes/V3_Alterung_Malignome_Kprim_Modus_A.json",
-                          "meta": "30 Fragen · 3 Blöcke"
-                        },
-                        {
-                          "type": "quiz",
-                          "title": "V4 Einfuehrung Immunologie 1 Modus A",
-                          "file": "content/quizzes/V4_Einfuehrung_Immunologie_1_Modus_A.json",
-                          "meta": "40 Fragen · 4 Blöcke"
-                        },
-                        {
-                          "type": "quiz",
-                          "title": "V5 Immunologie 2 KPRIM Modus A Standard",
-                          "file": "content/quizzes/V5_Immunologie_2_KPRIM_Modus_A_Standard.json",
-                          "meta": "30 Fragen · 3 Blöcke"
-                        },
-                        {
                           "type": "folder",
                           "title": "Mock 1",
-                          "children": []
+                          "children": [
+                            {
+                              "type": "quiz",
+                              "title": "V1 Haematopoiese I kprim modusA",
+                              "file": "content/quizzes/V1_Haematopoiese_I_kprim_modusA.json",
+                              "meta": "40 Fragen · 4 Blöcke"
+                            },
+                            {
+                              "type": "quiz",
+                              "title": "V3 Alterung Malignome Kprim Modus A",
+                              "file": "content/quizzes/V3_Alterung_Malignome_Kprim_Modus_A.json",
+                              "meta": "30 Fragen · 3 Blöcke"
+                            },
+                            {
+                              "type": "quiz",
+                              "title": "V4 Einfuehrung Immunologie 1 Modus A",
+                              "file": "content/quizzes/V4_Einfuehrung_Immunologie_1_Modus_A.json",
+                              "meta": "40 Fragen · 4 Blöcke"
+                            },
+                            {
+                              "type": "quiz",
+                              "title": "V5 Immunologie 2 KPRIM Modus A Standard",
+                              "file": "content/quizzes/V5_Immunologie_2_KPRIM_Modus_A_Standard.json",
+                              "meta": "30 Fragen · 3 Blöcke"
+                            }
+                          ]
                         }
                       ]
                     },
