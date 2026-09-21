@@ -313,6 +313,11 @@
                               "meta": "30 Fragen · 3 Blöcke"
                             }
                           ]
+                        },
+                        {
+                          "type": "folder",
+                          "title": "Mock 2",
+                          "children": []
                         }
                       ]
                     },
